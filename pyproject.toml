@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "django-pgschemas"
+version = "0.1.0"
+description = ""
+authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.black]
+line-length = 120
+py36 = true

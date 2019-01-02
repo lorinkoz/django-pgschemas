@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import connections, DEFAULT_DB_ALIAS
+from django.db import connection, DEFAULT_DB_ALIAS
 
 
 def get_tenant_model():
@@ -68,7 +68,6 @@ def django_is_in_test_mode():
 
 
 def schema_exists(schema_name):
-    connection = connections[get_tenant_database_alias()]
     cursor = connection.cursor()
     cursor.execute(
         "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE LOWER(nspname) = LOWER(%s))", (schema_name,)
@@ -90,7 +89,6 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
     check_schema_name(schema_name)
     if check_if_exists and schema_exists(schema_name):
         return False
-    connection = connections[get_tenant_database_alias()]
     cursor = connection.cursor()
     cursor.execute("CREATE SCHEMA %s" % schema_name)
     if sync_schema:
@@ -101,7 +99,6 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
 def drop_schema(schema_name, check_if_exists=True, verbosity=1):
     if check_if_exists and not schema_exists(schema_name):
         return False
-    connection = connections[get_tenant_database_alias()]
     cursor = connection.cursor()
     cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
     return True

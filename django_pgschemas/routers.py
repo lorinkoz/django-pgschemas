@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.conf import settings
-from django.db import connections
+from django.db import connection
 
 from .utils import get_tenant_database_alias
 
@@ -16,10 +16,9 @@ class SyncRouter(object):
         return (app_config.name in app_list) or (app_config_full_name in app_list)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if db != get_tenant_database_alias():
+        if db != get_tenant_database_alias() or not hasattr(connection, "schema_name"):
             return False
         app_list = []
-        connection = connections[db]
         if connection.schema_name == "public":
             app_list = settings.TENANTS["public"]["APPS"]
         elif connection.schema_name in settings.TENANTS:

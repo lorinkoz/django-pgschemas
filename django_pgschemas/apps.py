@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
 
 from .utils import get_tenant_model
 
@@ -34,8 +35,6 @@ class DjangoPGSchemasConfig(AppConfig):
     """
 
     def ready(self):
-        from django.db import connection
-
         if not isinstance(getattr(settings, "TENANTS", None), dict):
             raise ImproperlyConfigured("TENANTS dict setting not set.")
 

@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.db import models, connection, connections, transaction
+from django.db import models, connection, transaction
 
 from .postgresql_backend.base import check_schema_name
 from .signals import schema_post_sync, schema_needs_sync, schema_pre_drop
-from .utils import schema_exists, create_schema, drop_schema, get_domain_model, get_tenant_database_alias
+from .utils import schema_exists, create_schema, drop_schema, get_domain_model
 
 
 class TenantMixin(models.Model):
@@ -43,12 +43,10 @@ class TenantMixin(models.Model):
                 # run some code in tenant test
             # run some code in previous tenant (public probably)
         """
-        connection = connections[get_tenant_database_alias()]
         self.previous_schema = connection.schema_name
         self.activate()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        connection = connections[get_tenant_database_alias()]
         connection.set_schema(self.previous_schema)
 
     def activate(self):
@@ -58,7 +56,6 @@ class TenantMixin(models.Model):
         Usage:
             Tenant.objects.get(schema_name='test').activate()
         """
-        connection = connections[get_tenant_database_alias()]
         connection.set_schema(self.schema_name)
 
     @classmethod
@@ -71,11 +68,9 @@ class TenantMixin(models.Model):
             # or simpler
             Tenant.deactivate()
         """
-        connection = connections[get_tenant_database_alias()]
         connection.set_schema_to_public()
 
     def save(self, verbosity=1, *args, **kwargs):
-        connection = connections[get_tenant_database_alias()]
         is_new = self.pk is None
         super().save(*args, **kwargs)
 

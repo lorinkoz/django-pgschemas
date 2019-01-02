@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from ._executors import standard, multiproc
+from ._executors import sequential, parallel
 from ...utils import get_tenant_model, create_schema
 
 WILDCARD_ALL = ":all:"
 WILDCARD_STATIC = ":static:"
 WILDCARD_DYNAMIC = ":dynamic:"
 
-EXECUTORS = {"standard": standard, "multiproc": multiproc}
+EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
 
 class WrappedSchemaOption(object):
@@ -27,7 +27,7 @@ class WrappedSchemaOption(object):
         parser.add_argument(
             "--executor",
             dest="executor",
-            default="standard",
+            default="sequential",
             choices=EXECUTORS,
             help="Executor to be used for running command on schemas",
         )
@@ -108,10 +108,15 @@ class DynamicTenantCommand(WrappedSchemaOption, BaseCommand):
     allow_dynamic = True
 
     def handle(self, *args, **options):
-        TenantModel = get_tenant_model()
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
-        executor(schemas, self, lambda cmd, schema: cmd.handle_tenant(TenantModel.objects.get(schema_name=schema)))
+        executor(schemas, type(self), "_raw_handle_tenant", args, options, pass_schema_in_kwargs=True)
+
+    def _raw_handle_tenant(self, *args, **kwargs):
+        TenantModel = get_tenant_model()
+        schema_name = kwargs.pop("schema_name")
+        tenant = TenantModel.objects.get(schema_name=schema_name)
+        self.handle_tenant(tenant, *args, **kwargs)
 
     def handle_tenant(self, tenant, *args, **options):
         pass

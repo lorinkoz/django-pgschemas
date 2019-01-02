@@ -1,7 +1,8 @@
 import argparse
+import sys
 
 from django.core.management import call_command, get_commands, load_command_class
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, SystemCheckError
 
 from . import WrappedSchemaOption
 
@@ -13,16 +14,22 @@ class Command(WrappedSchemaOption, BaseCommand):
         super().add_arguments(parser)
         parser.add_argument("command_name", help="The command name you want to run")
 
-    def command_from_arg(self, arg):
+    def get_command_from_arg(self, arg):
         *chunks, command = arg.split(".")
         path = ".".join(chunks)
         if not path:
             path = get_commands().get(command)
             if not path:
                 raise CommandError("Unknown command: %s" % arg)
-            return load_command_class(path, command)
+            cmd = load_command_class(path, command)
+            if isinstance(cmd, WrappedSchemaOption):
+                raise CommandError("Command '%s' cannot be used in runschema" % arg)
+            return cmd
         try:
-            return load_command_class(path, command)
+            cmd = load_command_class(path, command)
+            if isinstance(cmd, WrappedSchemaOption):
+                raise CommandError("Command '%s' cannot be used in runschema" % arg)
+            return cmd
         except Exception:
             raise CommandError("Unknown command: %s" % arg)
 
@@ -32,26 +39,34 @@ class Command(WrappedSchemaOption, BaseCommand):
         Adds schema parameter to specify which schema will be used when
         executing the wrapped command.
         """
-        # load the command object.
-        if len(argv) <= 2:
-            return
-        target_class = self.command_from_arg(argv[2])
-        # Ugly, but works. Delete command_name from the argv, parse the schema manually
-        # and forward the rest of the arguments to the actual command being wrapped.
-        del argv[1]
-        schema_parser = argparse.ArgumentParser()
-        super().add_arguments(schema_parser)
-        schema_ns, args = schema_parser.parse_known_args(argv)
+        try:
+            # load the command object.
+            if len(argv) <= 2:
+                return
+            target_class = self.get_command_from_arg(argv[2])
+            # Ugly, but works. Delete command_name from the argv, parse the schema manually
+            # and forward the rest of the arguments to the actual command being wrapped.
+            del argv[1]
+            schema_parser = argparse.ArgumentParser()
+            super().add_arguments(schema_parser)
+            schema_ns, args = schema_parser.parse_known_args(argv)
 
-        schemas = self.get_schemas_from_options(schema=schema_ns.schema)
-        executor = self.get_executor_from_options(executor=schema_ns.executor)
-        executor(schemas, target_class, lambda cmd, schema: cmd.run_from_argv(args))
+            schemas = self.get_schemas_from_options(schema=schema_ns.schema)
+            executor = self.get_executor_from_options(executor=schema_ns.executor)
+            executor(schemas, type(target_class), "special:run_from_argv", args)
+        except CommandError as e:
+            # SystemCheckError takes care of its own formatting.
+            if isinstance(e, SystemCheckError):
+                self.stderr.write(str(e), lambda x: x)
+            else:
+                self.stderr.write("%s: %s" % (e.__class__.__name__, e))
+            sys.exit(1)
 
     def handle(self, *args, **options):
-        target = self.command_from_arg(options.pop("command_name"))
+        target = self.get_command_from_arg(options.pop("command_name"))
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
         options.pop("schema")
         options.pop("executor")
         options.pop("skip_schema_creation")
-        executor(schemas, target, lambda cmd, schema: call_command(cmd, *args, **options))
+        executor(schemas, type(target), "special:call_command", args, options)

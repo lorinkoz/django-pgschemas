@@ -3,7 +3,7 @@ from django.db import models, connection, connections, transaction
 
 from .postgresql_backend.base import check_schema_name
 from .signals import schema_post_sync, schema_needs_sync
-from .utils import schema_exists, create_schema, get_domain_model, get_tenant_database_alias
+from .utils import schema_exists, create_schema, drop_schema, get_domain_model, get_tenant_database_alias
 
 
 class TenantMixin(models.Model):
@@ -11,17 +11,17 @@ class TenantMixin(models.Model):
     All tenant models must inherit this class.
     """
 
-    autodrop_schema = False
-    """
-    USE THIS WITH CAUTION!
-    Set this flag to true on a parent class if you want the schema to be
-    automatically deleted if the tenant row gets deleted.
-    """
-
     auto_create_schema = True
     """
     Set this flag to false on a parent class if you don't want the schema
     to be automatically created upon save.
+    """
+
+    auto_drop_schema = False
+    """
+    USE THIS WITH CAUTION!
+    Set this flag to true on a parent class if you want the schema to be
+    automatically deleted if the tenant row gets deleted.
     """
 
     schema_name = models.CharField(max_length=63, unique=True, validators=[check_schema_name])
@@ -77,19 +77,9 @@ class TenantMixin(models.Model):
     def save(self, verbosity=1, *args, **kwargs):
         connection = connections[get_tenant_database_alias()]
         is_new = self.pk is None
-        has_schema = hasattr(connection, "schema_name")
-        # if has_schema and is_new and connection.schema_name != "public":
-        #     raise Exception(
-        #         "Can't create tenant outside the public schema. Current schema is %s." % connection.schema_name
-        #     )
-        # elif has_schema and not is_new and connection.schema_name not in (self.schema_name, "public"):
-        #     raise Exception(
-        #         "Can't update tenant outside it's own schema or the public schema. Current schema is %s."
-        #         % connection.schema_name
-        #     )
         super().save(*args, **kwargs)
 
-        if has_schema and is_new and self.auto_create_schema:
+        if is_new and self.auto_create_schema:
             try:
                 self.create_schema(check_if_exists=True, verbosity=verbosity)
                 schema_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
@@ -112,10 +102,10 @@ class TenantMixin(models.Model):
 
     def delete(self, force_drop=False, *args, **kwargs):
         """
-        Deletes this row. Drops the tenant's schema if the attribute
-        autodrop_schema set to True.
+        Deletes this row. Drops the tenant's schema if the attribute auto_drop_schema is True.
         """
-        self.drop_schema(force_drop)
+        if force_drop or self.auto_drop_schema:
+            self.drop_schema()
         super().delete(*args, **kwargs)
 
     def serializable_fields(self):
@@ -130,26 +120,11 @@ class TenantMixin(models.Model):
         """
         return create_schema(self.schema_name, check_if_exists, sync_schema, verbosity)
 
-    def drop_schema(self, force_drop=False):
+    def drop_schema(self):
         """
         Drops the schema.
         """
-        connection = connections[get_tenant_database_alias()]
-        has_schema = hasattr(connection, "schema_name")
-        # if has_schema and connection.schema_name not in (self.schema_name, "public"):
-        #     raise Exception(
-        #         "Can't delete tenant outside it's own schema or the public schema. Current schema is %s."
-        #         % connection.schema_name
-        #     )
-        if has_schema and schema_exists(self.schema_name) and (self.autodrop_schema or force_drop):
-            self.pre_drop()
-            cursor = connection.cursor()
-            cursor.execute("DROP SCHEMA %s CASCADE" % self.schema_name)
-
-    def pre_drop(self):
-        """
-        This is a routine which you could override to backup the tenant schema before dropping.
-        """
+        return drop_schema(self.schema_name)
 
     def get_primary_domain(self):
         """

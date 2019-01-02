@@ -96,3 +96,12 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
     if sync_schema:
         call_command("migrate_schemas", schema=schema_name, verbosity=verbosity)
     return True
+
+
+def drop_schema(schema_name, check_if_exists=True, verbosity=1):
+    if check_if_exists and not schema_exists(schema_name):
+        return False
+    connection = connections[get_tenant_database_alias()]
+    cursor = connection.cursor()
+    cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
+    return True

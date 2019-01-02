@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models, connection, connections, transaction
 
 from .postgresql_backend.base import check_schema_name
-from .signals import schema_post_sync, schema_needs_sync
+from .signals import schema_post_sync, schema_needs_sync, schema_pre_drop
 from .utils import schema_exists, create_schema, drop_schema, get_domain_model, get_tenant_database_alias
 
 
@@ -105,6 +105,7 @@ class TenantMixin(models.Model):
         Deletes this row. Drops the tenant's schema if the attribute auto_drop_schema is True.
         """
         if force_drop or self.auto_drop_schema:
+            schema_pre_drop.send(sender=TenantMixin, tenant=self.serializable_fields())
             self.drop_schema()
         super().delete(*args, **kwargs)
 

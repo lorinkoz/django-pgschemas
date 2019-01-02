@@ -6,6 +6,10 @@ from django.core.management.base import BaseCommand, CommandError
 
 from ...utils import get_tenant_model, create_schema
 
+WILDCARD_ALL = ":all:"
+WILDCARD_STATIC = ":static:"
+WILDCARD_DYNAMIC = ":dynamic:"
+
 
 class WrappedSchemaOption(object):
     allow_static = True
@@ -13,7 +17,12 @@ class WrappedSchemaOption(object):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "-s", "--schema", nargs="?", default=":all:", dest="schema", help="Schema to execute the current command"
+            "-s",
+            "--schema",
+            nargs="?",
+            default=WILDCARD_ALL,
+            dest="schema",
+            help="Schema to execute the current command",
         )
         parser.add_argument(
             "--no-create-schemas",
@@ -33,21 +42,24 @@ class WrappedSchemaOption(object):
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema")
 
+        if not schema:
+            raise CommandError("No schema provided")
+
         TenantModel = get_tenant_model()
         static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if self.allow_static else []
         dynamic_schemas = TenantModel.objects.values_list("schema_name", flat=True) if self.allow_dynamic else []
 
-        if schema == ":all:":
+        if schema == WILDCARD_ALL:
             if not self.allow_static and not self.allow_dynamic:
-                raise CommandError("Schema wildcard :all: is now allowed")
+                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_ALL)
             return static_schemas + list(dynamic_schemas)
-        elif schema == ":static:":
+        elif schema == WILDCARD_STATIC:
             if not self.allow_static:
-                raise CommandError("Schema wildcard :static: is now allowed")
+                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_STATIC)
             return static_schemas
-        elif schema == ":dynamic:":
+        elif schema == WILDCARD_DYNAMIC:
             if not self.allow_dynamic:
-                raise CommandError("Schema wildcard :dynamic: is now allowed")
+                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_DYNAMIC)
             return list(dynamic_schemas)
         elif schema in settings.TENANTS and schema != "default" and self.allow_static:
             return [schema]

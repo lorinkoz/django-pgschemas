@@ -1,14 +1,14 @@
-import os
-import sys
-
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from ._executors import standard, multiproc
 from ...utils import get_tenant_model, create_schema
 
 WILDCARD_ALL = ":all:"
 WILDCARD_STATIC = ":static:"
 WILDCARD_DYNAMIC = ":dynamic:"
+
+EXECUTORS = {"standard": standard, "multiproc": multiproc}
 
 
 class WrappedSchemaOption(object):
@@ -20,9 +20,16 @@ class WrappedSchemaOption(object):
             "-s",
             "--schema",
             nargs="?",
-            default=WILDCARD_ALL,
             dest="schema",
+            default=WILDCARD_ALL,
             help="Schema to execute the current command",
+        )
+        parser.add_argument(
+            "--executor",
+            dest="executor",
+            default="standard",
+            choices=EXECUTORS,
+            help="Executor to be used for running command on schemas",
         )
         parser.add_argument(
             "--no-create-schemas",
@@ -38,6 +45,9 @@ class WrappedSchemaOption(object):
             for schema in schemas:
                 create_schema(schema, check_if_exists=True, sync_schema=False, verbosity=0)
         return schemas
+
+    def get_executor_from_options(self, **options):
+        return EXECUTORS[options.get("executor")]
 
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema")
@@ -92,9 +102,6 @@ class WrappedSchemaOption(object):
 
         return domain_matching_schemas
 
-    def print_switch_schema(self, schema):
-        sys.stdout.write(self.style.NOTICE("====== Switching to schema: {} ======{}".format(schema, os.linesep)))
-
 
 class DynamicTenantCommand(WrappedSchemaOption, BaseCommand):
     allow_static = False
@@ -103,11 +110,8 @@ class DynamicTenantCommand(WrappedSchemaOption, BaseCommand):
     def handle(self, *args, **options):
         TenantModel = get_tenant_model()
         schemas = self.get_schemas_from_options(**options)
-        for schema in schemas:
-            self.print_switch_schema(schema)
-            connection.set_schema(schema)
-            for tenant in TenantModel.objects.filter(schema_name=schema):
-                self.handle_tenant(tenant, *args, **options)
+        executor = self.get_executor_from_options(**options)
+        executor(schemas, self, lambda cmd, schema: cmd.handle_tenant(TenantModel.objects.get(schema_name=schema)))
 
     def handle_tenant(self, tenant, *args, **options):
         pass

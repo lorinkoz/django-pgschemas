@@ -2,7 +2,6 @@ import argparse
 
 from django.core.management import call_command, get_commands, load_command_class
 from django.core.management.base import BaseCommand, CommandError
-from django.db import connection
 
 from . import WrappedSchemaOption
 
@@ -43,21 +42,16 @@ class Command(WrappedSchemaOption, BaseCommand):
         schema_parser = argparse.ArgumentParser()
         super().add_arguments(schema_parser)
         schema_ns, args = schema_parser.parse_known_args(argv)
-        current_schema = getattr(connection, "schema_name", "public")
-        for schema in self.get_schemas_from_options(schema=schema_ns.schema):
-            self.print_switch_schema(schema)
-            connection.set_schema(schema)
-            target_class.run_from_argv(args)
-        connection.set_schema(current_schema)
+
+        schemas = self.get_schemas_from_options(schema=schema_ns.schema)
+        executor = self.get_executor_from_options(executor=schema_ns.executor)
+        executor(schemas, target_class, lambda cmd, schema: cmd.run_from_argv(args))
 
     def handle(self, *args, **options):
         target = self.command_from_arg(options.pop("command_name"))
         schemas = self.get_schemas_from_options(**options)
+        executor = self.get_executor_from_options(**options)
         options.pop("schema")
+        options.pop("executor")
         options.pop("skip_schema_creation")
-        current_schema = getattr(connection, "schema_name", "public")
-        for schema in schemas:
-            self.print_switch_schema(schema)
-            connection.set_schema(schema)
-            call_command(target, *args, **options)
-        connection.set_schema(current_schema)
+        executor(schemas, target, lambda cmd, schema: call_command(cmd, *args, **options))

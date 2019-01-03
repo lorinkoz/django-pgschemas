@@ -62,4 +62,4 @@ def parallel(schemas, command_class, function_name, args=[], kwargs={}, pass_sch
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
-    pool.map(runner, schemas, 1)
+    pool.map(runner, schemas)

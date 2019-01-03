@@ -9,7 +9,7 @@ from .utils import remove_www, get_domain_model
 class TenantMiddleware:
     """
     This middleware should be placed at the very top of the middleware stack.
-    Selects the proper static/database schema using the request host. Can fail in
+    Selects the proper static/dynamic schema using the request host. Can fail in
     various ways which is better than corrupting or revealing data.
     """
 

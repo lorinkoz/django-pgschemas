@@ -103,4 +103,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# vscode
 .vscode/
+
+# local only by design
+poetry.lock
+setup.py

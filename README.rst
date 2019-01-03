@@ -13,6 +13,10 @@ django-pgschemas
    :alt: Join the chat at https://gitter.im/django-pgschemas
    :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
+.. image:: https://readthedocs.org/projects/django-pgschemas/badge/?version=latest
+    :alt: Documentation status
+    :target: https://django-pgschemas.readthedocs.io/
+
 Schemas
 -------
 

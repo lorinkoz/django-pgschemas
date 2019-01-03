@@ -4,8 +4,8 @@ Installation
 Make sure you have the dependencies installed:
 
 * python (3.5+)
-* django = (2.0+)
-* psycopg2-binary = (2.7+)
+* django (2.0+)
+* psycopg2-binary (2.7+)
 
 Install ``django-pgschemas``.
 

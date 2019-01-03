@@ -3,6 +3,12 @@
 [![Packaging: poetry](https://img.shields.io/badge/packaging-poetry-purple.svg)](https://github.com/sdispater/poetry)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
+## Schemas
+
+This app uses PostgreSQL schemas to support data multi-tenancy in a single Django project. For an accurate description on schemas, see [the official documentation](https://www.postgresql.org/docs/9.1/ddl-schemas.html).
+
+The terms _schema_ and _tenant_ are used indistinctly all over the documentation. However, it is important to note some subtle differences between the two. We consider a _tenant_ to be a subset of data that can be accessed with a URL (routed), and we use database _schemas_ for that purpose. Still, there can be schemas that shouldn't be considered tenants according to our definition. One good example is the `public` schema, which contains data shared across all tenants. That said, remember that every tenant is a schema, but not every schema is a tenant.
+
 ## Usage
 
 Use `django_pgschemas.postgresql_backend` as your database engine.
@@ -40,7 +46,6 @@ Add the minimal tenant configuration.
 TENANTS = {
     "public": {
         "APPS": [
-            "django.contrib.auth",
             "django.contrib.contenttypes",
             "django.contrib.staticfiles",
             # ...
@@ -54,6 +59,7 @@ TENANTS = {
     # ...
     "default": {
         "APPS": [
+            "django.contrib.auth",
             "django.contrib.sessions",
             # ...
             "tenant_app",
@@ -73,6 +79,7 @@ TENANTS = {
     # ...
     "www": {
         "APPS": [
+            "django.contrib.auth",
             "django.contrib.sessions",
             # ...
             "main_app",
@@ -82,6 +89,7 @@ TENANTS = {
     },
     "blog": {
         "APPS": [
+            "django.contrib.auth",
             "django.contrib.sessions",
             # ...
             "blog_app",
@@ -137,6 +145,40 @@ Create the first dynamic tenant.
 ```
 
 Now any request made to `client1.mydomain.com` will automatically set PostgreSQL's `search_path` to `client1` and `public`, making shared apps available too. Also, any request to `blog.mydomain.com` or `help.mydomain.com` will set `search_path` to `blog` and `public`. This means that any call to the methods `filter`, `get`, `save`, `delete` or any other function involving a database connection will now be done at the correct schema, be it static or dynamic.
+
+## Management commands
+
+Management commands provided by Django or any 3rd party app will run by default on the `public` schema. To run a command on a specific tenant, you can use the provided command `runschema`.
+
+```bash
+python manage.py runschema shell -s tenant1
+python manage.py runschema loaddata tenant_app.Products -s :dynamic:
+```
+
+We provide a custom `migrate_schemas` command (also aliased as `migrate`) that is capable of running migrations on specific schemas.
+
+```bash
+# all schemas
+python manage.py migrate
+
+# static schemas only
+python manage.py migrate -s :static:
+
+# dynamic schemas only
+python manage.py migrate -s :dynamic:
+
+# specific schema by exact schema name
+python manage.py migrate -s tenant1
+
+# specific schema by partially matched domain (startswith)
+python manage.py migrate -s help.mydomain
+```
+
+## Gotchas
+
+1. It is enforced that `django.contrib.contenttypes` should live in the `public` schema. This is to guarantee that content types from all apps/tenants are stored in a single place.
+
+2. It is enforced that `django.contrib.sessions` can only live in schemas where the app that defines the user model also lives. The user app is `django.contrib.auth` by default, but could be changed via `AUTH_USER_MODEL` setting. This is to guarantee that session information is not leaked across tenants that do not share the same user base.
 
 ## Credits
 

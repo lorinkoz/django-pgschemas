@@ -5,13 +5,12 @@ import sys
 from django.conf import settings
 from django.core.management import call_command, color
 from django.core.management.base import OutputWrapper, CommandError
+from django.db import connection
 
 
 def run_on_schema(
     schema_name, executor_codename, command_class, function_name=None, args=[], kwargs={}, pass_schema_in_kwargs=False
 ):
-    from django.db import connection
-
     style = color.color_style()
     stdout = OutputWrapper(sys.stdout)
     stderr = OutputWrapper(sys.stderr)
@@ -43,7 +42,8 @@ def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_s
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
-    map(runner, schemas)
+    for schema in schemas:
+        runner(schema)
 
 
 def parallel(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):

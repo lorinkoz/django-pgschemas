@@ -19,19 +19,13 @@ class Command(WrappedSchemaOption, BaseCommand):
         path = ".".join(chunks)
         if not path:
             path = get_commands().get(command)
-            if not path:
-                raise CommandError("Unknown command: %s" % arg)
-            cmd = load_command_class(path, command)
-            if isinstance(cmd, WrappedSchemaOption):
-                raise CommandError("Command '%s' cannot be used in runschema" % arg)
-            return cmd
         try:
             cmd = load_command_class(path, command)
-            if isinstance(cmd, WrappedSchemaOption):
-                raise CommandError("Command '%s' cannot be used in runschema" % arg)
-            return cmd
         except Exception:
             raise CommandError("Unknown command: %s" % arg)
+        if isinstance(cmd, WrappedSchemaOption):
+            raise CommandError("Command '%s' cannot be used in runschema" % arg)
+        return cmd
 
     def run_from_argv(self, argv):
         """
@@ -53,14 +47,17 @@ class Command(WrappedSchemaOption, BaseCommand):
 
             schemas = self.get_schemas_from_options(schema=schema_ns.schema)
             executor = self.get_executor_from_options(executor=schema_ns.executor)
-            executor(schemas, type(target_class), "special:run_from_argv", args)
-        except CommandError as e:
+        except Exception as e:
+            if not isinstance(e, CommandError):
+                raise
             # SystemCheckError takes care of its own formatting.
             if isinstance(e, SystemCheckError):
                 self.stderr.write(str(e), lambda x: x)
             else:
                 self.stderr.write("%s: %s" % (e.__class__.__name__, e))
             sys.exit(1)
+
+        executor(schemas, type(target_class), "special:run_from_argv", args)
 
     def handle(self, *args, **options):
         target = self.get_command_from_arg(options.pop("command_name"))

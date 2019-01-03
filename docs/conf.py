@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "django-pgschemas"
-copyright = "2019, Lorenzo Peña"
-author = "Lorenzo Peña"
+copyright = u"2019, Lorenzo Peña"
+author = u"Lorenzo Peña"
 
 # The short X.Y version
 version = ""
@@ -123,7 +123,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "django-pgschemas.tex", "django-pgschemas Documentation", "Lorenzo Peña", "manual")]
+latex_documents = [(master_doc, "django-pgschemas.tex", "django-pgschemas Documentation", u"Lorenzo Peña", "manual")]
 
 
 # -- Options for manual page output ------------------------------------------

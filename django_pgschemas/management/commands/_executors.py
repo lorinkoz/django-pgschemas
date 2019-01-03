@@ -5,7 +5,7 @@ import sys
 from django.conf import settings
 from django.core.management import call_command, color
 from django.core.management.base import OutputWrapper, CommandError
-from django.db import connection
+from django.db import connection, transaction, connections
 
 
 def run_on_schema(
@@ -21,6 +21,7 @@ def run_on_schema(
     )
     command = command_class(stdout=stdout, stderr=stderr)
 
+    connections.close_all()
     connection.set_schema(schema_name)
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})
@@ -30,6 +31,9 @@ def run_on_schema(
         command.run_from_argv(args)
     else:
         getattr(command, function_name)(*args, **kwargs)
+
+    transaction.commit()
+    connection.close()
 
 
 def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
@@ -47,7 +51,6 @@ def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_s
 
 
 def parallel(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
-    raise CommandError("Parallel executor is not ready to be used yet")
     processes = getattr(settings, "PGSCHEMAS_MULTIPROCESSING_MAX_PROCESSES", None)
     pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(

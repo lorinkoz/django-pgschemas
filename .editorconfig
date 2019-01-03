@@ -2,7 +2,7 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = true
-[*.{toml,md,py}]
+[*.{toml,rst,py}]
 charset = utf-8
 indent_size = 4
 indent_style = space

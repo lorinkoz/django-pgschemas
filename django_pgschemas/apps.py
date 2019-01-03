@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 
@@ -35,6 +36,8 @@ class DjangoPGSchemasConfig(AppConfig):
     """
 
     def ready(self):
+        user_app = get_user_model()._meta.app_config.name
+
         if not isinstance(getattr(settings, "TENANTS", None), dict):
             raise ImproperlyConfigured("TENANTS dict setting not set.")
 
@@ -60,12 +63,18 @@ class DjangoPGSchemasConfig(AppConfig):
 
         # Custom schemas
         for schema in settings.TENANTS:
-            if schema in ["public", "default"]:
-                continue
-            if not isinstance(settings.TENANTS[schema].get("DOMAINS"), list):
-                raise ImproperlyConfigured("TENANTS['%s'] must contain a 'DOMAINS' list." % schema)
-            if "django.contrib.contenttypes" in settings.TENANTS[schema].get("APPS", []):
-                raise ImproperlyConfigured("'django.contrib.contenttypes' must be on 'public' schema.")
+            schema_apps = settings.TENANTS[schema].get("APPS", [])
+            if ("django.contrib.sessions" in schema_apps and user_app not in schema_apps) or (
+                user_app in schema_apps and "django.contrib.sessions" not in schema_apps
+            ):
+                raise ImproperlyConfigured(
+                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app
+                )
+            if schema not in ["public", "default"]:
+                if not isinstance(settings.TENANTS[schema].get("DOMAINS"), list):
+                    raise ImproperlyConfigured("TENANTS['%s'] must contain a 'DOMAINS' list." % schema)
+                if "django.contrib.contenttypes" in schema_apps:
+                    raise ImproperlyConfigured("'django.contrib.contenttypes' must be on 'public' schema.")
 
         # Other checks
         if "django_pgschemas.routers.SyncRouter" not in settings.DATABASE_ROUTERS:

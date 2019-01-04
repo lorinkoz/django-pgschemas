@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from ._executors import sequential, parallel
-from ...utils import get_tenant_model, create_schema
+from ...utils import get_tenant_model, create_schema, get_clone_sample
 from ...volatile import VolatileTenant
 
 WILDCARD_ALL = ":all:"
@@ -71,6 +71,7 @@ class WrappedSchemaOption(object):
         schema = options.get("schema", "")
         allow_static = self.scope & SchemaScope.STATIC
         allow_dynamic = self.scope & SchemaScope.DYNAMIC
+        clone_sample = get_clone_sample()
 
         if not schema:
             if not self.interactive:
@@ -87,11 +88,12 @@ class WrappedSchemaOption(object):
         TenantModel = get_tenant_model()
         static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
         dynamic_schemas = TenantModel.objects.values_list("schema_name", flat=True) if allow_dynamic else []
+        sample_schemas = [clone_sample] if clone_sample else []
 
         if schema == WILDCARD_ALL:
             if not allow_static and not allow_dynamic:
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_ALL)
-            return static_schemas + list(dynamic_schemas)
+            return static_schemas + list(dynamic_schemas) + sample_schemas
         elif schema == WILDCARD_STATIC:
             if not allow_static:
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_STATIC)
@@ -99,8 +101,10 @@ class WrappedSchemaOption(object):
         elif schema == WILDCARD_DYNAMIC:
             if not allow_dynamic:
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_DYNAMIC)
-            return list(dynamic_schemas)
+            return list(dynamic_schemas) + sample_schemas
         elif schema in settings.TENANTS and schema != "default" and allow_static:
+            return [schema]
+        elif schema == clone_sample and allow_dynamic:
             return [schema]
         elif TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
             return [schema]

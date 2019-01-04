@@ -3,7 +3,7 @@ from django.db import models, transaction
 
 from .postgresql_backend.base import check_schema_name
 from .signals import schema_post_sync, schema_needs_sync, schema_pre_drop
-from .utils import schema_exists, create_schema, drop_schema, get_domain_model
+from .utils import schema_exists, create_or_clone_schema, drop_schema, get_domain_model
 from .volatile import VolatileTenant
 
 
@@ -46,7 +46,7 @@ class TenantMixin(VolatileTenant, models.Model):
 
         if is_new and self.auto_create_schema:
             try:
-                self.create_schema(check_if_exists=True, verbosity=verbosity)
+                self.create_schema(verbosity=verbosity)
                 schema_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the tenant, delete what we created and re-raise the exception
@@ -58,7 +58,7 @@ class TenantMixin(VolatileTenant, models.Model):
         elif not is_new and self.auto_create_schema and not schema_exists(self.schema_name):
             # Create schemas for existing models, deleting only the schema on failure
             try:
-                self.create_schema(check_if_exists=True, verbosity=verbosity)
+                self.create_schema(verbosity=verbosity)
                 schema_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the schema, delete what we created and re-raise the exception
@@ -80,11 +80,11 @@ class TenantMixin(VolatileTenant, models.Model):
         """
         return self
 
-    def create_schema(self, check_if_exists=False, sync_schema=True, verbosity=1):
+    def create_schema(self, sync_schema=True, verbosity=1):
         """
-        Creates the schema 'schema_name' for this tenant.
+        Creates or clones the schema 'schema_name' for this tenant.
         """
-        return create_schema(self.schema_name, check_if_exists, sync_schema, verbosity)
+        return create_or_clone_schema(self.schema_name, sync_schema, verbosity)
 
     def drop_schema(self):
         """

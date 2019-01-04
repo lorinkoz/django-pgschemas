@@ -24,8 +24,8 @@ def get_limit_set_calls():
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
 
-def get_creation_fakes_migrations():
-    return getattr(settings, "PGSCHEMAS_CREATION_FAKES_MIGRATIONS", False)
+def get_clone_sample():
+    return settings.TENANTS["default"].get("CLONE_SAMPLE", None)
 
 
 def is_valid_identifier(identifier):

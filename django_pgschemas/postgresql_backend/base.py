@@ -88,13 +88,3 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             else:
                 self.search_path_set = True
         return cursor
-
-
-class VolatileTenant:
-    """
-    We can't import any db model in a backend (apparently?), so this class is used
-    for wrapping schema names in a tenant-like structure.
-    """
-
-    def __init__(self, schema_name):
-        self.schema_name = schema_name

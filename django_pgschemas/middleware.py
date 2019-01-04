@@ -2,8 +2,8 @@ from django.conf import settings
 from django.db import connection
 from django.http import Http404
 
-from .postgresql_backend.base import VolatileTenant
 from .utils import remove_www, get_domain_model
+from .volatile import VolatileTenant
 
 
 class TenantMiddleware:
@@ -27,8 +27,7 @@ class TenantMiddleware:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = VolatileTenant(schema_name=schema)
-                tenant.domain_url = hostname
+                tenant = VolatileTenant.create(schema_name=schema, domain_url=hostname)
                 request.tenant = tenant
                 if "URLCONF" in data:
                     request.urlconf = data["URLCONF"]
@@ -44,6 +43,6 @@ class TenantMiddleware:
                 raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
             tenant.domain_url = hostname
             request.tenant = tenant
-            request.urlconf = settings.ROOT_URLCONF
+            request.urlconf = settings.TENANTS["default"]["URLCONF"]
             connection.set_schema(request.tenant.schema_name)
             return self.get_response(request)

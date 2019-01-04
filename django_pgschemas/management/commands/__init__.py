@@ -26,7 +26,6 @@ class WrappedSchemaOption(object):
     specific_schemas = None
 
     def add_arguments(self, parser):
-        parser.add_argument("-s", "--schema", dest="schema", help="Schema to execute the current command")
         if self.interactive:
             parser.add_argument(
                 "--noinput",
@@ -35,6 +34,7 @@ class WrappedSchemaOption(object):
                 dest="interactive",
                 help="Tells Django to NOT prompt the user for input of any kind.",
             )
+        parser.add_argument("-s", "--schema", dest="schema", help="Schema to execute the current command")
         parser.add_argument(
             "--executor",
             dest="executor",
@@ -75,7 +75,7 @@ class WrappedSchemaOption(object):
         if not schema:
             if not self.interactive:
                 schema = WILDCARD_ALL
-            elif options["interactive"]:
+            elif options.get("interactive", True):
                 schema = input(
                     "Enter schema to run command (leave blank for running on %s schemas): " % self.get_scope_display()
                 ).strip()

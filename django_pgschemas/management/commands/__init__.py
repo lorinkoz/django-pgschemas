@@ -16,13 +16,13 @@ class WrappedSchemaOption(object):
     allow_dynamic = True
 
     def add_arguments(self, parser):
+        parser.add_argument("-s", "--schema", dest="schema", help="Schema to execute the current command")
         parser.add_argument(
-            "-s",
-            "--schema",
-            nargs="?",
-            dest="schema",
-            default=WILDCARD_ALL,
-            help="Schema to execute the current command",
+            "--noinput",
+            "--no-input",
+            action="store_false",
+            dest="interactive",
+            help="Tells Django to NOT prompt the user for input of any kind.",
         )
         parser.add_argument(
             "--executor",
@@ -50,10 +50,15 @@ class WrappedSchemaOption(object):
         return EXECUTORS[options.get("executor")]
 
     def _get_schemas_from_options(self, **options):
-        schema = options.get("schema")
+        schema = options.get("schema", "")
 
         if not schema:
-            raise CommandError("No schema provided")
+            if options["interactive"]:
+                schema = input("Enter schema to run command (leave blank for running on 'all' schemas): ").strip()
+                if not schema:
+                    schema = WILDCARD_ALL
+            else:
+                raise CommandError("No schema provided")
 
         TenantModel = get_tenant_model()
         static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if self.allow_static else []
@@ -94,7 +99,7 @@ class WrappedSchemaOption(object):
             )
 
         if not domain_matching_schemas:
-            raise CommandError("No tenant found for schema '%s'" % schema)
+            raise CommandError("No schema found for '%s'" % schema)
         if len(domain_matching_schemas) > 1:
             raise CommandError(
                 "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema

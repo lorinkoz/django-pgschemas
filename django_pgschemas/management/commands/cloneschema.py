@@ -4,8 +4,7 @@ from distutils.util import strtobool
 
 from django.core.management.base import BaseCommand, CommandError
 
-from ...clone import clone_schema
-from ...utils import get_tenant_model, get_domain_model
+from ...utils import get_tenant_model, get_domain_model, clone_schema
 
 
 class Command(BaseCommand):

@@ -23,6 +23,7 @@ class SchemaScope(Flag):
 class WrappedSchemaOption(object):
     interactive = True
     scope = SchemaScope.ALL
+    specific_schemas = None
 
     def add_arguments(self, parser):
         parser.add_argument("-s", "--schema", dest="schema", help="Schema to execute the current command")
@@ -51,6 +52,10 @@ class WrappedSchemaOption(object):
     def get_schemas_from_options(self, **options):
         skip_schema_creation = options.get("skip_schema_creation", False)
         schemas = self._get_schemas_from_options(**options)
+        if self.specific_schemas is not None:
+            schemas = [x for x in schemas if x in self.specific_schemas]
+        if not schemas:
+            raise CommandError("This command can only run in %s" % self.specific_schemas)
         if not skip_schema_creation:
             for schema in schemas:
                 create_schema(schema, check_if_exists=True, sync_schema=False, verbosity=0)
@@ -58,6 +63,9 @@ class WrappedSchemaOption(object):
 
     def get_executor_from_options(self, **options):
         return EXECUTORS[options.get("executor")]
+
+    def get_scope_display(self):
+        return self.specific_schemas or self.scope.name.lower()
 
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema", "")
@@ -69,7 +77,7 @@ class WrappedSchemaOption(object):
                 schema = WILDCARD_ALL
             elif options["interactive"]:
                 schema = input(
-                    "Enter schema to run command (leave blank for running on '%s' schemas): " % self.scope.name
+                    "Enter schema to run command (leave blank for running on %s schemas): " % self.get_scope_display()
                 ).strip()
                 if not schema:
                     schema = WILDCARD_ALL

@@ -31,7 +31,7 @@ class TenantMiddleware:
                 request.tenant = tenant
                 if "URLCONF" in data:
                     request.urlconf = data["URLCONF"]
-                connection.set_schema(schema)
+                connection.set_schema(schema, hostname)
                 return self.get_response(request)
         # Checking for dynamic tenants
         else:
@@ -44,5 +44,5 @@ class TenantMiddleware:
             tenant.domain_url = hostname
             request.tenant = tenant
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
-            connection.set_schema(request.tenant.schema_name)
+            connection.set_schema(request.tenant.schema_name, request.tenant.domain_url)
             return self.get_response(request)

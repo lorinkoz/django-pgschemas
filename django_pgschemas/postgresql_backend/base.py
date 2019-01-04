@@ -36,12 +36,13 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
         self.search_path_set = False
         super().close()
 
-    def set_schema(self, schema_name, include_public=True):
+    def set_schema(self, schema_name, domain_url=None, include_public=True):
         """
         Main API method to current database schema,
         but it does not actually modify the db connection.
         """
         self.schema_name = schema_name
+        self.domain_url = domain_url
         self.include_public_schema = include_public
         self.search_path_set = False
 

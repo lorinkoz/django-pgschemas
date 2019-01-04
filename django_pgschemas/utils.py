@@ -71,7 +71,7 @@ def run_in_public_schema(func):
     def wrapper(*args, **kwargs):
         from .volatile import VolatileTenant
 
-        with VolatileTenant.create(schema_name="public", domain_url=None):
+        with VolatileTenant.create(schema_name="public"):
             return func(*args, **kwargs)
 
     return wrapper

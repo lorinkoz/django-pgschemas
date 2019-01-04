@@ -29,7 +29,7 @@ class TenantMixin(VolatileTenant, models.Model):
 
     domain_url = None
     """
-    Leave this as None. Stores the current domain url so it can be used in the logs
+    Leave this as None. Stores the effective domain url.
     """
 
     is_dynamic = True

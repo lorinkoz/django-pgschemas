@@ -67,6 +67,16 @@ def django_is_in_test_mode():
     return hasattr(mail, "outbox")
 
 
+def run_in_public_schema(func):
+    def wrapper(*args, **kwargs):
+        from .volatile import VolatileTenant
+
+        with VolatileTenant.create(schema_name="public", domain_url=None):
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
 def schema_exists(schema_name):
     cursor = connection.cursor()
     cursor.execute(
@@ -81,6 +91,7 @@ def schema_exists(schema_name):
     return exists
 
 
+@run_in_public_schema
 def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosity=1):
     """
     Creates the schema 'schema_name'. Optionally checks if the schema already
@@ -96,6 +107,7 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
     return True
 
 
+@run_in_public_schema
 def drop_schema(schema_name, check_if_exists=True, verbosity=1):
     if check_if_exists and not schema_exists(schema_name):
         return False

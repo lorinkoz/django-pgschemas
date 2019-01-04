@@ -7,9 +7,11 @@ authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
 readme = "README.rst"
 repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
-keywords = ["django", "postgresql", "tenants", "schemas", "multi-tenancy"]
+keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgresql"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 2.0",
 ]
 
 [tool.poetry.dependencies]

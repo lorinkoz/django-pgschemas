@@ -6,9 +6,20 @@ from django.utils.module_loading import import_string
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 
-from ..utils import remove_www, get_domain_model
+from ..utils import remove_www, get_tenant_model, get_domain_model
 from ..volatile import VolatileTenant
 from .auth import TenantAuthMiddlewareStack
+
+
+class TenantAwareProtocolTypeRouter(ProtocolTypeRouter):
+    def __init__(self, application_mapping, tenant_prefix):
+        self.tenant_prefix = tenant_prefix
+        super().__init__(application_mapping)
+
+    def __call__(self, scope):
+        if scope["type"] != "http":
+            scope["path"] = scope["path"][len(self.tenant_prefix) + 1 :]
+        return super().__call__(scope)
 
 
 class TenantProtocolRouter:
@@ -43,26 +54,33 @@ class TenantProtocolRouter:
                 tenant = VolatileTenant.create(schema_name=schema, domain_url=hostname)
                 if "WS_URLCONF" in data:
                     ws_urlconf = data["WS_URLCONF"]
-                return tenant, import_string(ws_urlconf + ".urlpatterns")
+                return tenant, "", import_string(ws_urlconf + ".urlpatterns")
+
         # Checking for dynamic tenants
         else:
             DomainModel = get_domain_model()
+            prefix = scope["path"].split("/")[1]
             try:
-                domain = DomainModel.objects.select_related("tenant").get(domain=hostname)
-                tenant = domain.tenant
+                domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder=prefix)
             except DomainModel.DoesNotExist:
-                raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+                try:
+                    domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder="")
+                except DomainModel.DoesNotExist:
+                    raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+            tenant = domain.tenant
             tenant.domain_url = hostname
             ws_urlconf = settings.TENANTS["default"]["WS_URLCONF"]
-            return tenant, import_string(ws_urlconf + ".urlpatterns")
+            return tenant, prefix if prefix == domain.folder else "", import_string(ws_urlconf + ".urlpatterns")
 
-    def get_protocol_type_router(self, ws_urlconf):
+    def get_protocol_type_router(self, tenant_prefix, ws_urlconf):
         """
         Subclasses can override this to include more protocols.
         """
-        return ProtocolTypeRouter({"websocket": TenantAuthMiddlewareStack(URLRouter(ws_urlconf))})
+        return TenantAwareProtocolTypeRouter(
+            {"websocket": TenantAuthMiddlewareStack(URLRouter(ws_urlconf))}, tenant_prefix
+        )
 
     def __call__(self, scope):
-        tenant, ws_urlconf = self.get_tenant_scope(scope)
+        tenant, tenant_prefix, ws_urlconf = self.get_tenant_scope(scope)
         scope.update({"tenant": tenant})
-        return self.get_protocol_type_router(ws_urlconf)(scope)
+        return self.get_protocol_type_router(tenant_prefix, ws_urlconf)(scope)

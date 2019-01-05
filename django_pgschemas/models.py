@@ -108,12 +108,20 @@ class DomainMixin(models.Model):
     All models that store the domains must inherit this class.
     """
 
-    domain = models.CharField(max_length=253, unique=True, db_index=True)
+    domain = models.CharField(max_length=253, db_index=True)
+    folder = models.SlugField(max_length=253, blank=True, db_index=True)
     tenant = models.ForeignKey(
         settings.TENANTS["public"]["TENANT_MODEL"], db_index=True, related_name="domains", on_delete=models.CASCADE
     )
 
     is_primary = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+        unique_together = (("domain", "folder"),)
+
+    def __str__(self):
+        return "/".join([self.domain, self.folder]) if self.folder else self.domain
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -122,6 +130,3 @@ class DomainMixin(models.Model):
         if self.is_primary:
             domain_list.update(is_primary=False)
         super().save(*args, **kwargs)
-
-    class Meta:
-        abstract = True

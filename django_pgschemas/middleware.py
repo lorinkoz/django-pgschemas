@@ -1,8 +1,13 @@
+import sys
+from types import ModuleType
+
 from django.conf import settings
 from django.db import connection
 from django.http import Http404
+from django.utils.module_loading import import_string
 
-from .utils import remove_www, get_domain_model
+from .urlresolvers import tenant_patterns
+from .utils import remove_www, get_tenant_model, get_domain_model
 from .volatile import VolatileTenant
 
 
@@ -33,16 +38,29 @@ class TenantMiddleware:
                     request.urlconf = data["URLCONF"]
                 connection.set_schema(schema, hostname)
                 return self.get_response(request)
+
         # Checking for dynamic tenants
         else:
             DomainModel = get_domain_model()
+            prefix = request.path.split("/")[1]
             try:
-                domain = DomainModel.objects.select_related("tenant").get(domain=hostname)
-                tenant = domain.tenant
+                domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder=prefix)
             except DomainModel.DoesNotExist:
-                raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+                try:
+                    domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder="")
+                except DomainModel.DoesNotExist:
+                    raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+            tenant = domain.tenant
             tenant.domain_url = hostname
             request.tenant = tenant
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
+            if domain.folder == prefix:
+                dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._prefixed"
+                prefixed_url_module = ModuleType(dynamic_path)
+                prefixed_url_module.urlpatterns = tenant_patterns(
+                    *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
+                )
+                sys.modules[dynamic_path] = prefixed_url_module
+                request.urlconf = dynamic_path
             connection.set_schema(request.tenant.schema_name, request.tenant.domain_url)
             return self.get_response(request)

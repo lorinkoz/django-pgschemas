@@ -1,3 +1,3 @@
-from .migrate_schemas import MigrateSchemasCommand
+from .migrateschema import MigrateSchemaCommand
 
-Command = MigrateSchemasCommand
+Command = MigrateSchemaCommand

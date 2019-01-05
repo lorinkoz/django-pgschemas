@@ -154,8 +154,8 @@ static schemas either one by one or using the ``:static:`` wildcard.
 
 .. code-block:: bash
 
-    python manage.py migrate_schemas -s public
-    python manage.py migrate_schemas -s :static:
+    python manage.py migrateschema -s public
+    python manage.py migrateschema -s :static:
 
 Create the first dynamic tenant.
 

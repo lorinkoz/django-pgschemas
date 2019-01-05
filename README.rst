@@ -169,8 +169,8 @@ static schemas either one by one or using the ``:static:`` wildcard.
 
 .. code-block:: bash
 
-    python manage.py migrate_schemas -s public
-    python manage.py migrate_schemas -s :static:
+    python manage.py migrateschema -s public
+    python manage.py migrateschema -s :static:
 
 Create the first dynamic tenant.
 
@@ -198,7 +198,7 @@ the provided command ``runschema``.
     python manage.py runschema shell -s tenant1
     python manage.py runschema loaddata tenant_app.Products -s :dynamic:
 
-We provide a custom ``migrate_schemas`` command (also aliased as ``migrate``)
+We provide a custom ``migrateschema`` command (also aliased as ``migrate``)
 that is capable of running migrations on specific schemas.
 
 .. code-block:: bash

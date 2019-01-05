@@ -66,6 +66,6 @@ class Command(WrappedSchemaOption, BaseCommand):
         options.pop("schema")
         options.pop("executor")
         options.pop("skip_schema_creation")
-        if self.interactive:
+        if self.allow_interactive:
             options.pop("interactive")
         executor(schemas, type(target), "special:call_command", args, options)

@@ -72,7 +72,7 @@ class TenantTestCase(TestCase):
 
     @classmethod
     def sync_public(cls):
-        call_command("migrate_schemas", schema="public", verbosity=0)
+        call_command("migrateschema", schema="public", verbosity=0)
 
     @classmethod
     def get_test_tenant_domain(cls):

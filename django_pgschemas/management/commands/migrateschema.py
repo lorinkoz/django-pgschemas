@@ -6,15 +6,15 @@ from .runschema import Command as RunSchemaCommand
 
 
 class NonInteractiveRunSchemaCommand(RunSchemaCommand):
-    interactive = False
+    allow_interactive = False
 
 
-class MigrateSchemasCommand(WrappedSchemaOption, BaseCommand):
-    interactive = False
+class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
+    allow_interactive = False
 
     def handle(self, *args, **options):
         runschema = NonInteractiveRunSchemaCommand()
         management.call_command(runschema, "django.core.migrate", *args, **options)
 
 
-Command = MigrateSchemasCommand
+Command = MigrateSchemaCommand

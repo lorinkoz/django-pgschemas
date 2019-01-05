@@ -2,7 +2,6 @@ import re
 
 from django.apps import apps
 from django.conf import settings
-from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import connection, transaction, ProgrammingError, DEFAULT_DB_ALIAS
@@ -24,8 +23,8 @@ def get_limit_set_calls():
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
 
-def get_clone_sample():
-    return settings.TENANTS["default"].get("CLONE_SAMPLE", None)
+def get_clone_reference():
+    return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
 
 
 def is_valid_identifier(identifier):
@@ -57,14 +56,6 @@ def remove_www(hostname):
     if hostname.startswith("www."):
         return hostname[4:]
     return hostname
-
-
-def django_is_in_test_mode():
-    """
-    I know this is very ugly! I'm looking for more elegant solutions.
-    See: http://stackoverflow.com/questions/6957016/detect-django-testing-mode
-    """
-    return hasattr(mail, "outbox")
 
 
 def run_in_public_schema(func):
@@ -103,7 +94,7 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
     cursor = connection.cursor()
     cursor.execute("CREATE SCHEMA %s" % schema_name)
     if sync_schema:
-        call_command("migrate_schemas", schema=schema_name, verbosity=verbosity)
+        call_command("migrateschema", schema=schema_name, verbosity=verbosity)
     return True
 
 
@@ -362,8 +353,8 @@ def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
     check_schema_name(schema_name)
     if schema_exists(schema_name):
         return False
-    clone_sample = get_clone_sample()
-    if clone_sample and schema_exists(clone_sample):
-        clone_schema(clone_sample, schema_name)
+    clone_reference = get_clone_reference()
+    if clone_reference and schema_exists(clone_reference):
+        clone_schema(clone_reference, schema_name)
         return True
     return create_schema(schema_name, sync_schema=sync_schema, verbosity=verbosity)

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from ._executors import sequential, parallel
-from ...utils import get_tenant_model, create_schema, get_clone_sample
+from ...utils import get_tenant_model, create_schema, get_clone_reference
 from ...volatile import VolatileTenant
 
 WILDCARD_ALL = ":all:"
@@ -21,12 +21,14 @@ class SchemaScope(Flag):
 
 
 class WrappedSchemaOption(object):
-    interactive = True
     scope = SchemaScope.ALL
     specific_schemas = None
 
+    allow_interactive = True
+    allow_wildcards = True
+
     def add_arguments(self, parser):
-        if self.interactive:
+        if self.allow_interactive:
             parser.add_argument(
                 "--noinput",
                 "--no-input",
@@ -65,20 +67,20 @@ class WrappedSchemaOption(object):
         return EXECUTORS[options.get("executor")]
 
     def get_scope_display(self):
-        return self.specific_schemas or self.scope.name.lower()
+        return "|".join(self.specific_schemas or []) or self.scope.name.lower()
 
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema", "")
         allow_static = self.scope & SchemaScope.STATIC
         allow_dynamic = self.scope & SchemaScope.DYNAMIC
-        clone_sample = get_clone_sample()
+        clone_reference = get_clone_reference()
 
         if not schema:
-            if not self.interactive:
+            if not self.allow_interactive:
                 schema = WILDCARD_ALL
             elif options.get("interactive", True):
                 schema = input(
-                    "Enter schema to run command (leave blank for running on %s schemas): " % self.get_scope_display()
+                    "Enter schema to run command (leave blank for running on '%s' schemas): " % self.get_scope_display()
                 ).strip()
                 if not schema:
                     schema = WILDCARD_ALL
@@ -88,23 +90,24 @@ class WrappedSchemaOption(object):
         TenantModel = get_tenant_model()
         static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
         dynamic_schemas = TenantModel.objects.values_list("schema_name", flat=True) if allow_dynamic else []
-        sample_schemas = [clone_sample] if clone_sample else []
+        if clone_reference and allow_static:
+            static_schemas.append(clone_reference)
 
         if schema == WILDCARD_ALL:
-            if not allow_static and not allow_dynamic:
+            if not self.allow_wildcards or (not allow_static and not allow_dynamic):
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_ALL)
-            return static_schemas + list(dynamic_schemas) + sample_schemas
+            return static_schemas + list(dynamic_schemas)
         elif schema == WILDCARD_STATIC:
-            if not allow_static:
+            if not self.allow_wildcards or not allow_static:
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_STATIC)
             return static_schemas
         elif schema == WILDCARD_DYNAMIC:
-            if not allow_dynamic:
+            if not self.allow_wildcards or not allow_dynamic:
                 raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_DYNAMIC)
-            return list(dynamic_schemas) + sample_schemas
+            return list(dynamic_schemas)
         elif schema in settings.TENANTS and schema != "default" and allow_static:
             return [schema]
-        elif schema == clone_sample and allow_dynamic:
+        elif schema == clone_reference:
             return [schema]
         elif TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
             return [schema]
@@ -147,6 +150,9 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
         if schema_name in settings.TENANTS:
             domains = settings.TENANTS[schema_name].get("DOMAINS", [])
             tenant = VolatileTenant.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+            self.handle_tenant(tenant, *args, **kwargs)
+        elif schema_name == get_clone_reference():
+            tenant = VolatileTenant.create(schema_name=schema_name)
             self.handle_tenant(tenant, *args, **kwargs)
         else:
             TenantModel = get_tenant_model()

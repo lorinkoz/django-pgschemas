@@ -1,5 +1,5 @@
-Introduction
-============
+Overview
+========
 
 This app uses PostgreSQL schemas to support data multi-tenancy in a single
 Django project. Schemas are a layer of separation between databases and tables,

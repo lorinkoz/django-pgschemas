@@ -6,9 +6,9 @@ from django.db import connection
 from django.http import Http404
 from django.utils.module_loading import import_string
 
+from .schema import SchemaDescriptor
 from .urlresolvers import tenant_patterns
 from .utils import remove_www, get_tenant_model, get_domain_model
-from .volatile import VolatileTenant
 
 
 class TenantMiddleware:
@@ -32,7 +32,7 @@ class TenantMiddleware:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = VolatileTenant.create(schema_name=schema, domain_url=hostname)
+                tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
                 request.tenant = tenant
                 if "URLCONF" in data:
                     request.urlconf = data["URLCONF"]

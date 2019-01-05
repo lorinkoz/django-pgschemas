@@ -2,12 +2,12 @@ from django.conf import settings
 from django.db import models, transaction
 
 from .postgresql_backend.base import check_schema_name
+from .schema import SchemaDescriptor
 from .signals import schema_post_sync, schema_needs_sync, schema_pre_drop
 from .utils import schema_exists, create_or_clone_schema, drop_schema, get_domain_model
-from .volatile import VolatileTenant
 
 
-class TenantMixin(VolatileTenant, models.Model):
+class TenantMixin(SchemaDescriptor, models.Model):
     """
     All tenant models must inherit this class.
     """

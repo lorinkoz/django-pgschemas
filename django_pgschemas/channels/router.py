@@ -6,8 +6,8 @@ from django.utils.module_loading import import_string
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 
+from ..schema import SchemaDescriptor
 from ..utils import remove_www, get_tenant_model, get_domain_model
-from ..volatile import VolatileTenant
 from .auth import TenantAuthMiddlewareStack
 
 
@@ -51,7 +51,7 @@ class TenantProtocolRouter:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = VolatileTenant.create(schema_name=schema, domain_url=hostname)
+                tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
                 if "WS_URLCONF" in data:
                     ws_urlconf = data["WS_URLCONF"]
                 return tenant, "", import_string(ws_urlconf + ".urlpatterns")

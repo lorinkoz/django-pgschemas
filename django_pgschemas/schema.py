@@ -1,12 +1,12 @@
 from django.db import connection
 
 
-class VolatileTenant:
+class SchemaDescriptor:
     is_dynamic = False
 
     @staticmethod
     def create(schema_name, domain_url=None):
-        tenant = VolatileTenant()
+        tenant = SchemaDescriptor()
         tenant.schema_name = schema_name
         tenant.domain_url = domain_url
         return tenant

@@ -6,8 +6,8 @@ from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 
 from ._executors import sequential, parallel
+from ...schema import SchemaDescriptor
 from ...utils import get_tenant_model, create_schema, get_clone_reference
-from ...volatile import VolatileTenant
 
 WILDCARD_ALL = ":all:"
 WILDCARD_STATIC = ":static:"
@@ -154,10 +154,10 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
         schema_name = kwargs.pop("schema_name")
         if schema_name in settings.TENANTS:
             domains = settings.TENANTS[schema_name].get("DOMAINS", [])
-            tenant = VolatileTenant.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+            tenant = SchemaDescriptor.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
             self.handle_tenant(tenant, *args, **kwargs)
         elif schema_name == get_clone_reference():
-            tenant = VolatileTenant.create(schema_name=schema_name)
+            tenant = SchemaDescriptor.create(schema_name=schema_name)
             self.handle_tenant(tenant, *args, **kwargs)
         else:
             TenantModel = get_tenant_model()

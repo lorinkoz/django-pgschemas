@@ -60,9 +60,9 @@ def remove_www(hostname):
 
 def run_in_public_schema(func):
     def wrapper(*args, **kwargs):
-        from .volatile import VolatileTenant
+        from .schema import SchemaDescriptor
 
-        with VolatileTenant.create(schema_name="public"):
+        with SchemaDescriptor.create(schema_name="public"):
             return func(*args, **kwargs)
 
     return wrapper

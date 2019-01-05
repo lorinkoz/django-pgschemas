@@ -2,6 +2,8 @@ from enum import Flag
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import CharField, Q, Value as V
+from django.db.models.functions import Concat
 
 from ._executors import sequential, parallel
 from ...utils import get_tenant_model, create_schema, get_clone_reference
@@ -124,7 +126,10 @@ class WrappedSchemaOption(object):
 
         if allow_dynamic:
             domain_matching_schemas += (
-                TenantModel.objects.filter(domains__domain__istartswith=schema)
+                TenantModel.objects.annotate(
+                    route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                )
+                .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
                 .distinct()
                 .values_list("schema_name", flat=True)
             )

@@ -10,7 +10,9 @@ Welcome to django-pgschemas's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   setup
+   intro
+   basic
+   advanced
    credits
 
 

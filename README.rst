@@ -56,7 +56,7 @@ of ``MIDDLEWARE``, so that each request can be set to use the correct schema.
 
     MIDDLEWARE = (
         "django_pgschemas.middleware.TenantMainMiddleware",
-        #...
+        # ...
     )
 
 Add ``django_pgschemas.routers.SyncRouter`` to your ``DATABASE_ROUTERS``, so
@@ -66,7 +66,7 @@ that the correct apps can be synced, depending on the target schema.
 
     DATABASE_ROUTERS = (
         "django_pgschemas.routers.SyncRouter",
-        #...
+        # ...
     )
 
 Add the minimal tenant configuration.
@@ -196,7 +196,7 @@ the provided command ``runschema``.
 .. code-block:: bash
 
     python manage.py runschema shell -s tenant1
-    python manage.py runschema loaddata tenant_app.Products -s :dynamic:
+    python manage.py runschema loaddata tenant_app.products -s :dynamic:
 
 We provide a custom ``migrateschema`` command (also aliased as ``migrate``)
 that is capable of running migrations on specific schemas.

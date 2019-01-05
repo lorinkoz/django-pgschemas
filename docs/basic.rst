@@ -1,22 +1,25 @@
 Installation
 ============
 
-Make sure you have the dependencies installed:
+This app requires:
 
 * python (3.5+)
 * django (2.0+)
 * psycopg2-binary (2.7+)
 
-Install ``django-pgschemas``.
+You can install ``django-pgschemas`` via ``pip``, ``pipenv`` or any other
+installer.
 
 .. code-block:: bash
 
     pip install django-pgschemas
+    pipenv install django-pgschemas
 
 Basic Configuration
 ===================
 
-Use ``django_pgschemas.postgresql_backend`` as your database engine.
+Use ``django_pgschemas.postgresql_backend`` as your database engine. This
+enables the API for setting PostgreSQL search path
 
 .. code-block:: python
 
@@ -34,7 +37,7 @@ of ``MIDDLEWARE``, so that each request can be set to use the correct schema.
 
     MIDDLEWARE = (
         "django_pgschemas.middleware.TenantMainMiddleware",
-        #...
+        # ...
     )
 
 Add ``django_pgschemas.routers.SyncRouter`` to your ``DATABASE_ROUTERS``, so
@@ -44,7 +47,7 @@ that the correct apps can be synced, depending on the target schema.
 
     DATABASE_ROUTERS = (
         "django_pgschemas.routers.SyncRouter",
-        #...
+        # ...
     )
 
 Add the minimal tenant configuration.
@@ -78,9 +81,28 @@ Add the minimal tenant configuration.
     }
 
 Each entry in the ``TENANTS`` dictionary represents a static tenant, except for
-``default``, which controls the settings for dynamic tenants (that is, database
-controlled). ``public`` is always treated as shared schema and cannot be routed
-directly.
+``default``, which controls the settings for all dynamic tenants. Notice how
+each tenant has the relevant ``APPS`` that will be synced in the corresponding
+schema.
+
+.. attention::
+
+    ``public`` is always treated as shared schema and cannot be routed
+    directly. Every other tenant will get its search path set to its schema
+    first, then the public schema.
+
+.. attention::
+
+    ``django.contrib.contenttypes``, if included, must always be part of the
+    public schema apps, and only part of that, so that every content type from
+    every model can be found, disregarding the current search path.
+
+.. attention::
+
+    ``django.contrib.sessions`` must always be together with
+    ``django.contrib.auth`` (or whatever app defines your custom user model) in
+    order to prevent sessions leaking across tenants that do not share the same
+    user base.
 
 For Django to function properly, ``INSTALLED_APPS`` and ``ROOT_URLCONF``
 settings must be defined. Just make them get their information from the
@@ -95,8 +117,8 @@ settings must be defined. Just make them get their information from the
     ROOT_URLCONF = TENANTS["default"]["URLCONF"]
 
 
-Static tenants
---------------
+Creating tenants
+----------------
 
 More static tenants can be added and routed.
 
@@ -127,11 +149,9 @@ More static tenants can be added and routed.
         # ...
     }
 
-Dynamic tenants
----------------
-
 Dynamic tenants need to be created through instances of
-``TENANTS["public"]["TENANT_MODEL"]``.
+``TENANTS["public"]["TENANT_MODEL"]`` and routed through instances of
+``TENANTS["public"]["DOMAIN_MODEL"]``.
 
 .. code-block:: python
 
@@ -149,24 +169,32 @@ Dynamic tenants need to be created through instances of
     class Domain(DomainMixin):
         pass
 
-Sync the public schema, in order to get ``Client`` model created. Also sync
-static schemas either one by one or using the ``:static:`` wildcard.
+Synchronizing tenants
+---------------------
+
+As a first step, you must always synchronize the public schema in order to get
+the tenant and domain models created. You can then synchronize the rest of the schemas.
 
 .. code-block:: bash
 
     python manage.py migrateschema -s public
-    python manage.py migrateschema -s :static:
+    python manage.py migrateschema
 
-Create the first dynamic tenant.
+
+Now you are ready to create your first dynamic tenant. In the example, the
+tenant is created through a ``python manage.py shell`` session.
 
 >>> from shared_app.models import Client, Domain
 >>> client1 = Client.objects.create(schema_name="client1")
 >>> Domain.objects.create(domain="client1.mydomain.com", tenant=client1, is_primary=True)
+>>> Domain.objects.create(domain="clients.mydomain.com", folder="client1", tenant=client1)
 
-Now any request made to ``client1.mydomain.com`` will automatically set
-PostgreSQL's ``search_path`` to ``client1`` and ``public``, making shared apps
-available too. Also, any request to blog.mydomain.com or
-help.mydomain.com will set ``search_path`` to ``blog`` and ``public``. This
-means that any call to the methods ``filter``, ``get``, ``save``, ``delete``
-or any other function involving a database connection will now be done at the
-correct schema, be it static or dynamic.
+Now any request made to ``client1.mydomain.com`` or
+``clients.mydomain.com/client1/`` will automatically set
+PostgreSQL's search path to ``client1`` and ``public``, making shared apps
+available too. Also, at this point, any request to ``blog.mydomain.com`` or
+``help.mydomain.com`` will set search path to ``blog`` and ``public``.
+
+This means that any call to the methods ``filter``, ``get``, ``save``,
+``delete`` or any other function involving a database connection will be done
+at the correct schema, be it static or dynamic.

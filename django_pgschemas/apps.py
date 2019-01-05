@@ -9,31 +9,7 @@ from .utils import get_tenant_model
 
 class DjangoPGSchemasConfig(AppConfig):
     name = "django_pgschemas"
-    verbose_name = "Django Postgres Schemas"
-
-    example_config = """
-    TENANTS = {
-        'public': {
-            'APPS': ['django.contrib.contenttypes', 'core'],
-            'TENANT_MODEL': 'core.Tenant',
-            'DOMAIN_MODEL': 'core.Domain',
-        },
-        'www': {
-            'APPS': ['www'],
-            'URLCONF': 'www.urls',
-            'DOMAINS': ['mydomain.com', 'www.mydomain.com'],
-        },
-        'help': {
-            'APPS': ['help'],
-            'URLCONF': 'help.urls',
-            'DOMAINS': ['help.mydomain.com'],
-        },
-        'default': {
-            'APPS': ['tenants'],
-            'URLCONF': 'tenants.urls',
-        }
-    }
-    """
+    verbose_name = "Django PostgreSQL Schemas"
 
     def ready(self):
         user_app = get_user_model()._meta.app_config.name

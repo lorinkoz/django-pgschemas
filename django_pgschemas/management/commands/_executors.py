@@ -51,7 +51,7 @@ def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_s
 
 
 def parallel(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
-    processes = getattr(settings, "PGSCHEMAS_MULTIPROCESSING_MAX_PROCESSES", None)
+    processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
     pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(
         run_on_schema,

@@ -1,70 +1,6 @@
 Advanced configuration
 ======================
 
-Fast dynamic tenant creation
-----------------------------
-
-Every time a instance of ``settings.TENANTS["public"]["TENANT_MODEL"]`` is
-created, the corresponding schema is created and synchronized automatically.
-Depending on the number of migrations you already have in place, or the amount
-of time these could take, or whether you need to pre-populate the newly
-created schema with fixtures, this process could take a considerable amount of
-time.
-
-If you need a faster process for creating dynamic schemas, you can do so by
-provisioning a "reference" schema that can be used for cloning.
-
-.. code-block:: python
-
-    TENANTS = {
-        # ...
-        "default": {
-            # ...
-            "CLONE_REFERENCE": "sample",
-        },
-    }
-
-Once you have this in your settings, you need to prepare your reference schema
-with everything a newly created dynamic schema will need. The first step is
-actually creating and synchronizing the reference schema. After that, you
-can run any command on it, or edit its tables via ``shell``.
-
-.. code-block:: bash
-
-    python manage.py createrefschema
-    python runschema loaddata tenant_app.products -s sample
-    python runschema shell -s sample
-
-You don't need any extra step. As soon as a reference schema is configured,
-next time you create an instance of the tenant model, it will clone the
-reference schema instead of actually creating and synchronizing the schema.
-
-Most importantly, by default, migrations will include the reference schema, so
-that it is kept up to date for future tenant creation.
-
-.. attention::
-
-    The reference schema will get apps from
-    ``settings.TENANTS["default"]["APPS"]`` and may look like any other dynamic
-    tenant, but it is considered a *static* tenant instead, as there is no
-    corresponding database entry for it. It's a special case of a static
-    tenant, because it cannot be routed.
-
-Caching
--------
-
-In order to generate tenant aware cache keys, you can use
-``django_pgschemas.cache.make_key`` as your ``KEY_FUNCTION``:
-
-.. code-block:: python
-
-    CACHES = {
-        "default": {
-            # ...
-            "KEY_FUNCTION": "django_pgschemas.cache.make_key",
-        }
-    }
-
 Management commands
 -------------------
 
@@ -101,7 +37,7 @@ The schema parameter accepts multiple inputs:
 - The key of a static tenant or the ``schema_name`` of a dynamic tenant.
 - The prefix of any domain, provided only one corresponding tenant is found.
 - The ``domain/folder`` of a tenant, like ``customers.mydomain.com/client1``
-- The wildcards ``:all:``, ``:static:`` and ``::dynamic::``.
+- The wildcards ``:all:``, ``:static:`` and ``:dynamic:``.
 
 The schema is mandatory. If it's not provided with the command, it will be
 asked interactively, except if ``--noinput`` is passed, in which case the
@@ -156,6 +92,70 @@ The base commands are:
     ``django_pgschemas.schema.SchemaDescriptor``. Make sure you do the
     appropriate type checking before accessing the tenant members.
 
+Fast dynamic tenant creation
+----------------------------
+
+Every time a instance of ``settings.TENANTS["public"]["TENANT_MODEL"]`` is
+created, the corresponding schema is created and synchronized automatically.
+Depending on the number of migrations you already have in place, or the amount
+of time these could take, or whether you need to pre-populate the newly
+created schema with fixtures, this process could take a considerable amount of
+time.
+
+If you need a faster creation of dynamic schemas, you can do so by provisioning
+a "reference" schema that can cloned into new schemas.
+
+.. code-block:: python
+
+    TENANTS = {
+        # ...
+        "default": {
+            # ...
+            "CLONE_REFERENCE": "sample",
+        },
+    }
+
+Once you have this in your settings, you need to prepare your reference schema
+with everything a newly created dynamic schema will need. The first step is
+actually creating and synchronizing the reference schema. After that, you
+can run any command on it, or edit its tables via ``shell``.
+
+.. code-block:: bash
+
+    python manage.py createrefschema
+    python runschema loaddata tenant_app.products -s sample
+    python runschema shell -s sample
+
+You don't need any extra step. As soon as a reference schema is configured,
+next time you create an instance of the tenant model, it will clone the
+reference schema instead of actually creating and synchronizing the schema.
+
+Most importantly, by default, migrations will include the reference schema, so
+that it is kept up to date for future tenant creation.
+
+.. attention::
+
+    The reference schema will get apps from
+    ``settings.TENANTS["default"]["APPS"]`` and may look like any other dynamic
+    tenant, but it is considered a *static* tenant instead, as there is no
+    corresponding database entry for it. It's a special case of a static
+    tenant, and it cannot be routed.
+
+Caching
+-------
+
+In order to generate tenant aware cache keys, you can use
+``django_pgschemas.cache.make_key`` as your ``KEY_FUNCTION``:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            # ...
+            "KEY_FUNCTION": "django_pgschemas.cache.make_key",
+        }
+    }
+
 Channels (websockets)
 ---------------------
 
@@ -175,8 +175,8 @@ use it as follows:
     ASGI_APPLICATION = "routing.application"
 
 It requires that you also route the websockets requests, at least for the
-dynamic tenants. If no you don't route websocket requests for static tenants,
-the dynamic route will be used:
+dynamic tenants. If you don't route websocket requests for static tenants, the
+dynamic route will be used:
 
 .. code-block:: python
 
@@ -188,3 +188,7 @@ the dynamic route will be used:
             "WS_URLCONF": "tenant_app.ws_urls",
         }
     }
+
+You still need to name your channel groups appropriately, taking the
+current tenant into account if you want to keep your groups tenant-specific.
+You will get the current tenant in ``scope["tenant"]``.

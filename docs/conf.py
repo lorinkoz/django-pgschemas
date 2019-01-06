@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "django-pgschemas"
-copyright = u"2019, Lorenzo Peña, Tom Turner & Bernardo Pires"
+copyright = u"2019, Lorenzo Peña, Tom Turner & Bernardo Pires."
 author = u"Lorenzo Peña"
 
 # The short X.Y version

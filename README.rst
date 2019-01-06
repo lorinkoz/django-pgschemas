@@ -28,15 +28,15 @@ https://django-pgschemas.readthedocs.io/
 Contributing
 ------------
 
-- Join the discussion at https://gitter.im/django-pgschemas/community
+- Join the discussion at https://gitter.im/django-pgschemas/community.
 - PRs are welcome! If you have questions or comments, please use the link
   above.
-- Django's code of conduct applies to all means of contribution
-  https://www.djangoproject.com/conduct/
+- Django's code of conduct applies to all means of contribution.
+  https://www.djangoproject.com/conduct/.
 
 Credits
 -------
 
-* Tom Turner for ``django-tenants``.
-* Bernardo Pires for ``django-tenant-schemas``.
-* Vlada Macek for ``django-schemata``.
+* Tom Turner for ``django-tenants``
+* Bernardo Pires for ``django-tenant-schemas``
+* Vlada Macek for ``django-schemata``

@@ -66,7 +66,7 @@ class TenantProtocolRouter:
                 try:
                     domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder="")
                 except DomainModel.DoesNotExist:
-                    raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+                    return None, "", []
             tenant = domain.tenant
             tenant.domain_url = hostname
             ws_urlconf = settings.TENANTS["default"]["WS_URLCONF"]

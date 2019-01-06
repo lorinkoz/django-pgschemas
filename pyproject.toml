@@ -20,7 +20,6 @@ django = "^2.0"
 psycopg2-binary = "^2.7"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
 sphinx = "^1.8"
 doc8 = "^0.8.0"
 sphinx_rtd_theme = "^0.4.2"

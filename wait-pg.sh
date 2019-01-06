@@ -15,6 +15,3 @@ while ! nc "$DATABASE" "5432" >/dev/null 2>&1 < /dev/null; do
     sleep 1
 done
 echo "Postgres connection established!"
-
-# TODO: Actually run tests
-echo "Nothing done!"

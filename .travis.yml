@@ -14,4 +14,5 @@ install:
 before_script:
   - psql -c "create database pgs_test;" -U postgres
 script:
-  - poetry run ./run-tests.sh
+  - ./wait-pg.sh
+  - ./wait-pg.sh

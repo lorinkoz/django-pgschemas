@@ -21,6 +21,10 @@ django-pgschemas
     :alt: Documentation status
     :target: https://django-pgschemas.readthedocs.io/
 
+.. image:: https://badge.fury.io/py/django-pgschemas.svg
+    :alt: PyPi version
+    :target: http://badge.fury.io/py/django-pgschemas
+
 This app uses PostgreSQL schemas to support data multi-tenancy in a single
 Django project.
 

@@ -21,6 +21,14 @@ django-pgschemas
    :alt: Build status
    :target: https://travis-ci.org/lorinkoz/django-pgschemas
 
+.. image:: https://readthedocs.org/projects/django-pgschemas/badge/?version=latest
+    :alt: Documentation status
+    :target: https://django-pgschemas.readthedocs.io/
+
+.. image:: https://badge.fury.io/py/django-pgschemas.svg
+    :alt: PyPi version
+    :target: http://badge.fury.io/py/django-pgschemas
+
 -----
 
 .. toctree::

@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+addons:
+  postgresql: "9.5"
+services:
+  - postgresql
+before_install:
+  - pip install -U pip
+  - pip install poetry
+install:
+  - poetry install
+before_script:
+  - psql -c "create database pgs_test;" -U postgres
+script: ./run-tests.sh

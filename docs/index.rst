@@ -17,6 +17,10 @@ django-pgschemas
    :alt: Join the chat at https://gitter.im/django-pgschemas
    :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
+.. image:: https://api.travis-ci.org/lorinkoz/django-pgschemas.svg?branch=master
+   :alt: Build status
+   :target: https://travis-ci.org/lorinkoz/django-pgschemas
+
 -----
 
 .. toctree::

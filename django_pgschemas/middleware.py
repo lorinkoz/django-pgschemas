@@ -56,11 +56,12 @@ class TenantMiddleware:
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
             if domain.folder == prefix:
                 dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._prefixed"
-                prefixed_url_module = ModuleType(dynamic_path)
-                prefixed_url_module.urlpatterns = tenant_patterns(
-                    *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
-                )
-                sys.modules[dynamic_path] = prefixed_url_module
+                if not sys.modules.get(dynamic_path):
+                    prefixed_url_module = ModuleType(dynamic_path)
+                    prefixed_url_module.urlpatterns = tenant_patterns(
+                        *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
+                    )
+                    sys.modules[dynamic_path] = prefixed_url_module
                 request.urlconf = dynamic_path
             connection.set_schema(request.tenant.schema_name, request.tenant.domain_url)
             return self.get_response(request)

@@ -58,6 +58,16 @@ def remove_www(hostname):
     return hostname
 
 
+def django_is_in_test_mode():
+    """
+    I know this is very ugly! I'm looking for more elegant solutions.
+    See: http://stackoverflow.com/questions/6957016/detect-django-testing-mode
+    """
+    from django.core import mail
+
+    return hasattr(mail, "outbox")
+
+
 def run_in_public_schema(func):
     def wrapper(*args, **kwargs):
         from .schema import SchemaDescriptor
@@ -373,7 +383,7 @@ def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
     if schema_exists(schema_name):
         return False
     clone_reference = get_clone_reference()
-    if clone_reference and schema_exists(clone_reference):
+    if clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode():
         clone_schema(clone_reference, schema_name)
         return True
     return create_schema(schema_name, sync_schema=sync_schema, verbosity=verbosity)

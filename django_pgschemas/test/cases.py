@@ -34,19 +34,23 @@ class TenantTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(TestCase, cls).setUpClass()
         cls.sync_public()
         cls.add_allowed_test_domain()
         cls.tenant = get_tenant_model()(schema_name=cls.get_test_schema_name())
         cls.setup_tenant(cls.tenant)
         cls.tenant.save(verbosity=cls.get_verbosity())
-
-        # Set up domain
         tenant_domain = cls.get_test_tenant_domain()
         cls.domain = get_domain_model()(tenant=cls.tenant, domain=tenant_domain)
         cls.setup_domain(cls.domain)
         cls.domain.save()
-
         connection.set_schema(cls.tenant.schema_name)
+        cls.cls_atomics = cls._enter_atomics()
+        try:
+            cls.setUpTestData()
+        except Exception:
+            cls._rollback_atomics(cls.cls_atomics)
+            raise
 
     @classmethod
     def tearDownClass(cls):
@@ -54,6 +58,7 @@ class TenantTestCase(TestCase):
         cls.domain.delete()
         cls.tenant.delete(force_drop=True)
         cls.remove_allowed_test_domain()
+        super().tearDownClass()
 
     @classmethod
     def get_verbosity(cls):
@@ -121,11 +126,11 @@ class FastTenantTestCase(TenantTestCase):
 
     @classmethod
     def setUpClass(cls):
-        tenant_model = get_tenant_model()
+        TenantModel = get_tenant_model()
 
         test_schema_name = cls.get_test_schema_name()
-        if tenant_model.objects.filter(schema_name=test_schema_name).exists():
-            cls.tenant = tenant_model.objects.filter(schema_name=test_schema_name).first()
+        if TenantModel.objects.filter(schema_name=test_schema_name).exists():
+            cls.tenant = TenantModel.objects.filter(schema_name=test_schema_name).first()
             cls.use_existing_tenant()
         else:
             cls.setup_test_tenant_and_domain()

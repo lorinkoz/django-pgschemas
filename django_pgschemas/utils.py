@@ -69,10 +69,15 @@ def run_in_public_schema(func):
 
 
 def schema_exists(schema_name):
-    cursor = connection.cursor()
-    cursor.execute(
-        "SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE LOWER(nspname) = LOWER(%s))", (schema_name,)
+    sql = """
+    SELECT EXISTS(
+        SELECT 1
+        FROM pg_catalog.pg_namespace
+        WHERE LOWER(nspname) = LOWER(%s)
     )
+    """
+    cursor = connection.cursor()
+    cursor.execute(sql, (schema_name,))
     row = cursor.fetchone()
     if row:
         exists = row[0]
@@ -80,6 +85,19 @@ def schema_exists(schema_name):
         exists = False
     cursor.close()
     return exists
+
+
+@run_in_public_schema
+def dynamic_models_exist():
+    sql = """
+    SELECT count(*)
+    FROM   information_schema.tables
+    WHERE  table_schema = 'public'
+    AND    table_name in ('%s', '%s');
+    """
+    cursor = connection.cursor()
+    cursor.execute(sql % (get_tenant_model()._meta.db_table, get_domain_model()._meta.db_table))
+    return cursor.fetchone() == (2,)
 
 
 @run_in_public_schema

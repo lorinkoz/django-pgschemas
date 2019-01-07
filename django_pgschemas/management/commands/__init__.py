@@ -7,7 +7,7 @@ from django.db.models.functions import Concat
 
 from ._executors import sequential, parallel
 from ...schema import SchemaDescriptor
-from ...utils import get_tenant_model, create_schema, get_clone_reference
+from ...utils import get_tenant_model, dynamic_models_exist, create_schema, get_clone_reference
 
 WILDCARD_ALL = ":all:"
 WILDCARD_STATIC = ":static:"
@@ -73,6 +73,7 @@ class WrappedSchemaOption(object):
 
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema", "")
+        dynamic_ready = dynamic_models_exist()
         allow_static = self.scope & SchemaScope.STATIC
         allow_dynamic = self.scope & SchemaScope.DYNAMIC
         clone_reference = get_clone_reference()
@@ -91,7 +92,9 @@ class WrappedSchemaOption(object):
 
         TenantModel = get_tenant_model()
         static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
-        dynamic_schemas = TenantModel.objects.values_list("schema_name", flat=True) if allow_dynamic else []
+        dynamic_schemas = (
+            TenantModel.objects.values_list("schema_name", flat=True) if dynamic_ready and allow_dynamic else []
+        )
         if clone_reference and allow_static:
             static_schemas.append(clone_reference)
 
@@ -111,7 +114,7 @@ class WrappedSchemaOption(object):
             return [schema]
         elif schema == clone_reference:
             return [schema]
-        elif TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
+        elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
             return [schema]
 
         domain_matching_schemas = []
@@ -124,7 +127,7 @@ class WrappedSchemaOption(object):
                 and any([x for x in data["DOMAINS"] if x.startswith(schema)])
             ]
 
-        if allow_dynamic:
+        if dynamic_ready and allow_dynamic:
             domain_matching_schemas += (
                 TenantModel.objects.annotate(
                     route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())

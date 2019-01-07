@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 
-from .utils import get_tenant_model
+from .utils import get_tenant_model, is_valid_schema_name
 
 
 class DjangoPGSchemasConfig(AppConfig):
@@ -36,6 +36,11 @@ class DjangoPGSchemasConfig(AppConfig):
             raise ImproperlyConfigured("TENANTS['default'] must contain a 'DOMAIN_MODEL' key.")
         if "DOMAINS" in settings.TENANTS["default"]:
             raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
+        if (
+            "CLONE_REFERENCE" in settings.TENANTS["default"]
+            and settings.TENANTS["default"]["CLONE_REFERENCE"] in settings.TENANTS
+        ):
+            raise ImproperlyConfigured("TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name")
         if "django.contrib.contenttypes" in settings.TENANTS["default"].get("APPS", []):
             raise ImproperlyConfigured("'django.contrib.contenttypes' must be on 'public' schema.")
 
@@ -49,6 +54,8 @@ class DjangoPGSchemasConfig(AppConfig):
                     "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app
                 )
             if schema not in ["public", "default"]:
+                if not is_valid_schema_name(schema):
+                    raise ImproperlyConfigured("'%s' is not a valid schema name." % schema)
                 if not isinstance(settings.TENANTS[schema].get("DOMAINS"), list):
                     raise ImproperlyConfigured("TENANTS['%s'] must contain a 'DOMAINS' list." % schema)
                 if "django.contrib.contenttypes" in schema_apps:
@@ -62,20 +69,20 @@ class DjangoPGSchemasConfig(AppConfig):
 
         # Consistency of PGSCHEMAS_EXTRA_SEARCH_PATHS
         if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
-            if "public" in settings.PGSCHEMAS_EXTRA_SEARCH_PATHS:
-                raise ImproperlyConfigured("'public' cannot be included on PGSCHEMAS_EXTRA_SEARCH_PATHS.")
-            if "default" in settings.PGSCHEMAS_EXTRA_SEARCH_PATHS:
-                raise ImproperlyConfigured("'default' cannot be included on PGSCHEMAS_EXTRA_SEARCH_PATHS.")
             TenantModel = get_tenant_model()
             cursor = connection.cursor()
             cursor.execute(
                 "SELECT 1 FROM information_schema.tables WHERE table_name = %s;", [TenantModel._meta.db_table]
             )
+            dynamic_tenants = []
+            if "CLONE_REFERENCE" in settings.TENANTS["default"]:
+                dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
             if cursor.fetchone():
-                invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
-                    TenantModel.objects.all().values_list("schema_name", flat=True)
+                dynamic_tenants += list(TenantModel.objects.all().values_list("schema_name", flat=True))
+            invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
+                set(settings.TENANTS.keys()).union(dynamic_tenants)
+            )
+            if invalid_schemas:
+                raise ImproperlyConfigured(
+                    "Do not include '%s' on PGSCHEMAS_EXTRA_SEARCH_PATHS." % ", ".join(invalid_schemas)
                 )
-                if invalid_schemas:
-                    raise ImproperlyConfigured(
-                        "Do not include schemas (%s) on PGSCHEMAS_EXTRA_SEARCH_PATHS." % list(invalid_schemas)
-                    )

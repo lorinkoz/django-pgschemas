@@ -158,7 +158,7 @@ BEGIN
    WHERE nspname = source_schema;
   IF NOT FOUND
     THEN
-    RAISE EXCEPTION 'Source schema % does not exist.', source_schema;
+    RAISE EXCEPTION 'Source schema ''%'' does not exist.', source_schema;
     RETURN ;
   END IF;
 
@@ -168,7 +168,7 @@ BEGIN
    WHERE nspname = dest_schema;
   IF FOUND
     THEN
-    RAISE EXCEPTION 'Destination schema % already exists.', dest_schema;
+    RAISE EXCEPTION 'Destination schema ''%'' already exists.', dest_schema;
     RETURN ;
   END IF;
 
@@ -325,6 +325,7 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
     Creates a new schema `new_schema_name` as a clone of an existing schema
     `old_schema_name`.
     """
+    check_schema_name(new_schema_name)
     cursor = connection.cursor()
 
     # check if the clone_schema function already exists in the db

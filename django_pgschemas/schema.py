@@ -16,7 +16,7 @@ class SchemaDescriptor:
         Syntax sugar which helps in celery tasks, cron jobs, and other scripts
 
         Usage:
-            with Tenant.objects.get(schema_name='test') as tenant:
+            with SchemaDescriptor.create(schema_name="test") as tenant:
                 # run some code in tenant test
             # run some code in previous tenant (public probably)
         """
@@ -32,7 +32,7 @@ class SchemaDescriptor:
         Syntax sugar that helps at django shell with fast tenant changing
 
         Usage:
-            Tenant.objects.get(schema_name='test').activate()
+            SchemaDescriptor.create(schema_name="test").activate()
         """
         connection.set_schema(self.schema_name, self.domain_url)
 
@@ -42,8 +42,8 @@ class SchemaDescriptor:
         Syntax sugar, return to public schema
 
         Usage:
-            test_tenant.deactivate()
+            schema_descriptor.deactivate()
             # or simpler
-            Tenant.deactivate()
+            SchemaDescriptor.deactivate()
         """
         connection.set_schema_to_public()

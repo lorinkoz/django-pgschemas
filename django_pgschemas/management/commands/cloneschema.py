@@ -32,7 +32,7 @@ class Command(BaseCommand):
         answer = None
         while answer is None:
             try:
-                raw_answer = input("{} [y/N] ".format(question.strip())).strip() or "n"
+                raw_answer = input("{} [Y/n] ".format(question.strip())).strip() or "y"
                 answer = strtobool(raw_answer)
             except ValueError:
                 self.stderr.write("{} is not a valid answer.".format(raw_answer))
@@ -72,8 +72,7 @@ class Command(BaseCommand):
                         if hasattr(e, "message"):
                             self.stderr.write(e.message)
                         elif hasattr(e, "messages"):
-                            for message in e.messages:
-                                self.stderr.write(message)
+                            self.stderr.write(" ".join(e.messages))
                         else:
                             self.stderr.write(e)
                         data.pop(field.name, None)
@@ -114,4 +113,9 @@ class Command(BaseCommand):
             if options["verbosity"] >= 1:
                 self.stdout.write("All done!")
         except Exception as e:
-            raise CommandError(e)
+            if hasattr(e, "message"):
+                raise CommandError(e.message)
+            elif hasattr(e, "messages"):
+                raise CommandError(" ".join(e.messages))
+            else:
+                raise CommandError(e)

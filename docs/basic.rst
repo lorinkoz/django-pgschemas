@@ -3,7 +3,7 @@ Installation
 
 This app requires:
 
-* python (3.5+)
+* python (3.6+)
 * django (2.0+)
 * psycopg2-binary (2.7+)
 

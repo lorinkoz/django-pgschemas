@@ -24,6 +24,7 @@ sphinx = "^1.8"
 doc8 = "^0.8.0"
 sphinx_rtd_theme = "^0.4.2"
 channels = "^2.1"
+codecov = "^2.0"
 
 [tool.black]
 line-length = 120

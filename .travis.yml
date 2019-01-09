@@ -18,6 +18,8 @@ before_script:
     - psql -c "create database dpgs_sandbox;" -U postgres
 script:
     - ./dpgs_sandbox/await-postgres.sh && poetry run python dpgs_sandbox/manage.py test tests
+after_success:
+    - codecov
 before_deploy:
     - poetry build
 deploy:

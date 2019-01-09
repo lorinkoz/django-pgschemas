@@ -61,7 +61,7 @@ class WrappedSchemaOption(object):
         return EXECUTORS[options.get("executor")]
 
     def get_scope_display(self):
-        return "|".join(self.specific_schemas or []) or self.scope.name.lower()
+        return "|".join(self.specific_schemas or []) or self.scope
 
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema", "")

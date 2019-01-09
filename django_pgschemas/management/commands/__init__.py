@@ -1,5 +1,3 @@
-from enum import Flag
-
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import CharField, Q, Value as V
@@ -16,14 +14,8 @@ WILDCARD_DYNAMIC = ":dynamic:"
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
 
-class SchemaScope(Flag):
-    STATIC = 1
-    DYNAMIC = 2
-    ALL = 3
-
-
 class WrappedSchemaOption(object):
-    scope = SchemaScope.ALL
+    scope = "all"
     specific_schemas = None
 
     allow_interactive = True
@@ -74,8 +66,8 @@ class WrappedSchemaOption(object):
     def _get_schemas_from_options(self, **options):
         schema = options.get("schema", "")
         dynamic_ready = dynamic_models_exist()
-        allow_static = self.scope & SchemaScope.STATIC
-        allow_dynamic = self.scope & SchemaScope.DYNAMIC
+        allow_static = self.scope in ["all", "static"]
+        allow_dynamic = self.scope in ["all", "dynamic"]
         clone_reference = get_clone_reference()
 
         if not schema:
@@ -172,8 +164,8 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
 
 
 class StaticTenantCommand(TenantCommand):
-    scope = SchemaScope.STATIC
+    scope = "static"
 
 
 class DynamicTenantCommand(TenantCommand):
-    scope = SchemaScope.DYNAMIC
+    scope = "dynamic"

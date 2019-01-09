@@ -19,6 +19,7 @@ class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
 
     def handle(self, *args, **options):
         runschema = NonInteractiveRunSchemaCommand()
+        options.pop("run_syncdb", False)
         runschema.execute(command_name="django.core.migrate", *args, **options)
 
 

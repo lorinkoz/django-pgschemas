@@ -54,8 +54,8 @@ class TenantMiddleware:
             tenant.domain_url = hostname
             request.tenant = tenant
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
-            if domain.folder == prefix:
-                dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._prefixed"
+            if prefix and domain.folder == prefix:
+                dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._automatically_prefixed"
                 if not sys.modules.get(dynamic_path):
                     prefixed_url_module = ModuleType(dynamic_path)
                     prefixed_url_module.urlpatterns = tenant_patterns(

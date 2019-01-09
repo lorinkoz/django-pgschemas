@@ -21,6 +21,10 @@ django-pgschemas
     :alt: Documentation status
     :target: https://django-pgschemas.readthedocs.io/
 
+.. image:: https://codecov.io/gh/lorinkoz/django-pgschemas/branch/master/graphs/badge.svg?branch=master
+    :alt: Code coverage
+    :target: https://codecov.io/gh/lorinkoz/django-pgschemas
+
 .. image:: https://badge.fury.io/py/django-pgschemas.svg
     :alt: PyPi version
     :target: http://badge.fury.io/py/django-pgschemas

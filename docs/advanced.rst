@@ -166,7 +166,7 @@ use it as follows:
 
     # routing.py
 
-    from django_pgschemas.channels.router import TenantProtocolRouter
+    from django_pgschemas.contrib.channels.router import TenantProtocolRouter
 
     application = TenantProtocolRouter()
 

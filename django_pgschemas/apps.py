@@ -87,6 +87,7 @@ class DjangoPGSchemasConfig(AppConfig):
                 raise ImproperlyConfigured(
                     "Do not include '%s' on PGSCHEMAS_EXTRA_SEARCH_PATHS." % ", ".join(invalid_schemas)
                 )
+            cursor.close()
 
     def ready(self):
         self._check_tenant_dict()

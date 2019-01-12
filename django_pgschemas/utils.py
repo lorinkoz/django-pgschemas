@@ -102,7 +102,9 @@ def dynamic_models_exist():
     """
     cursor = connection.cursor()
     cursor.execute(sql % (get_tenant_model()._meta.db_table, get_domain_model()._meta.db_table))
-    return cursor.fetchone() == (2,)
+    value = cursor.fetchone() == (2,)
+    cursor.close()
+    return value
 
 
 @run_in_public_schema
@@ -116,6 +118,7 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
         return False
     cursor = connection.cursor()
     cursor.execute("CREATE SCHEMA %s" % schema_name)
+    cursor.close()
     if sync_schema:
         call_command("migrateschema", schema=schema_name, verbosity=verbosity)
     return True
@@ -127,6 +130,7 @@ def drop_schema(schema_name, check_if_exists=True, verbosity=1):
         return False
     cursor = connection.cursor()
     cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
+    cursor.close()
     return True
 
 
@@ -366,7 +370,7 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
             if dry_run:
                 raise DryRunException
     except DryRunException:
-        pass
+        cursor.close()
 
 
 def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):

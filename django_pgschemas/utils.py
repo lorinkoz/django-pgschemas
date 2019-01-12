@@ -37,11 +37,6 @@ def is_valid_schema_name(name):
     return is_valid_identifier(name) and not SQL_SCHEMA_NAME_RESERVED_RE.match(name)
 
 
-def check_identifier(identifier):
-    if not is_valid_identifier(identifier):
-        raise ValidationError("Invalid string used for the identifier.")
-
-
 def check_schema_name(name):
     if not is_valid_schema_name(name):
         raise ValidationError("Invalid string used for the schema name.")

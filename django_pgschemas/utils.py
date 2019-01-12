@@ -86,7 +86,7 @@ def schema_exists(schema_name):
     row = cursor.fetchone()
     if row:
         exists = row[0]
-    else:
+    else:  # pragma: no cover
         exists = False
     cursor.close()
     return exists
@@ -358,7 +358,7 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
     # check if the clone_schema function already exists in the db
     try:
         cursor.execute("SELECT 'clone_schema'::regproc")
-    except ProgrammingError:
+    except ProgrammingError:  # pragma: no cover
         _create_clone_schema_function()
         transaction.commit()
 
@@ -382,7 +382,7 @@ def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
     if schema_exists(schema_name):
         return False
     clone_reference = get_clone_reference()
-    if clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode():
+    if clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode():  # pragma: no cover
         clone_schema(clone_reference, schema_name)
         return True
     return create_schema(schema_name, sync_schema=sync_schema, verbosity=verbosity)

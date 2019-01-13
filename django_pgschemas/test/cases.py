@@ -127,7 +127,6 @@ class FastTenantTestCase(TenantTestCase):
     @classmethod
     def setUpClass(cls):
         TenantModel = get_tenant_model()
-
         test_schema_name = cls.get_test_schema_name()
         if TenantModel.objects.filter(schema_name=test_schema_name).exists():
             cls.tenant = TenantModel.objects.filter(schema_name=test_schema_name).first()
@@ -139,6 +138,9 @@ class FastTenantTestCase(TenantTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        TenantModel = get_tenant_model()
+        test_schema_name = cls.get_test_schema_name()
+        TenantModel.objects.filter(schema_name=test_schema_name).delete()
         connection.set_schema_to_public()
 
     def _fixture_teardown(self):

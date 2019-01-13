@@ -25,7 +25,7 @@ SECRET_KEY = "asd#$#ae)^gegm6m9omvic^ct@*@bkf!0afe*+4h$5-zmf^h&$u4(1vr"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [".test.com"]
 
 TENANTS = {
     "public": {
@@ -41,7 +41,7 @@ TENANTS = {
     "blog": {
         "APPS": ["shared_common", "app_blog", "django.contrib.sessions"],
         "URLCONF": "app_blog.urls",
-        "DOMAINS": ["test.com"],
+        "DOMAINS": ["blog.test.com"],
     },
     "default": {
         "APPS": ["shared_common", "app_tenants", "django.contrib.sessions"],

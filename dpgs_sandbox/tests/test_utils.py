@@ -28,7 +28,7 @@ class UtilsTestCase(TestCase):
             self.assertEqual(utils.get_tenant_database_alias(), "something")
 
     def test_get_limit_set_calls(self):
-        self.assertTrue(not utils.get_limit_set_calls())
+        self.assertFalse(utils.get_limit_set_calls())
         with override_settings(PGSCHEMAS_LIMIT_SET_CALLS=True):
             self.assertTrue(utils.get_limit_set_calls())
 
@@ -41,13 +41,13 @@ class UtilsTestCase(TestCase):
         for identifier in self.valid_identifiers:
             self.assertTrue(utils.is_valid_identifier(identifier))
         for identifier in self.invalid_identifiers:
-            self.assertTrue(not utils.is_valid_identifier(identifier))
+            self.assertFalse(utils.is_valid_identifier(identifier))
 
     def test_is_valid_schema_name(self):
         for schema_name in self.valid_schema_names:
             self.assertTrue(utils.is_valid_schema_name(schema_name))
         for schema_name in self.invalid_schema_names:
-            self.assertTrue(not utils.is_valid_schema_name(schema_name))
+            self.assertFalse(utils.is_valid_schema_name(schema_name))
 
     def test_check_schema_name(self):
         for schema_name in self.valid_schema_names:
@@ -82,29 +82,29 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("www"))
         self.assertTrue(utils.schema_exists("blog"))
         self.assertTrue(utils.schema_exists("sample"))
-        self.assertTrue(not utils.schema_exists("default"))
-        self.assertTrue(not utils.schema_exists("tenant"))
+        self.assertFalse(utils.schema_exists("default"))
+        self.assertFalse(utils.schema_exists("tenant"))
 
     def test_dynamic_models_exist(self):
         self.assertTrue(utils.dynamic_models_exist())
         utils.drop_schema("public")
-        self.assertTrue(not utils.dynamic_models_exist())
+        self.assertFalse(utils.dynamic_models_exist())
 
     def test_create_drop_schema(self):
-        self.assertTrue(not utils.create_schema("public", check_if_exists=True))  # Schema existed already
+        self.assertFalse(utils.create_schema("public", check_if_exists=True))  # Schema existed already
         self.assertTrue(utils.schema_exists("public"))  # Schema exists
         self.assertTrue(utils.drop_schema("public"))  # Schema was dropped
-        self.assertTrue(not utils.drop_schema("public"))  # Schema no longer exists
-        self.assertTrue(not utils.schema_exists("public"))  # Schema doesn't exist
+        self.assertFalse(utils.drop_schema("public"))  # Schema no longer exists
+        self.assertFalse(utils.schema_exists("public"))  # Schema doesn't exist
         self.assertTrue(utils.create_schema("public", sync_schema=False))  # Schema was created
         self.assertTrue(utils.schema_exists("public"))  # Schema exists
 
     def test_clone_schema(self):
         with schema.SchemaDescriptor.create(schema_name="public"):
             utils._create_clone_schema_function()
-        self.assertTrue(not utils.schema_exists("sample2"))  # Schema doesn't exist previously
+        self.assertFalse(utils.schema_exists("sample2"))  # Schema doesn't exist previously
         utils.clone_schema("sample", "sample2", dry_run=True)  # Dry run
-        self.assertTrue(not utils.schema_exists("sample2"))  # Schema won't exist, dry run
+        self.assertFalse(utils.schema_exists("sample2"))  # Schema won't exist, dry run
         utils.clone_schema("sample", "sample2")  # Real run, schema was cloned
         self.assertTrue(utils.schema_exists("sample2"))  # Schema exists
         with self.assertRaises(InternalError):
@@ -112,4 +112,4 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("sample2"))  # Schema still exists
 
     def test_create_or_clone_schema(self):
-        self.assertTrue(not utils.create_or_clone_schema("sample"))  # Schema existed
+        self.assertFalse(utils.create_or_clone_schema("sample"))  # Schema existed

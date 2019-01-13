@@ -17,4 +17,4 @@ class SignalsTestCase(TestCase):
         tenant.create_schema(sync_schema=False)
         self.assertTrue(schema_exists("tenant1"))
         TenantModel.objects.all().delete()
-        self.assertTrue(not schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1"))

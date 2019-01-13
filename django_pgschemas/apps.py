@@ -80,6 +80,7 @@ class DjangoPGSchemasConfig(AppConfig):
                 dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
             if cursor.fetchone():
                 dynamic_tenants += list(TenantModel.objects.all().values_list("schema_name", flat=True))
+            cursor.close()
             invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
                 set(settings.TENANTS.keys()).union(dynamic_tenants)
             )
@@ -87,7 +88,6 @@ class DjangoPGSchemasConfig(AppConfig):
                 raise ImproperlyConfigured(
                     "Do not include '%s' on PGSCHEMAS_EXTRA_SEARCH_PATHS." % ", ".join(invalid_schemas)
                 )
-            cursor.close()
 
     def ready(self):
         self._check_tenant_dict()

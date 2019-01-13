@@ -7,7 +7,7 @@ settings_public = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shar
 settings_default = {"URLCONF": ""}
 
 
-class AppConfigReadyTestCase(TestCase):
+class AppConfigTestCase(TestCase):
     """
     Tests TENANTS settings is properly defined.
     """

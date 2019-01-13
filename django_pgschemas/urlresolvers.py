@@ -10,18 +10,20 @@ class TenantPrefixPattern:
     converters = {}
 
     @property
+    def tenant_prefix(self):
+        DomainModel = get_domain_model()
+        try:
+            domain = DomainModel.objects.exclude(folder="").get(
+                tenant__schema_name=connection.schema_name, domain=connection.domain_url
+            )
+            return "{}/".format(domain.folder)
+        except DomainModel.DoesNotExist:
+            return "/"
+
+    @property
     def regex(self):
         # This is only used by reverse() and cached in _reverse_dict.
         return re.compile(self.tenant_prefix)
-
-    @property
-    def tenant_prefix(self):
-        try:
-            DomainModel = get_domain_model()
-            domain = DomainModel.objects.get(tenant__schema_name=connection.schema_name, domain=connection.domain_url)
-            return "{}/".format(domain.folder)
-        except Exception:
-            return "/"
 
     def match(self, path):
         tenant_prefix = self.tenant_prefix

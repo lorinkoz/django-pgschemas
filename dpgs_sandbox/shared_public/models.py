@@ -9,3 +9,7 @@ class Tenant(TenantMixin):
 
 class Domain(DomainMixin):
     pass
+
+
+class Catalog(models.Model):
+    pass

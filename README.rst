@@ -29,6 +29,8 @@ django-pgschemas
     :alt: PyPi version
     :target: http://badge.fury.io/py/django-pgschemas
 
+|
+
 This app uses PostgreSQL schemas to support data multi-tenancy in a single
 Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 

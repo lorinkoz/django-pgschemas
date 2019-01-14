@@ -198,3 +198,54 @@ available too. Also, at this point, any request to ``blog.mydomain.com`` or
 This means that any call to the methods ``filter``, ``get``, ``save``,
 ``delete`` or any other function involving a database connection will be done
 at the correct schema, be it static or dynamic.
+
+Fast dynamic tenant creation
+----------------------------
+
+Every time a instance of ``settings.TENANTS["public"]["TENANT_MODEL"]`` is
+created, by default, the corresponding schema is created and synchronized
+automatically. Depending on the number of migrations you already have in place,
+or the amount of time these could take, or whether you need to pre-populate the
+newly created schema with fixtures, this process could take a considerable
+amount of time.
+
+If you need a faster creation of dynamic schemas, you can do so by provisioning
+a "reference" schema that can cloned into new schemas.
+
+.. code-block:: python
+
+    TENANTS = {
+        # ...
+        "default": {
+            # ...
+            "CLONE_REFERENCE": "sample",
+        },
+    }
+
+Once you have this in your settings, you need to prepare your reference schema
+with everything a newly created dynamic schema will need. The first step is
+actually creating and synchronizing the reference schema. After that, you
+can run any command on it, or edit its tables via ``shell``.
+
+.. code-block:: bash
+
+    python manage.py createrefschema
+    python runschema loaddata tenant_app.products -s sample
+    python runschema shell -s sample
+
+The ``runschema`` command is explained in :ref:`Management commands`.
+
+You don't need any extra step. As soon as a reference schema is configured,
+next time you create an instance of the tenant model, it will clone the
+reference schema instead of actually creating and synchronizing the schema.
+
+Most importantly, by default, migrations will include the reference schema, so
+that it is kept up to date for future tenant creation.
+
+.. attention::
+
+    The reference schema will get apps from
+    ``settings.TENANTS["default"]["APPS"]`` and may look like any other dynamic
+    tenant, but it is considered a *static* tenant instead, as there is no
+    corresponding database entry for it. It's a special case of a static
+    tenant, and it cannot be routed.

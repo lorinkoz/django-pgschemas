@@ -39,7 +39,7 @@ django-pgschemas
    :maxdepth: 2
    :caption: Contents
 
-   intro
+   overview
    basic
    advanced
    credits

@@ -42,6 +42,7 @@ django-pgschemas
    overview
    basic
    advanced
+   reference
    credits
 
 .. Indices and tables

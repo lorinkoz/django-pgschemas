@@ -6,8 +6,8 @@ from django.utils.module_loading import import_string
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 
-from ..schema import SchemaDescriptor
-from ..utils import remove_www, get_tenant_model, get_domain_model
+from ...schema import SchemaDescriptor
+from ...utils import remove_www, get_tenant_model, get_domain_model
 from .auth import TenantAuthMiddlewareStack
 
 

@@ -8,10 +8,12 @@ from django.db import connection, transaction, ProgrammingError, DEFAULT_DB_ALIA
 
 
 def get_tenant_model():
+    "Returns the tenant model."
     return apps.get_model(settings.TENANTS["public"]["TENANT_MODEL"])
 
 
 def get_domain_model():
+    "Returns the domain model."
     return apps.get_model(settings.TENANTS["public"]["DOMAIN_MODEL"])
 
 
@@ -28,24 +30,30 @@ def get_clone_reference():
 
 
 def is_valid_identifier(identifier):
+    "Checks the validity of identifier."
     SQL_IDENTIFIER_RE = re.compile(r"^[_a-zA-Z][_a-zA-Z0-9]{,62}$")
     return bool(SQL_IDENTIFIER_RE.match(identifier))
 
 
 def is_valid_schema_name(name):
+    "Checks the validity of a schema name."
     SQL_SCHEMA_NAME_RESERVED_RE = re.compile(r"^pg_", re.IGNORECASE)
     return is_valid_identifier(name) and not SQL_SCHEMA_NAME_RESERVED_RE.match(name)
 
 
 def check_schema_name(name):
+    """
+    Checks schema name and raises ``ValidationError`` if ``name`` is not a
+    valid identifier.
+    """
     if not is_valid_schema_name(name):
         raise ValidationError("Invalid string used for the schema name.")
 
 
 def remove_www(hostname):
     """
-    Removes www. from the beginning of the address. Only for
-    routing purposes. www.test.com/login/ and test.com/login/ should
+    Removes ``www``. from the beginning of the address. Only for
+    routing purposes. ``www.test.com/login/`` and ``test.com/login/`` should
     find the same tenant.
     """
     if hostname.startswith("www."):
@@ -64,6 +72,8 @@ def django_is_in_test_mode():
 
 
 def run_in_public_schema(func):
+    "Decorator that makes decorated function to be run in the public schema."
+
     def wrapper(*args, **kwargs):
         from .schema import SchemaDescriptor
 
@@ -74,6 +84,7 @@ def run_in_public_schema(func):
 
 
 def schema_exists(schema_name):
+    "Checks if a schema exists in database."
     sql = """
     SELECT EXISTS(
         SELECT 1
@@ -94,6 +105,7 @@ def schema_exists(schema_name):
 
 @run_in_public_schema
 def dynamic_models_exist():
+    "Checks if tenant model and domain model have been synced."
     sql = """
     SELECT count(*)
     FROM   information_schema.tables
@@ -110,8 +122,9 @@ def dynamic_models_exist():
 @run_in_public_schema
 def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosity=1):
     """
-    Creates the schema 'schema_name'. Optionally checks if the schema already
-    exists before creating it. Returns true if the schema was created, false otherwise.
+    Creates the schema ``schema_name``. Optionally checks if the schema already
+    exists before creating it. Returns ``True`` if the schema was created,
+    ``False`` otherwise.
     """
     check_schema_name(schema_name)
     if check_if_exists and schema_exists(schema_name):
@@ -126,6 +139,10 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
 
 @run_in_public_schema
 def drop_schema(schema_name, check_if_exists=True, verbosity=1):
+    """
+    Drops the schema. Optionally checks if the schema already exists before
+    dropping it.
+    """
     if check_if_exists and not schema_exists(schema_name):
         return False
     cursor = connection.cursor()
@@ -349,8 +366,8 @@ def _create_clone_schema_function():
 @run_in_public_schema
 def clone_schema(base_schema_name, new_schema_name, dry_run=False):
     """
-    Creates a new schema `new_schema_name` as a clone of an existing schema
-    `old_schema_name`.
+    Creates a new schema ``new_schema_name`` as a clone of an existing schema
+    ``old_schema_name``.
     """
     check_schema_name(new_schema_name)
     cursor = connection.cursor()
@@ -375,8 +392,9 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
 
 def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
     """
-    Creates the schema 'schema_name'. Optionally checks if the schema already
-    exists before creating it. Returns true if the schema was created, false otherwise.
+    Creates the schema ``schema_name``. Optionally checks if the schema already
+    exists before creating it. Returns ``True`` if the schema was created,
+    ``False`` otherwise.
     """
     check_schema_name(schema_name)
     if schema_exists(schema_name):

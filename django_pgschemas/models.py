@@ -14,14 +14,14 @@ class TenantMixin(SchemaDescriptor, models.Model):
 
     auto_create_schema = True
     """
-    Set this flag to false on a parent class if you don't want the schema
+    Set this flag to ``False`` on a parent class if you don't want the schema
     to be automatically created upon save.
     """
 
     auto_drop_schema = False
     """
-    USE THIS WITH CAUTION!
-    Set this flag to true on a parent class if you want the schema to be
+    **USE THIS WITH CAUTION!**
+    Set this flag to ``True`` on a parent class if you want the schema to be
     automatically deleted if the tenant row gets deleted.
     """
 
@@ -29,12 +29,12 @@ class TenantMixin(SchemaDescriptor, models.Model):
 
     domain_url = None
     """
-    Leave this as None. Stores the effective domain url.
+    Leave this as ``None``. Stores the effective domain url.
     """
 
     is_dynamic = True
     """
-    Leave this as None. Denotes it's a database controlled tenant.
+    Leave this as ``None``. Denotes it's a database controlled tenant.
     """
 
     class Meta:
@@ -67,7 +67,8 @@ class TenantMixin(SchemaDescriptor, models.Model):
 
     def delete(self, force_drop=False, *args, **kwargs):
         """
-        Deletes this row. Drops the tenant's schema if the attribute auto_drop_schema is True.
+        Deletes this row. Drops the tenant's schema if the attribute
+        ``auto_drop_schema`` is ``True``.
         """
         if force_drop or self.auto_drop_schema:
             schema_pre_drop.send(sender=TenantMixin, tenant=self.serializable_fields())
@@ -76,13 +77,14 @@ class TenantMixin(SchemaDescriptor, models.Model):
 
     def serializable_fields(self):
         """
-        In certain cases the user model isn't serializable so you may want to only send the id.
+        In certain cases the user model isn't serializable so you may want to
+        only send the id.
         """
         return self
 
     def create_schema(self, sync_schema=True, verbosity=1):
         """
-        Creates or clones the schema 'schema_name' for this tenant.
+        Creates or clones the schema ``schema_name`` for this tenant.
         """
         return create_or_clone_schema(self.schema_name, sync_schema, verbosity)
 

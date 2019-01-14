@@ -43,7 +43,7 @@ There are typically three solutions for solving the multi-tenancy problem.
 Each solution has its up and down sides, for a more in-depth discussion, see
 Microsoft's excellent article on `Multi-Tenant Data Architecture`_.
 
-.. _Multi-Tenant Data Architecture: http://msdn.microsoft.com/en-us/library/aa479086.aspx
+.. _Multi-Tenant Data Architecture: https://docs.microsoft.com/en-us/azure/sql-database/saas-tenancy-app-design-patterns
 
 This application implements the second approach, which in our opinion,
 represents a good compromise between simplicity and performance.

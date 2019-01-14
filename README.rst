@@ -30,7 +30,19 @@ django-pgschemas
     :target: http://badge.fury.io/py/django-pgschemas
 
 This app uses PostgreSQL schemas to support data multi-tenancy in a single
-Django project.
+Django project. It is a fork of `django-tenants`_ with some conceptual changes:
+
+- There are static tenants and dynamic tenants. Static tenants can have their
+  own apps and urlconf.
+- Tenants are routed both via subdomain and via subfolder on shared subdomain.
+- Public is no longer the schema for storing the main site data. Public should
+  be used only for true shared data across all tenants. Table "overriding" via
+  search path is no longer encouraged.
+- Management commands can be run on multiple schemas via wildcards - the
+  multiproc behavior of migrations was extended to just any tenant command.
+
+.. _django-tenants: https://github.com/tomturner/django-tenants
+
 
 Documentation
 -------------

@@ -155,9 +155,9 @@ def drop_schema(schema_name, check_if_exists=True, verbosity=1):
 # capital letters or `-`
 # Source: IdanDavidi, https://stackoverflow.com/a/48732283/6412017
 CLONE_SCHEMA_FUNCTION = """
--- Function: clone_schema(text, text)
+-- Function: clone_schema(text, text, bool)
 
--- DROP FUNCTION clone_schema(text, text);
+-- DROP FUNCTION clone_schema(text, text, bool);
 
 CREATE OR REPLACE FUNCTION clone_schema(
     source_schema text,
@@ -219,7 +219,6 @@ BEGIN
   EXECUTE 'CREATE SCHEMA "' || dest_schema || '"';
 
   -- Create sequences
-  -- TODO: Find a way to make this sequence's owner is the correct table.
   FOR object IN
     SELECT sequence_name::text
       FROM information_schema.sequences
@@ -277,14 +276,14 @@ BEGIN
     END IF;
 
     FOR column_, default_ IN
-      SELECT column_name::text,
-             REPLACE(column_default::text, source_schema, dest_schema)
+      SELECT column_name::text, column_default::text
         FROM information_schema.COLUMNS
        WHERE table_schema = dest_schema
          AND TABLE_NAME = object
-         AND column_default LIKE 'nextval(%"' || source_schema || '"%::regclass)'
+         AND column_default LIKE 'nextval(%' || source_schema || '.%::regclass)'
     LOOP
-      EXECUTE 'ALTER TABLE ' || buffer || ' ALTER COLUMN ' || column_ || ' SET DEFAULT ' || default_;
+      EXECUTE 'ALTER TABLE ' || buffer || ' ALTER COLUMN ' || column_ || ' SET DEFAULT '
+            || replace(default_, source_schema || '.', dest_schema || '.');
     END LOOP;
 
   END LOOP;
@@ -300,7 +299,7 @@ BEGIN
        AND ct.contype = 'f'
 
     LOOP
-      EXECUTE qry;
+      EXECUTE replace(qry, source_schema || '.', dest_schema || '.');
 
     END LOOP;
 
@@ -331,7 +330,7 @@ BEGIN
 
   LOOP
     SELECT pg_get_functiondef(func_oid) INTO qry;
-    SELECT replace(qry, source_schema, dest_schema) INTO dest_qry;
+    SELECT replace(qry, source_schema || '.', dest_schema || '.') INTO dest_qry;
     EXECUTE dest_qry;
 
   END LOOP;
@@ -367,7 +366,7 @@ def _create_clone_schema_function():
 def clone_schema(base_schema_name, new_schema_name, dry_run=False):
     """
     Creates a new schema ``new_schema_name`` as a clone of an existing schema
-    ``old_schema_name``.
+    ``base_schema_name``.
     """
     check_schema_name(new_schema_name)
     cursor = connection.cursor()

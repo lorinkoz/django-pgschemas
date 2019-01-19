@@ -38,7 +38,7 @@ def get_constraints(self, cursor, table_name):
         JOIN pg_namespace AS ns ON cl.relnamespace = ns.oid
         WHERE ns.nspname = %s AND cl.relname = %s
     """,
-        [self.connection.schema_name, table_name],
+        [self.connection.schema.schema_name, table_name],
     )
     for constraint, columns, kind, used_cols, options in cursor.fetchall():
         constraints[constraint] = {
@@ -89,7 +89,7 @@ def get_constraints(self, cursor, table_name):
         ) s2
         GROUP BY indexname, indisunique, indisprimary, amname, exprdef, attoptions;
     """,
-        [table_name, self.connection.schema_name],
+        [table_name, self.connection.schema.schema_name],
     )
     for index, columns, unique, primary, orders, type_, definition, options in cursor.fetchall():
         if index not in constraints:

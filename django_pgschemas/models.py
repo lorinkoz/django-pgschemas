@@ -25,17 +25,12 @@ class TenantMixin(SchemaDescriptor, models.Model):
     automatically deleted if the tenant row gets deleted.
     """
 
-    schema_name = models.CharField(max_length=63, unique=True, validators=[check_schema_name])
-
-    domain_url = None
-    """
-    Leave this as ``None``. Stores the effective domain url.
-    """
-
     is_dynamic = True
     """
-    Leave this as ``None``. Denotes it's a database controlled tenant.
+    Leave this as ``True``. Denotes it's a database controlled tenant.
     """
+
+    schema_name = models.CharField(max_length=63, unique=True, validators=[check_schema_name])
 
     class Meta:
         abstract = True
@@ -110,11 +105,12 @@ class DomainMixin(models.Model):
     All models that store the domains must inherit this class.
     """
 
-    domain = models.CharField(max_length=253, db_index=True)
-    folder = models.SlugField(max_length=253, blank=True, db_index=True)
     tenant = models.ForeignKey(
         settings.TENANTS["public"]["TENANT_MODEL"], db_index=True, related_name="domains", on_delete=models.CASCADE
     )
+
+    domain = models.CharField(max_length=253, db_index=True)
+    folder = models.SlugField(max_length=253, blank=True, db_index=True)
 
     is_primary = models.BooleanField(default=True)
 

@@ -14,7 +14,7 @@ class TenantPrefixPattern:
         DomainModel = get_domain_model()
         try:
             domain = DomainModel.objects.exclude(folder="").get(
-                tenant__schema_name=connection.schema_name, domain=connection.domain_url
+                tenant__schema_name=connection.schema.schema_name, domain=connection.schema.domain_url
             )
             return "{}/".format(domain.folder)
         except DomainModel.DoesNotExist:

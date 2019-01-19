@@ -212,8 +212,8 @@ class TenantTestCase(TestCase):
             self.assertTrue(authenticate(email="tenant@test.com", password="weakpassword"))  # good
             self.assertFalse(authenticate(email="main@test.com", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="blog@test.com", password="weakpassword"))  # bad
-        # Switching ti public schema
-        TenantModel.deactivate()
+        # Switching to public schema
+        TenantModel.deactivate_all()
         with self.assertRaises(ProgrammingError):
             authenticate(email="unexisting@test.com", password="unexisting")  # unexisting, error
 

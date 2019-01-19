@@ -36,7 +36,7 @@ class TenantMiddleware:
                 request.tenant = tenant
                 if "URLCONF" in data:
                     request.urlconf = data["URLCONF"]
-                connection.set_schema(schema, hostname)
+                connection.set_schema(request.tenant)
                 return self.get_response(request)
 
         # Checking for dynamic tenants
@@ -52,7 +52,6 @@ class TenantMiddleware:
                     raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
             tenant = domain.tenant
             tenant.domain_url = hostname
-            request.tenant = tenant
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
             if prefix and domain.folder == prefix:
                 dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._automatically_prefixed"
@@ -62,6 +61,8 @@ class TenantMiddleware:
                         *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
                     )
                     sys.modules[dynamic_path] = prefixed_url_module
+                tenant.path_prefix = prefix
                 request.urlconf = dynamic_path
-            connection.set_schema(request.tenant.schema_name, request.tenant.domain_url)
+            request.tenant = tenant
+            connection.set_schema(request.tenant)
             return self.get_response(request)

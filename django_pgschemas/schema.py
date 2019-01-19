@@ -1,49 +1,53 @@
 from django.db import connection
 
 
-class SchemaDescriptor:
+class SchemaDescriptor(object):
+    schema_name = None
+    domain_url = None
+    folder = None
+
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name, domain_url=None):
+    def create(schema_name, domain_url=None, folder=None):
         tenant = SchemaDescriptor()
         tenant.schema_name = schema_name
         tenant.domain_url = domain_url
+        tenant.folder = folder
         return tenant
-
-    def __enter__(self):
-        """
-        Syntax sugar which helps in celery tasks, cron jobs, and other scripts
-
-        Usage:
-            with SchemaDescriptor.create(schema_name="test") as tenant:
-                # run some code in tenant test
-            # run some code in previous tenant (public probably)
-        """
-        self.previous_schema_name = connection.schema_name
-        self.previous_domain_url = connection.domain_url
-        self.activate()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        connection.set_schema(self.previous_schema_name, self.previous_domain_url)
 
     def activate(self):
         """
-        Syntax sugar that helps at django shell with fast tenant changing
+        Syntax sugar that helps with fast tenant changing
 
         Usage:
-            SchemaDescriptor.create(schema_name="test").activate()
+            some_schema_descriptor.activate()
         """
-        connection.set_schema(self.schema_name, self.domain_url)
+        self.previous_schema = connection.schema
+        connection.set_schema(self)
 
-    @classmethod
-    def deactivate(cls):
+    def deactivate(self):
         """
-        Syntax sugar, return to public schema
+        Syntax sugar to return to previous schema or public
 
         Usage:
-            schema_descriptor.deactivate()
-            # or simpler
-            SchemaDescriptor.deactivate()
+            some_schema_descriptor.deactivate()
+        """
+        previous_schema = getattr(self, "previous_schema", None)
+        connection.set_schema(previous_schema) if previous_schema else connection.set_schema_to_public()
+
+    @staticmethod
+    def deactivate_all():
+        """
+        Syntax sugar to return to public schema
+
+        Usage:
+            SchemaDescriptor.deactivate_all()
         """
         connection.set_schema_to_public()
+
+    def __enter__(self):
+        self.activate()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.deactivate()

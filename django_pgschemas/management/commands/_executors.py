@@ -22,7 +22,7 @@ def run_on_schema(
     command = command_class(stdout=stdout, stderr=stderr)
 
     connections.close_all()
-    connection.set_schema(schema_name)
+    connection.set_schema_to(schema_name)
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})
     if function_name == "special:call_command":

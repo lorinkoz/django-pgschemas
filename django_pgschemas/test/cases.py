@@ -44,7 +44,7 @@ class TenantTestCase(TestCase):
         cls.domain = get_domain_model()(tenant=cls.tenant, domain=tenant_domain)
         cls.setup_domain(cls.domain)
         cls.domain.save()
-        connection.set_schema(cls.tenant.schema_name)
+        connection.set_schema(cls.tenant)
         cls.cls_atomics = cls._enter_atomics()
         try:
             cls.setUpTestData()
@@ -134,7 +134,7 @@ class FastTenantTestCase(TenantTestCase):
         else:
             cls.setup_test_tenant_and_domain()
 
-        connection.set_schema(cls.tenant.schema_name)
+        connection.set_schema(cls.tenant)
 
     @classmethod
     def tearDownClass(cls):

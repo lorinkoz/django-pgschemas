@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import Http404
 from django.utils.encoding import force_text
 from django.utils.module_loading import import_string
 
@@ -26,8 +25,6 @@ class TenantProtocolRouter:
     """
     ProtocolRouter that handles multi-tenancy.
     """
-
-    TENANT_NOT_FOUND_EXCEPTION = Http404
 
     def __init__(self):
         self.root_ws_urlconf = settings.TENANTS["default"].get("WS_URLCONF")

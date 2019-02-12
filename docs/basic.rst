@@ -36,7 +36,7 @@ of ``MIDDLEWARE``, so that each request can be set to use the correct schema.
 .. code-block:: python
 
     MIDDLEWARE = (
-        "django_pgschemas.middleware.TenantMainMiddleware",
+        "django_pgschemas.middleware.TenantMiddleware",
         # ...
     )
 

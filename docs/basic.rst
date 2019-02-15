@@ -5,7 +5,7 @@ This app requires:
 
 * python (3.5+)
 * django (2.0+)
-* psycopg2-binary (2.7+)
+* psycopg2 (2.7+)
 
 You can install ``django-pgschemas`` via ``pip``, ``pipenv`` or any other
 installer.

@@ -343,8 +343,10 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION clone_schema(text, text, boolean)
-  OWNER TO postgres;
-"""
+  OWNER TO {user};
+""".format(
+    user=settings.DATABASES["default"].get("USER", None) or "postgres"
+)
 
 
 class DryRunException(Exception):

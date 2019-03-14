@@ -244,6 +244,12 @@ that it is kept up to date for future tenant creation.
 
 .. attention::
 
+    The database function for cloning schemas requires PostgreSQL 10 or higher,
+    due to a change in the way sequence information is stored.
+
+
+.. attention::
+
     The reference schema will get apps from
     ``settings.TENANTS["default"]["APPS"]`` and may look like any other dynamic
     tenant, but it is considered a *static* tenant instead, as there is no

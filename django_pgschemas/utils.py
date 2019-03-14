@@ -171,6 +171,7 @@ $BODY$
 -- SELECT clone_schema('public', 'new_schema', TRUE);
 
 DECLARE
+  record           record;
   src_oid          oid;
   tbl_oid          oid;
   func_oid         oid;
@@ -219,17 +220,23 @@ BEGIN
   EXECUTE 'CREATE SCHEMA "' || dest_schema || '"';
 
   -- Create sequences
-  FOR object IN
-    SELECT sequence_name::text
+FOR record IN
+    SELECT *
       FROM information_schema.sequences
      WHERE sequence_schema = source_schema
   LOOP
-    EXECUTE 'CREATE SEQUENCE "' || dest_schema || '".' || quote_ident(object);
-    srctbl := '"' || source_schema || '".' || quote_ident(object);
+    object := record.sequence_name::text;
+    sq_max_value := record.maximum_value;
+    sq_start_value := record.start_value;
+    sq_increment_by := record.increment;
+    sq_min_value := record.minimum_value;
+    sq_is_cycled := record.cycle_option;
 
-    EXECUTE 'SELECT last_value, max_value, start_value, increment_by, min_value, cache_value, log_cnt, is_cycled, is_called
-              FROM "' || source_schema || '".' || quote_ident(object) || ';'
-              INTO sq_last_value, sq_max_value, sq_start_value, sq_increment_by, sq_min_value, sq_cache_value, sq_log_cnt, sq_is_cycled, sq_is_called ;
+    EXECUTE 'CREATE SEQUENCE "' || dest_schema || '".' || quote_ident(object);
+
+    EXECUTE 'SELECT last_value, log_cnt, is_called
+            FROM "' || source_schema || '".' || quote_ident(object) || ';'
+            INTO sq_last_value, sq_log_cnt, sq_is_called;
 
     IF sq_is_cycled
       THEN
@@ -244,7 +251,6 @@ BEGIN
             || ' MAXVALUE '     || sq_max_value
             || ' START WITH '   || sq_start_value
             || ' RESTART '      || sq_min_value
-            || ' CACHE '        || sq_cache_value
             || sq_cycled || ' ;' ;
 
     buffer := '"' || dest_schema || '".' || quote_ident(object);

@@ -54,11 +54,11 @@ class TenantTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        super().tearDownClass()
         connection.set_schema_to_public()
         cls.domain.delete()
         cls.tenant.delete(force_drop=True)
         cls.remove_allowed_test_domain()
-        super().tearDownClass()
 
     @classmethod
     def get_verbosity(cls):

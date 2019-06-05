@@ -133,7 +133,7 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
     cursor.execute("CREATE SCHEMA %s" % schema_name)
     cursor.close()
     if sync_schema:
-        call_command("migrateschema", schema=schema_name, verbosity=verbosity)
+        call_command("migrateschema", schemas=[schema_name], verbosity=verbosity)
     return True
 
 

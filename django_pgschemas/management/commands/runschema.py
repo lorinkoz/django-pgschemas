@@ -69,7 +69,11 @@ class Command(WrappedSchemaOption, BaseCommand):
         target = self.get_command_from_arg(options.pop("command_name"))
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
-        options.pop("schema")
+        options.pop("schemas")
+        options.pop("all_schemas")
+        options.pop("static_schemas")
+        options.pop("dynamic_schemas")
+        options.pop("tenant_schemas")
         options.pop("executor")
         options.pop("skip_schema_creation")
         if self.allow_interactive:

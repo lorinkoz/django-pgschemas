@@ -7,14 +7,14 @@ Management commands
 Since all management commands occur outside the request/response cycle, all
 commands from Django and any other third party apps are executed by default on
 the public schema. In order to work around this, we provide a ``runschema``
-command that accepts any other command to be run on one or multiple schemas::
+command that accepts any other command to be run on one or multiple schemas. A
+concise synopsis of the ``runschema`` command is as follows::
 
-    usage: manage.py runschema [-h] [--version] [-v {0,1,2,3}]
-                            [--settings SETTINGS] [--pythonpath PYTHONPATH]
-                            [--traceback] [--no-color] [--noinput] [-s SCHEMA]
-                            [--executor {sequential,parallel}]
-                            [--no-create-schemas]
-                            command_name
+    usage: manage.py runschema [--noinput] [-s SCHEMAS [SCHEMAS ...]]
+                           [-as] [-ss] [-ds] [-ts]
+                           [--executor {sequential,parallel}]
+                           [--no-create-schemas]
+                           command_name
 
     Wrapper around django commands for use with an individual schema
 
@@ -25,21 +25,37 @@ command that accepts any other command to be run on one or multiple schemas::
     --noinput, --no-input
                             Tells Django to NOT prompt the user for input of any
                             kind.
-    -s SCHEMA, --schema SCHEMA
-                            Schema to execute the current command
+    -s SCHEMAS [SCHEMAS ...], --schema SCHEMAS [SCHEMAS ...]
+                            Schema(s) to execute the current command
+    -as, --include-all-schemas
+                            Include all schemas when executing the current command
+    -ss, --include-static-schemas
+                            Include all static schemas when executing the current
+                            command
+    -ds, --include-dynamic-schemas
+                            Include all dynamic schemas when executing the current
+                            command
+    -ts, --include-tenant-schemas
+                            Include all tenant-like schemas when executing the
+                            current command
     --executor {sequential,parallel}
                             Executor to be used for running command on schemas
     --no-create-schemas   Skip automatic creation of non-existing schemas
 
-The schema parameter accepts multiple inputs:
+The ``--schema`` parameter accepts multiple inputs of different kinds:
 
 - The key of a static tenant or the ``schema_name`` of a dynamic tenant.
 - The prefix of any domain, provided only one corresponding tenant is found.
 - The ``domain/folder`` of a tenant, like ``customers.mydomain.com/client1``
-- The wildcards ``:all:``, ``:static:`` and ``:dynamic:``.
 
-The schema is mandatory. If it's not provided with the command, it will be
-asked interactively, except if ``--noinput`` is passed, in which case the
+The parameters ``-as``, ``-ss``, ``-ds`` and ``-ts`` act as wildcards for
+including all schemas, static schemas, dynamic schemas and tenant-like schemas,
+respectively. Tenant-like schemas are dynamic schemas plus the clone reference,
+if it exists.
+
+At least one schema is mandatory. If it's not provided with the command, either
+explicitly or via wildcard params, it will be asked interactively. One notable
+exception to this is when the option ``--noinput`` is passed, in which case the
 command will fail.
 
 The executor argument accepts two options:

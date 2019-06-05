@@ -36,16 +36,22 @@ class Command(WrappedSchemaOption, BaseCommand):
         try:
             # load the command object.
             if len(argv) <= 2:
-                return
+                raise CommandError("No command to run")
             target_class = self.get_command_from_arg(argv[2])
-            # Ugly, but works. Delete command_name from the argv, parse the schema manually
+            # Ugly, but works. Delete command_name from the argv, parse the schemas manually
             # and forward the rest of the arguments to the actual command being wrapped.
             del argv[1]
             schema_parser = argparse.ArgumentParser()
             super().add_arguments(schema_parser)
             schema_ns, args = schema_parser.parse_known_args(argv)
 
-            schemas = self.get_schemas_from_options(schema=schema_ns.schema)
+            schemas = self.get_schemas_from_options(
+                schemas=schema_ns.schemas,
+                all_schemas=schema_ns.all_schemas,
+                static_schemas=schema_ns.static_schemas,
+                dynamic_schemas=schema_ns.dynamic_schemas,
+                tenant_schemas=schema_ns.tenant_schemas,
+            )
             executor = self.get_executor_from_options(executor=schema_ns.executor)
         except Exception as e:
             if not isinstance(e, CommandError):

@@ -91,10 +91,10 @@ class WrappedSchemaOption(object):
 
     def _get_schemas_from_options(self, **options):
         schemas = options.get("schemas") or []
-        include_all_schemas = options.get("all_schemas", False)
-        include_static_schemas = options.get("static_schemas", False)
-        include_dynamic_schemas = options.get("dynamic_schemas", False)
-        include_tenant_schemas = options.get("tenant_schemas", False)
+        include_all_schemas = options.get("all_schemas") or False
+        include_static_schemas = options.get("static_schemas") or False
+        include_dynamic_schemas = options.get("dynamic_schemas") or False
+        include_tenant_schemas = options.get("tenant_schemas") or False
         dynamic_ready = dynamic_models_exist()
         allow_static = self.scope in ["all", "static"]
         allow_dynamic = self.scope in ["all", "dynamic"]

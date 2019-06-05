@@ -7,10 +7,6 @@ from ._executors import sequential, parallel
 from ...schema import SchemaDescriptor
 from ...utils import get_tenant_model, dynamic_models_exist, create_schema, get_clone_reference
 
-WILDCARD_ALL = ":all:"
-WILDCARD_STATIC = ":static:"
-WILDCARD_DYNAMIC = ":dynamic:"
-
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
 
@@ -30,7 +26,37 @@ class WrappedSchemaOption(object):
                 dest="interactive",
                 help="Tells Django to NOT prompt the user for input of any kind.",
             )
-        parser.add_argument("-s", "--schema", dest="schema", help="Schema to execute the current command")
+        parser.add_argument(
+            "-s", "--schema", nargs="*", dest="schemas", help="Schema(s) to execute the current command"
+        )
+        parser.add_argument(
+            "-as",
+            "--include-all-schemas",
+            action="store_true",
+            dest="all_schemas",
+            help="Include all schemas when executing the current command",
+        )
+        parser.add_argument(
+            "-ss",
+            "--include-static-schemas",
+            action="store_true",
+            dest="static_schemas",
+            help="Include all static schemas when executing the current command",
+        )
+        parser.add_argument(
+            "-ds",
+            "--include-dynamic-schemas",
+            action="store_true",
+            dest="dynamic_schemas",
+            help="Include all dynamic schemas when executing the current command",
+        )
+        parser.add_argument(
+            "-ts",
+            "--include-tenant-schemas",
+            action="store_true",
+            dest="tenant_schemas",
+            help="Include all tenant-like schemas when executing the current command",
+        )
         parser.add_argument(
             "--executor",
             dest="executor",
@@ -50,8 +76,8 @@ class WrappedSchemaOption(object):
         schemas = self._get_schemas_from_options(**options)
         if self.specific_schemas is not None:
             schemas = [x for x in schemas if x in self.specific_schemas]
-        if not schemas:
-            raise CommandError("This command can only run in %s" % self.specific_schemas)
+            if not schemas:
+                raise CommandError("This command can only run in %s" % self.specific_schemas)
         if not skip_schema_creation:
             for schema in schemas:
                 create_schema(schema, check_if_exists=True, sync_schema=False, verbosity=0)
@@ -64,21 +90,34 @@ class WrappedSchemaOption(object):
         return "|".join(self.specific_schemas or []) or self.scope
 
     def _get_schemas_from_options(self, **options):
-        schema = options.get("schema", "")
+        schemas = options.get("schemas") or []
+        include_all_schemas = options.get("all_schemas", False)
+        include_static_schemas = options.get("static_schemas", False)
+        include_dynamic_schemas = options.get("dynamic_schemas", False)
+        include_tenant_schemas = options.get("tenant_schemas", False)
         dynamic_ready = dynamic_models_exist()
         allow_static = self.scope in ["all", "static"]
         allow_dynamic = self.scope in ["all", "dynamic"]
         clone_reference = get_clone_reference()
 
-        if not schema:
+        if (
+            not schemas
+            and not include_all_schemas
+            and not include_static_schemas
+            and not include_dynamic_schemas
+            and not include_tenant_schemas
+        ):
             if not self.allow_interactive:
-                schema = WILDCARD_ALL
+                include_all_schemas = True
             elif options.get("interactive", True):
-                schema = input(
-                    "Enter schema to run command (leave blank for running on '%s' schemas): " % self.get_scope_display()
-                ).strip()
-                if not schema:
-                    schema = WILDCARD_ALL
+                schemas = [
+                    input(
+                        "Enter schema to run command (leave blank for running on '%s' schemas): "
+                        % self.get_scope_display()
+                    ).strip()
+                ]
+                if not schemas:
+                    include_all_schemas = True
             else:
                 raise CommandError("No schema provided")
 
@@ -90,51 +129,65 @@ class WrappedSchemaOption(object):
         if clone_reference and allow_static:
             static_schemas.append(clone_reference)
 
-        if schema == WILDCARD_ALL:
+        schemas_to_return = set()
+
+        if include_all_schemas:
             if not self.allow_wildcards or (not allow_static and not allow_dynamic):
-                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_ALL)
-            return static_schemas + list(dynamic_schemas)
-        elif schema == WILDCARD_STATIC:
+                raise CommandError("Including all schemas is now allowed")
+            schemas_to_return = schemas_to_return.union(static_schemas + list(dynamic_schemas))
+        if include_static_schemas:
             if not self.allow_wildcards or not allow_static:
-                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_STATIC)
-            return static_schemas
-        elif schema == WILDCARD_DYNAMIC:
+                raise CommandError("Including static schemas is now allowed")
+            schemas_to_return = schemas_to_return.union(static_schemas)
+        if include_dynamic_schemas:
             if not self.allow_wildcards or not allow_dynamic:
-                raise CommandError("Schema wildcard %s is now allowed" % WILDCARD_DYNAMIC)
-            return list(dynamic_schemas)
-        elif schema in settings.TENANTS and schema != "default" and allow_static:
-            return [schema]
-        elif schema == clone_reference:
-            return [schema]
-        elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
-            return [schema]
+                raise CommandError("Including dynamic schemas is now allowed")
+            schemas_to_return = schemas_to_return.union(dynamic_schemas)
+        if include_tenant_schemas:
+            if not self.allow_wildcards or not allow_dynamic:
+                raise CommandError("Including tenant-like schemas is now allowed")
+            schemas_to_return = schemas_to_return.union(dynamic_schemas)
+            if clone_reference:
+                schemas_to_return.add(clone_reference)
+
+        for schema in schemas:
+            if schema in settings.TENANTS and schema != "default" and allow_static:
+                schemas_to_return.add(schema)
+            elif schema == clone_reference:
+                schemas_to_return.add(schema)
+            elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
+                schemas_to_return.add(schema)
+
+        if schemas_to_return:
+            return list(schemas_to_return)
 
         domain_matching_schemas = []
 
-        if allow_static:
-            domain_matching_schemas += [
-                schema_name
-                for schema_name, data in settings.TENANTS.items()
-                if schema_name not in ["public", "default"]
-                and any([x for x in data["DOMAINS"] if x.startswith(schema)])
-            ]
-
-        if dynamic_ready and allow_dynamic:
-            domain_matching_schemas += (
-                TenantModel.objects.annotate(
-                    route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+        for schema in schemas:
+            local = []
+            if allow_static:
+                local += [
+                    schema_name
+                    for schema_name, data in settings.TENANTS.items()
+                    if schema_name not in ["public", "default"]
+                    and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+                ]
+            if dynamic_ready and allow_dynamic:
+                local += (
+                    TenantModel.objects.annotate(
+                        route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                    )
+                    .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
+                    .distinct()
+                    .values_list("schema_name", flat=True)
                 )
-                .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
-                .distinct()
-                .values_list("schema_name", flat=True)
-            )
-
-        if not domain_matching_schemas:
-            raise CommandError("No schema found for '%s'" % schema)
-        if len(domain_matching_schemas) > 1:
-            raise CommandError(
-                "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema
-            )
+            if not local:
+                raise CommandError("No schema found for '%s'" % schema)
+            if len(local) > 1:
+                raise CommandError(
+                    "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema
+                )
+            domain_matching_schemas += local
 
         return domain_matching_schemas
 

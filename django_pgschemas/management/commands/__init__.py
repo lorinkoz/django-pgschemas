@@ -158,10 +158,7 @@ class WrappedSchemaOption(object):
             elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
                 schemas_to_return.add(schema)
 
-        if schemas_to_return:
-            return list(schemas_to_return)
-
-        domain_matching_schemas = []
+        schemas = list(set(schemas) - schemas_to_return)
 
         for schema in schemas:
             local = []
@@ -187,9 +184,9 @@ class WrappedSchemaOption(object):
                 raise CommandError(
                     "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema
                 )
-            domain_matching_schemas += local
+            schemas_to_return.add(local.pop())
 
-        return domain_matching_schemas
+        return schemas_to_return
 
 
 class TenantCommand(WrappedSchemaOption, BaseCommand):

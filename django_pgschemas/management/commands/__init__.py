@@ -27,7 +27,7 @@ class WrappedSchemaOption(object):
                 help="Tells Django to NOT prompt the user for input of any kind.",
             )
         parser.add_argument(
-            "-s", "--schema", nargs="*", dest="schemas", help="Schema(s) to execute the current command"
+            "-s", "--schema", nargs="+", dest="schemas", help="Schema(s) to execute the current command"
         )
         parser.add_argument(
             "-as",

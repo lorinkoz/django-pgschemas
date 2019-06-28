@@ -186,7 +186,11 @@ class WrappedSchemaOption(object):
                 )
             schemas_to_return.add(local.pop())
 
-        return schemas_to_return
+        return (
+            list(schemas_to_return)
+            if "public" not in schemas_to_return
+            else ["public"] + list(schemas_to_return - {"public"})
+        )
 
 
 class TenantCommand(WrappedSchemaOption, BaseCommand):

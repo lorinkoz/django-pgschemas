@@ -110,13 +110,13 @@ class WrappedSchemaOption(object):
             if not self.allow_interactive:
                 include_all_schemas = True
             elif options.get("interactive", True):
-                schemas = [
-                    input(
-                        "Enter schema to run command (leave blank for running on '%s' schemas): "
-                        % self.get_scope_display()
-                    ).strip()
-                ]
-                if not schemas:
+                schema = input(
+                    "Enter schema to run command (leave blank for running on '%s' schemas): " % self.get_scope_display()
+                ).strip()
+
+                if schema:
+                    schemas.append(schema)
+                else:
                     include_all_schemas = True
             else:
                 raise CommandError("No schema provided")

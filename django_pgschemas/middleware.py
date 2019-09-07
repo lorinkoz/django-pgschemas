@@ -1,9 +1,11 @@
 import sys
+import re
 from types import ModuleType
 
 from django.conf import settings
 from django.db import connection
 from django.http import Http404
+from django.urls import clear_url_caches
 from django.utils.module_loading import import_string
 
 from .schema import SchemaDescriptor
@@ -53,6 +55,7 @@ class TenantMiddleware:
             tenant = domain.tenant
             tenant.domain_url = hostname
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
+            request.strip_tenant_from_path = lambda x: x
             if prefix and domain.folder == prefix:
                 dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._automatically_prefixed"
                 if not sys.modules.get(dynamic_path):
@@ -63,6 +66,8 @@ class TenantMiddleware:
                     sys.modules[dynamic_path] = prefixed_url_module
                 tenant.path_prefix = prefix
                 request.urlconf = dynamic_path
+                request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
+                clear_url_caches()  # Required to remove previous tenant prefix from cache
             request.tenant = tenant
             connection.set_schema(request.tenant)
             return self.get_response(request)

@@ -1,5 +1,6 @@
-import sys
 import re
+import sys
+from importlib.util import find_spec, module_from_spec
 from types import ModuleType
 
 from django.conf import settings
@@ -59,11 +60,14 @@ class TenantMiddleware:
             if prefix and domain.folder == prefix:
                 dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._automatically_prefixed"
                 if not sys.modules.get(dynamic_path):
-                    prefixed_url_module = ModuleType(dynamic_path)
+                    spec = find_spec(settings.TENANTS["default"]["URLCONF"])
+                    prefixed_url_module = module_from_spec(spec)
+                    spec.loader.exec_module(prefixed_url_module)
                     prefixed_url_module.urlpatterns = tenant_patterns(
                         *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
                     )
                     sys.modules[dynamic_path] = prefixed_url_module
+                    del spec
                 tenant.path_prefix = prefix
                 request.urlconf = dynamic_path
                 request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)

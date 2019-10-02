@@ -41,6 +41,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "www")
         self.assertEqual(modified_request.tenant.domain_url, "test.com")
+        self.assertEqual(modified_request.tenant.folder, None)
         self.assertEqual(modified_request.urlconf, "app_main.urls")
         # blog
         request = self.factory.get("/some/random/url/", HTTP_HOST="blog.test.com")
@@ -48,6 +49,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "blog")
         self.assertEqual(modified_request.tenant.domain_url, "blog.test.com")
+        self.assertEqual(modified_request.tenant.folder, None)
         self.assertEqual(modified_request.urlconf, "app_blog.urls")
 
     def test_dynamic_tenants(self):
@@ -57,6 +59,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "tenant1")
         self.assertEqual(modified_request.tenant.domain_url, "tenant1.test.com")
+        self.assertEqual(modified_request.tenant.folder, None)
         self.assertEqual(modified_request.urlconf, "app_tenants.urls")
         # tenant2 by domain
         request = self.factory.get("/tenant1/", HTTP_HOST="tenant2.test.com")
@@ -64,6 +67,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "tenant2")
         self.assertEqual(modified_request.tenant.domain_url, "tenant2.test.com")
+        self.assertEqual(modified_request.tenant.folder, None)
         self.assertEqual(modified_request.urlconf, "app_tenants.urls")
         # tenant1 by folder
         request = self.factory.get("/tenant1/some/random/url/", HTTP_HOST="everyone.test.com")
@@ -71,6 +75,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "tenant1")
         self.assertEqual(modified_request.tenant.domain_url, "everyone.test.com")
+        self.assertEqual(modified_request.tenant.folder, "tenant1")
         self.assertEqual(modified_request.urlconf, "app_tenants.urls._automatically_prefixed")
         # tenant2 by folder
         request = self.factory.get("/tenant2/some/random/url/", HTTP_HOST="everyone.test.com")
@@ -78,6 +83,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "tenant2")
         self.assertEqual(modified_request.tenant.domain_url, "everyone.test.com")
+        self.assertEqual(modified_request.tenant.folder, "tenant2")
         self.assertEqual(modified_request.urlconf, "app_tenants.urls._automatically_prefixed")
         # tenant1 by folder with short path
         request = self.factory.get("/tenant1/", HTTP_HOST="everyone.test.com")
@@ -85,6 +91,7 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertTrue(modified_request.tenant)
         self.assertEqual(modified_request.tenant.schema_name, "tenant1")
         self.assertEqual(modified_request.tenant.domain_url, "everyone.test.com")
+        self.assertEqual(modified_request.tenant.folder, "tenant1")
         self.assertEqual(modified_request.urlconf, "app_tenants.urls._automatically_prefixed")
         # make sure on-the-fly urlconf can be imported
         import_module(modified_request.urlconf)

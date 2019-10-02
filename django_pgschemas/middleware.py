@@ -55,6 +55,7 @@ class TenantMiddleware:
                     raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
             tenant = domain.tenant
             tenant.domain_url = hostname
+            tenant.folder = None
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
             request.strip_tenant_from_path = lambda x: x
             if prefix and domain.folder == prefix:
@@ -68,7 +69,7 @@ class TenantMiddleware:
                     )
                     sys.modules[dynamic_path] = prefixed_url_module
                     del spec
-                tenant.path_prefix = prefix
+                tenant.folder = prefix
                 request.urlconf = dynamic_path
                 request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
                 clear_url_caches()  # Required to remove previous tenant prefix from cache

@@ -72,7 +72,7 @@ class TenantMiddleware:
                 tenant.folder = prefix
                 request.urlconf = dynamic_path
                 request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
-                clear_url_caches()  # Required to remove previous tenant prefix from cache
+                clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
             request.tenant = tenant
             connection.set_schema(request.tenant)
             return self.get_response(request)

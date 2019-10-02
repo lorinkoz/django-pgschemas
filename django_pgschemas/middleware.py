@@ -59,7 +59,7 @@ class TenantMiddleware:
             request.urlconf = settings.TENANTS["default"]["URLCONF"]
             request.strip_tenant_from_path = lambda x: x
             if prefix and domain.folder == prefix:
-                dynamic_path = settings.TENANTS["default"]["URLCONF"] + "._automatically_prefixed"
+                dynamic_path = settings.TENANTS["default"]["URLCONF"] + "_dynamically_tenant_prefixed"
                 if not sys.modules.get(dynamic_path):
                     spec = find_spec(settings.TENANTS["default"]["URLCONF"])
                     prefixed_url_module = module_from_spec(spec)

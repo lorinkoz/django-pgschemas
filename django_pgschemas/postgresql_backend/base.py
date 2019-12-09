@@ -9,7 +9,7 @@ from ..schema import SchemaDescriptor
 from ..utils import get_limit_set_calls, check_schema_name
 from .introspection import DatabaseSchemaIntrospection
 
-ORIGINAL_BACKEND = getattr(settings, "PGSCHEMAS_ORIGINAL_BACKEND", "django.db.backends.postgresql_psycopg2")
+ORIGINAL_BACKEND = getattr(settings, "PGSCHEMAS_ORIGINAL_BACKEND", "django.db.backends.postgresql")
 EXTRA_SEARCH_PATHS = getattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS", [])
 
 original_backend = import_module(ORIGINAL_BACKEND + ".base")

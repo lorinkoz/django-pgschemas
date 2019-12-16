@@ -60,6 +60,13 @@ Contributing
 - Django's code of conduct applies to all means of contribution.
   https://www.djangoproject.com/conduct/.
 
+.. attention::
+
+    We are currently looking for people to test the subfolder routing in their
+    current multi-tenant projects. We have reports of third party apps not
+    working properly with ``django-pgschemas`` when using subfolder routing.
+    We need *your* help to reproduce, disect and fix the errors. Thanks!
+
 Credits
 -------
 

@@ -70,6 +70,7 @@ class Command(WrappedSchemaOption, BaseCommand):
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
         options.pop("schemas")
+        options.pop("excluded_schemas")
         options.pop("all_schemas")
         options.pop("static_schemas")
         options.pop("dynamic_schemas")

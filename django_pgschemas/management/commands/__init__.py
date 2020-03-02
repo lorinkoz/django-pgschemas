@@ -30,6 +30,13 @@ class WrappedSchemaOption(object):
             "-s", "--schema", nargs="+", dest="schemas", help="Schema(s) to execute the current command"
         )
         parser.add_argument(
+            "-exs",
+            "--exclude-schema",
+            nargs="+",
+            dest="excluded_schemas",
+            help="Schema(s) to exclude when executing the current command",
+        )
+        parser.add_argument(
             "-as",
             "--include-all-schemas",
             action="store_true",
@@ -91,6 +98,7 @@ class WrappedSchemaOption(object):
 
     def _get_schemas_from_options(self, **options):
         schemas = options.get("schemas") or []
+        excluded_schemas = options.get("excluded_schemas") or []
         include_all_schemas = options.get("all_schemas") or False
         include_static_schemas = options.get("static_schemas") or False
         include_dynamic_schemas = options.get("dynamic_schemas") or False
@@ -185,6 +193,36 @@ class WrappedSchemaOption(object):
                     "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema
                 )
             schemas_to_return.add(local.pop())
+
+        excluded = []
+        for schema in excluded_schemas:
+            local = []
+            if schema in ["public", clone_reference]:
+                excluded.append(schema)
+                continue
+            local += [
+                schema_name
+                for schema_name, data in settings.TENANTS.items()
+                if schema_name not in ["public", "default", clone_reference]
+                and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+            ]
+            local += (
+                TenantModel.objects.annotate(
+                    route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                )
+                .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
+                .distinct()
+                .values_list("schema_name", flat=True)
+            )
+            if not local:
+                raise CommandError("No schema found for '%s' (excluded)" % schema)
+            if len(local) > 1:
+                raise CommandError(
+                    "More than one tenant found for schema '%s' by domain (excluded), please, narrow down the filter"
+                    % schema
+                )
+            excluded += local
+        schemas_to_return -= set(excluded)
 
         return (
             list(schemas_to_return)

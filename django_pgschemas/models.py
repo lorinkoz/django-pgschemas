@@ -90,9 +90,6 @@ class TenantMixin(SchemaDescriptor, models.Model):
         return drop_schema(self.schema_name)
 
     def get_primary_domain(self):
-        """
-        Returns the primary domain of the tenant.
-        """
         try:
             domain = self.domains.get(is_primary=True)
             return domain

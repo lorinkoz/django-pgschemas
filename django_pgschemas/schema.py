@@ -51,3 +51,11 @@ class SchemaDescriptor(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.deactivate()
+
+    def get_primary_domain(self):
+        """
+        Returns the primary domain of the schema descriptor, if present.
+        """
+        if self.domain_url:
+            return "/".join([self.domain_url, self.folder]) if self.folder else self.domain_url
+        return None

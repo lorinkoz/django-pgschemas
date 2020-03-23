@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 
+from . import checks
 from .utils import get_tenant_model, is_valid_schema_name
 
 
@@ -48,22 +48,6 @@ class DjangoPGSchemasConfig(AppConfig):
                 if not isinstance(settings.TENANTS[schema].get("DOMAINS"), list):
                     raise ImproperlyConfigured("TENANTS['%s'] must contain a 'DOMAINS' list." % schema)
 
-    def _check_apps(self):
-        user_app = get_user_model()._meta.app_config.name
-        if "django.contrib.contenttypes" in settings.TENANTS["default"].get("APPS", []):
-            raise ImproperlyConfigured("'django.contrib.contenttypes' must be on 'public' schema.")
-        for schema in settings.TENANTS:
-            schema_apps = settings.TENANTS[schema].get("APPS", [])
-            if ("django.contrib.sessions" in schema_apps and user_app not in schema_apps) or (
-                user_app in schema_apps and "django.contrib.sessions" not in schema_apps
-            ):
-                raise ImproperlyConfigured(
-                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app
-                )
-            if schema not in ["public", "default"]:
-                if "django.contrib.contenttypes" in schema_apps:
-                    raise ImproperlyConfigured("'django.contrib.contenttypes' must be on 'public' schema.")
-
     def _check_complementary_settings(self):
         if "django_pgschemas.routers.SyncRouter" not in settings.DATABASE_ROUTERS:
             raise ImproperlyConfigured("DATABASE_ROUTERS setting must contain 'django_pgschemas.routers.SyncRouter'.")
@@ -94,6 +78,5 @@ class DjangoPGSchemasConfig(AppConfig):
         self._check_public_schema()
         self._check_default_schemas()
         self._check_overall_schemas()
-        self._check_apps()
         self._check_complementary_settings()
         self._check_extra_search_paths()

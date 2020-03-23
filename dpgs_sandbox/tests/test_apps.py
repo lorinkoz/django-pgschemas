@@ -1,7 +1,11 @@
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
+
+from django_pgschemas.checks import check_apps
 
 settings_public = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.Domain"}
 settings_default = {"URLCONF": ""}
@@ -109,19 +113,37 @@ class AppConfigTestCase(TestCase):
 
     def test_contenttypes_location(self):
         with override_settings(TENANTS={"default": {"APPS": ["django.contrib.contenttypes"]}}):
-            with self.assertRaises(ImproperlyConfigured):
-                self.app_config._check_apps()
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
+            ]
+            self.assertEqual(errors, expected_errors)
         with override_settings(TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}):
-            with self.assertRaises(ImproperlyConfigured):
-                self.app_config._check_apps()
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
+            ]
+            self.assertEqual(errors, expected_errors)
 
     def test_user_session_location(self):
+        user_app = get_user_model()._meta.app_config.name
+
         with override_settings(TENANTS={"default": {"APPS": ["django.contrib.sessions"]}}):
-            with self.assertRaises(ImproperlyConfigured):
-                self.app_config._check_apps()
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning(
+                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
+                )
+            ]
+            self.assertEqual(errors, expected_errors)
         with override_settings(TENANTS={"default": {"APPS": ["shared_common"]}}):
-            with self.assertRaises(ImproperlyConfigured):
-                self.app_config._check_apps()
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning(
+                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
+                )
+            ]
+            self.assertEqual(errors, expected_errors)
 
     @override_settings(DATABASE_ROUTERS=())
     def test_database_routers(self):

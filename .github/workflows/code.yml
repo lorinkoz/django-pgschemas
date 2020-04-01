@@ -1,4 +1,4 @@
-name: Django Tests
+name: code
 on:
     push:
         branches: [master]

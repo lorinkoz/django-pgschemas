@@ -13,7 +13,7 @@ django-pgschemas
     :alt: Join the chat at https://gitter.im/django-pgschemas
     :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
-.. image:: https://github.com/lorinkoz/django-pgschemas/workflows/Django%20Tests/badge.svg
+.. image:: https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg
     :alt: Build status
     :target: https://github.com/lorinkoz/django-pgschemas/actions
 

@@ -2,20 +2,20 @@ django-pgschemas
 ================
 
 .. image:: https://img.shields.io/badge/packaging-poetry-purple.svg
-   :alt: Packaging: poetry
-   :target: https://github.com/sdispater/poetry
+    :alt: Packaging: poetry
+    :target: https://github.com/sdispater/poetry
 
 .. image:: https://img.shields.io/badge/code%20style-black-black.svg
-   :alt: Code style: black
-   :target: https://github.com/ambv/black
+    :alt: Code style: black
+    :target: https://github.com/ambv/black
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-   :alt: Join the chat at https://gitter.im/django-pgschemas
-   :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
+    :alt: Join the chat at https://gitter.im/django-pgschemas
+    :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
-.. image:: https://api.travis-ci.org/lorinkoz/django-pgschemas.svg?branch=master
-   :alt: Build status
-   :target: https://travis-ci.org/lorinkoz/django-pgschemas
+.. image:: https://github.com/lorinkoz/django-pgschemas/workflows/Django%20Tests/badge.svg
+    :alt: Build status
+    :target: https://github.com/lorinkoz/django-pgschemas/actions
 
 .. image:: https://readthedocs.org/projects/django-pgschemas/badge/?version=latest
     :alt: Documentation status

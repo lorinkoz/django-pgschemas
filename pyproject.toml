@@ -12,6 +12,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: Django",
     "Framework :: Django :: 2.0",
+    "Framework :: Django :: 3.0",
 ]
 
 [tool.poetry.dependencies]

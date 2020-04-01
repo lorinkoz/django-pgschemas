@@ -30,13 +30,6 @@ class WrappedSchemaOption(object):
             "-s", "--schema", nargs="+", dest="schemas", help="Schema(s) to execute the current command"
         )
         parser.add_argument(
-            "-exs",
-            "--exclude-schema",
-            nargs="+",
-            dest="excluded_schemas",
-            help="Schema(s) to exclude when executing the current command",
-        )
-        parser.add_argument(
             "-as",
             "--include-all-schemas",
             action="store_true",
@@ -63,6 +56,13 @@ class WrappedSchemaOption(object):
             action="store_true",
             dest="tenant_schemas",
             help="Include all tenant-like schemas when executing the current command",
+        )
+        parser.add_argument(
+            "-x",
+            "--exclude-schema",
+            nargs="+",
+            dest="excluded_schemas",
+            help="Schema(s) to exclude when executing the current command",
         )
         parser.add_argument(
             "--executor",

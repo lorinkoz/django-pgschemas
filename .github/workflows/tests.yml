@@ -33,8 +33,9 @@ jobs:
                   python -m pip install --upgrade pip
                   python -m pip install poetry
                   python -m poetry install
+            - name: Install Django specific version ${{ matrix.django-version }}
+              run: |
                   python -m poetry run pip install "Django${{ matrix.django-version }}"
             - name: Run Tests
               run: |
                   python -m poetry run coverage run dpgs_sandbox/manage.py test tests
-                  python -m codecov

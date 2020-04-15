@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core import checks
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_module
 
 

@@ -30,7 +30,7 @@ def check_apps(app_configs, **kwargs):
                 )
         for session_app in session_apps:
             if (session_app in schema_apps and user_app not in schema_apps) or (
-                user_app in schema_apps and session_app not in schema_apps and session_apps in settings.INSTALLED_APPS
+                user_app in schema_apps and session_app not in schema_apps and session_app in settings.INSTALLED_APPS
             ):
                 errors.append(
                     checks.Warning(

@@ -1,24 +1,30 @@
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core import checks
+from django.utils.module_loading import import_string
 
 
-def get_session_apps():
-    session_apps = set()
-    for app_config in apps.get_app_configs():
-        for model in app_config.get_models():
-            if issubclass(model, AbstractBaseSession):
-                session_apps.add(model._meta.app_config.name)
-    return session_apps
+def get_user_app():
+    try:
+        return get_user_model()._meta.app_config.name
+    except ImproperlyConfigured:
+        return None
+
+
+def get_session_app():
+    store = import_string("{}.SessionStore".format(settings.SESSION_ENGINE))
+    session_model = store.get_model_class()
+    if issubclass(session_model, AbstractBaseSession):
+        return session_model._meta.app_config.name
+    return None
 
 
 @checks.register()
 def check_apps(app_configs, **kwargs):
     errors = []
-    user_app = get_user_model()._meta.app_config.name
-    session_apps = list(get_session_apps())
+    user_app = get_user_app()
+    session_app = get_session_app()
     if "django.contrib.contenttypes" in settings.TENANTS["default"].get("APPS", []):
         errors.append(
             checks.Warning(
@@ -37,7 +43,7 @@ def check_apps(app_configs, **kwargs):
                         id="pgschemas.W001",
                     )
                 )
-        for session_app in session_apps:
+        if user_app and session_app:
             if session_app in schema_apps and user_app not in schema_apps:
                 errors.append(
                     checks.Warning(

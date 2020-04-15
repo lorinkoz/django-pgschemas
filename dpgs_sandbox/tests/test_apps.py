@@ -165,7 +165,10 @@ class AppConfigTestCase(TestCase):
             ]
             self.assertEqual(errors, expected_errors)
         with override_settings(
-            TENANTS={"default": {"APPS": ["shared_common"]}, "www": {"APPS": ["django.contrib.sessions"]}}
+            TENANTS={
+                "default": {"APPS": ["shared_common"]},
+                "www": {"APPS": ["shared_common", "django.contrib.sessions"]},
+            }
         ):
             errors = check_apps(self.app_config)
             expected_errors = [

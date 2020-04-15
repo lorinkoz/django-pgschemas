@@ -3,7 +3,6 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 
-from . import checks
 from .utils import get_tenant_model, is_valid_schema_name
 
 
@@ -74,6 +73,8 @@ class DjangoPGSchemasConfig(AppConfig):
                 )
 
     def ready(self):
+        from . import checks
+
         self._check_tenant_dict()
         self._check_public_schema()
         self._check_default_schemas()

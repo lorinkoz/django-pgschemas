@@ -111,40 +111,6 @@ class AppConfigTestCase(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             self.app_config._check_overall_schemas()
 
-    def test_contenttypes_location(self):
-        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.contenttypes"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
-            ]
-            self.assertEqual(errors, expected_errors)
-        with override_settings(TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
-            ]
-            self.assertEqual(errors, expected_errors)
-
-    def test_user_session_location(self):
-        user_app = get_user_model()._meta.app_config.name
-
-        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.sessions"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
-        with override_settings(TENANTS={"default": {"APPS": ["shared_common"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
-
     @override_settings(DATABASE_ROUTERS=())
     def test_database_routers(self):
         with self.assertRaises(ImproperlyConfigured):
@@ -172,6 +138,42 @@ class AppConfigTestCase(TestCase):
         ):
             with self.assertRaises(ImproperlyConfigured):
                 self.app_config._check_extra_search_paths()
+
+    def test_contenttypes_location(self):
+        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.contenttypes"]}}):
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
+            ]
+            self.assertEqual(errors, expected_errors)
+        with override_settings(TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}):
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning("'django.contrib.contenttypes' must be on 'public' schema.", id="pgschemas.W001",)
+            ]
+            self.assertEqual(errors, expected_errors)
+
+    def test_user_session_location(self):
+        user_app = get_user_model()._meta.app_config.name
+
+        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.sessions"]}}):
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning(
+                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
+                )
+            ]
+            self.assertEqual(errors, expected_errors)
+        with override_settings(
+            TENANTS={"default": {"APPS": ["shared_common"]}, "www": {"APPS": ["django.contrib.sessions"]}}
+        ):
+            errors = check_apps(self.app_config)
+            expected_errors = [
+                checks.Warning(
+                    "'django.contrib.sessions' must be on schemas that also have '%s'." % user_app, id="pgschemas.W002",
+                )
+            ]
+            self.assertEqual(errors, expected_errors)
 
     @override_settings(TENANTS={"public": settings_public, "default": settings_default})
     def test_all_good_here(self):

@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core import checks
-from django.utils.module_loading import import_string
+from django.utils.module_loading import import_module
 
 
 def get_user_app():
@@ -13,10 +13,12 @@ def get_user_app():
 
 
 def get_session_app():
-    store = import_string("{}.SessionStore".format(settings.SESSION_ENGINE))
-    session_model = store.get_model_class()
-    if issubclass(session_model, AbstractBaseSession):
-        return session_model._meta.app_config.name
+    engine = import_module(settings.SESSION_ENGINE)
+    store = engine.SessionStore
+    if hasattr(store, "get_model_class"):
+        session_model = store.get_model_class()
+        if issubclass(session_model, AbstractBaseSession):
+            return session_model._meta.app_config.name
     return None
 
 

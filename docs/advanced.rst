@@ -22,25 +22,33 @@ concise synopsis of the ``runschema`` command is as follows::
     command_name          The command name you want to run
 
     optional arguments:
+
     --noinput, --no-input
-                            Tells Django to NOT prompt the user for input of any
-                            kind.
+                        Tells Django to NOT prompt the user for input of any
+                        kind.
+
     -s SCHEMAS [SCHEMAS ...], --schema SCHEMAS [SCHEMAS ...]
-                            Schema(s) to execute the current command
+                        Schema(s) to execute the current command
     -as, --include-all-schemas
-                            Include all schemas when executing the current command
+                        Include all schemas when executing the current command
     -ss, --include-static-schemas
-                            Include all static schemas when executing the current
-                            command
+                        Include all static schemas when executing the current
+                        command
     -ds, --include-dynamic-schemas
-                            Include all dynamic schemas when executing the current
-                            command
+                        Include all dynamic schemas when executing the current
+                        command
     -ts, --include-tenant-schemas
-                            Include all tenant-like schemas when executing the
-                            current command
+                        Include all tenant-like schemas when executing the
+                        current command
+    -x EXCLUDED_SCHEMAS [EXCLUDED_SCHEMAS ...],
+    --exclude-schema EXCLUDED_SCHEMAS [EXCLUDED_SCHEMAS ...]
+                        Schema(s) to exclude when executing the current
+                        command
+
     --executor {sequential,parallel}
-                            Executor to be used for running command on schemas
-    --no-create-schemas   Skip automatic creation of non-existing schemas
+                        Executor to be used for running command on schemas
+    --no-create-schemas
+                        Skip automatic creation of non-existing schemas
 
 The ``--schema`` parameter accepts multiple inputs of different kinds:
 
@@ -52,6 +60,9 @@ The parameters ``-as``, ``-ss``, ``-ds`` and ``-ts`` act as wildcards for
 including all schemas, static schemas, dynamic schemas and tenant-like schemas,
 respectively. Tenant-like schemas are dynamic schemas plus the clone reference,
 if it exists.
+
+It's possible to exclude schemas via the ``-x`` parameter. Excluded schemas will
+take precedence over included ones.
 
 At least one schema is mandatory. If it's not provided with the command, either
 explicitly or via wildcard params, it will be asked interactively. One notable
@@ -102,10 +113,11 @@ The base commands are:
 .. attention::
 
     Since these commands can work with both static and dynamic tenants, the
-    parameter ``tenant`` could be an instance of
-    ``settings.TENANTS["public"]["TENANT_MODEL"]`` or
+    parameter ``tenant`` will be an instance of
     ``django_pgschemas.schema.SchemaDescriptor``. Make sure you do the
-    appropriate type checking before accessing the tenant members.
+    appropriate type checking before accessing the tenant members, as not every
+    tenant will be an instance of
+    ``settings.TENANTS["public"]["TENANT_MODEL"]``.
 
 Caching
 -------

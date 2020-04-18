@@ -7,13 +7,13 @@ This app requires:
 * django (2.0+)
 * psycopg2 (2.7+)
 
-You can install ``django-pgschemas`` via ``pip``, ``pipenv`` or any other
+You can install ``django-pgschemas`` via ``pip``, ``poetry`` or any other
 installer.
 
 .. code-block:: bash
 
     pip install django-pgschemas
-    pipenv install django-pgschemas
+    poetry add django-pgschemas
 
 Basic Configuration
 ===================
@@ -85,24 +85,11 @@ Each entry in the ``TENANTS`` dictionary represents a static tenant, except for
 each tenant has the relevant ``APPS`` that will be synced in the corresponding
 schema.
 
-.. attention::
+.. tip::
 
     ``public`` is always treated as shared schema and cannot be routed
     directly. Every other tenant will get its search path set to its schema
     first, then the public schema.
-
-.. attention::
-
-    ``django.contrib.contenttypes``, if included, must always be part of the
-    public schema apps, and only part of that, so that every content type from
-    every model can be found, disregarding the current search path.
-
-.. attention::
-
-    ``django.contrib.sessions`` must always be together with
-    ``django.contrib.auth`` (or whatever app defines your custom user model) in
-    order to prevent sessions leaking across tenants that do not share the same
-    user base.
 
 For Django to function properly, ``INSTALLED_APPS`` and ``ROOT_URLCONF``
 settings must be defined. Just make them get their information from the
@@ -177,8 +164,8 @@ the tenant and domain models created. You can then synchronize the rest of the s
 
 .. code-block:: bash
 
-    python manage.py migrateschema -s public
-    python manage.py migrateschema
+    python manage.py migrate -s public
+    python manage.py migrate
 
 
 Now you are ready to create your first dynamic tenant. In the example, the
@@ -248,7 +235,7 @@ that it is kept up to date for future tenant creation.
     due to a change in the way sequence information is stored.
 
 
-.. attention::
+.. tip::
 
     The reference schema will get apps from
     ``settings.TENANTS["default"]["APPS"]`` and may look like any other dynamic

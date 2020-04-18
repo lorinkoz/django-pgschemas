@@ -178,7 +178,7 @@ python-versions = "*"
 version = "15.1.0"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Code coverage measurement for Python"
 name = "coverage"
 optional = false
@@ -586,7 +586,7 @@ pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 six = ">=1.10.0"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
 optional = false
@@ -685,7 +685,7 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "c71b21f78584ef7a8a260f3cb79370bb075b0e15a1628b4c79d5620c95469d81"
+content-hash = "5f8b4067e79fd3a56f4a57b5a74aacb48e7f7b13bdba76ac12cf7871b84f8e39"
 python-versions = "^3.6"
 
 [metadata.files]

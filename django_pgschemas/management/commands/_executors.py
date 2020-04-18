@@ -1,25 +1,25 @@
 import functools
 import multiprocessing
-import sys
 
 from django.conf import settings
-from django.core.management import call_command, color
+from django.core.management import call_command
 from django.core.management.base import OutputWrapper, CommandError
 from django.db import connection, transaction, connections
 
 
 def run_on_schema(
-    schema_name, executor_codename, command_class, function_name=None, args=[], kwargs={}, pass_schema_in_kwargs=False
+    schema_name, executor_codename, command, function_name=None, args=[], kwargs={}, pass_schema_in_kwargs=False
 ):
-    style = color.color_style()
-    stdout = OutputWrapper(sys.stdout)
-    stderr = OutputWrapper(sys.stderr)
-    stdout.style_func = stderr.style_func = lambda message: "[%s:%s] %s" % (
-        style.NOTICE(executor_codename),
-        style.NOTICE(schema_name),
+    if not isinstance(command.stdout, OutputWrapper):
+        command.stdout = OutputWrapper(command.stdout)
+    if not isinstance(command.stderr, OutputWrapper):
+        command.stderr = OutputWrapper(command.stderr)
+
+    command.stdout.style_func = command.stderr.style_func = lambda message: "[%s:%s] %s" % (
+        command.style.NOTICE(executor_codename),
+        command.style.NOTICE(schema_name),
         message,
     )
-    command = command_class(stdout=stdout, stderr=stderr)
 
     connections.close_all()
     connection.set_schema_to(schema_name)
@@ -36,11 +36,11 @@ def run_on_schema(
     connection.close()
 
 
-def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
     runner = functools.partial(
         run_on_schema,
         executor_codename="sequential",
-        command_class=command_class,
+        command=command,
         function_name=function_name,
         args=args,
         kwargs=kwargs,
@@ -50,13 +50,13 @@ def sequential(schemas, command_class, function_name, args=[], kwargs={}, pass_s
         runner(schema)
 
 
-def parallel(schemas, command_class, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
     processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
     pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(
         run_on_schema,
         executor_codename="parallel",
-        command_class=command_class,
+        command=command,
         function_name=function_name,
         args=args,
         kwargs=kwargs,

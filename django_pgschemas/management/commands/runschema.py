@@ -63,7 +63,7 @@ class Command(WrappedSchemaOption, BaseCommand):
                 self.stderr.write("%s: %s" % (e.__class__.__name__, e))
             sys.exit(1)
 
-        executor(schemas, type(target_class), "special:run_from_argv", args)
+        executor(schemas, target_class, "special:run_from_argv", args)
 
     def handle(self, *args, **options):
         target = self.get_command_from_arg(options.pop("command_name"))
@@ -79,4 +79,4 @@ class Command(WrappedSchemaOption, BaseCommand):
         options.pop("skip_schema_creation")
         if self.allow_interactive:
             options.pop("interactive")
-        executor(schemas, type(target), "special:call_command", args, options)
+        executor(schemas, target, "special:call_command", args, options)

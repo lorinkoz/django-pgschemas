@@ -235,7 +235,7 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
     def handle(self, *args, **options):
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
-        executor(schemas, type(self), "_raw_handle_tenant", args, options, pass_schema_in_kwargs=True)
+        executor(schemas, self, "_raw_handle_tenant", args, options, pass_schema_in_kwargs=True)
 
     def _raw_handle_tenant(self, *args, **kwargs):
         schema_name = kwargs.pop("schema_name")

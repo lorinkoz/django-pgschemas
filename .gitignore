@@ -107,5 +107,4 @@ venv.bak/
 .vscode/
 
 # local only by design
-poetry.lock
 setup.py

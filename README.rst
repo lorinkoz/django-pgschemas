@@ -13,17 +13,17 @@ django-pgschemas
     :alt: Join the chat at https://gitter.im/django-pgschemas
     :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
-.. image:: https://coveralls.io/repos/github/lorinkoz/django-pgschemas/badge.svg?branch=master
+.. image:: https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg
     :alt: Build status
-    :target: https://coveralls.io/github/lorinkoz/django-pgschemas?branch=master
+    :target: https://github.com/lorinkoz/django-pgschemas/actions
 
 .. image:: https://readthedocs.org/projects/django-pgschemas/badge/?version=latest
     :alt: Documentation status
     :target: https://django-pgschemas.readthedocs.io/
 
-.. image:: https://codecov.io/gh/lorinkoz/django-pgschemas/branch/master/graphs/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/lorinkoz/django-pgschemas/badge.svg?branch=master
     :alt: Code coverage
-    :target: https://codecov.io/gh/lorinkoz/django-pgschemas
+    :target: https://coveralls.io/github/lorinkoz/django-pgschemas?branch=master
 
 .. image:: https://badge.fury.io/py/django-pgschemas.svg
     :alt: PyPi version

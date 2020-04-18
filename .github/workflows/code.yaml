@@ -11,7 +11,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.6, 3.7, 3.8]
-        django-version: ["^2.0", "^2.1", "^2.2", "^3.0"]
+        django-version: ["~=2.0.0", "~=2.1.0", "~=2.2.0", "~=3.0.0"]
     services:
       postgres:
         image: postgres:10.8
@@ -47,7 +47,7 @@ jobs:
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: matrix.python-version == '3.7' && matrix.django-version == '^3.0'
+        if: matrix.python-version == '3.7' && matrix.django-version == '~=3.0.0'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./.coverage

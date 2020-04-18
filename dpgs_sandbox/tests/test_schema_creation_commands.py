@@ -1,13 +1,13 @@
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from django_pgschemas import utils
 
 
-class QuickCommandTestCase(TestCase):
+class SchemaCreationCommandsTestCase(TransactionTestCase):
     """
-    Tests quickly that management commands do what they are expected to do.
+    Tests that the schema creation commands do what they are expected to do.
     """
 
     def test_cloneschema(self):
@@ -27,10 +27,14 @@ class QuickCommandTestCase(TestCase):
             call_command("cloneschema", "nonexisting", "newschema", verbosity=0)
         utils.drop_schema("cloned")
 
-    # def test_createrefschema(self):
-    #     "Tests 'createrefschema' command"
-    #     utils.drop_schema("cloned")
-    #     call_command("createrefschema", verbosity=0)  # All good
-    #     self.assertTrue(utils.schema_exists("sample"))
-    #     call_command("createrefschema", recreate=True, verbosity=0)  # All good too
-    #     self.assertTrue(utils.schema_exists("sample"))
+    def test_createrefschema(self):
+        "Tests 'createrefschema' command"
+        utils.drop_schema("cloned")
+        call_command("createrefschema", verbosity=0)  # All good
+        self.assertTrue(utils.schema_exists("sample"))
+        utils.drop_schema("cloned")
+        call_command("createrefschema", recreate=True, verbosity=0)  # All good too
+        self.assertTrue(utils.schema_exists("sample"))
+        utils.drop_schema("cloned")
+        call_command("createrefschema", recreate=True, verbosity=0)  # All good too
+        self.assertTrue(utils.schema_exists("sample"))

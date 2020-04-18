@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.db import connection
 from django.http import Http404
-from django.urls import clear_url_caches
+from django.urls import set_urlconf, clear_url_caches
 
 from .schema import SchemaDescriptor
 from .urlresolvers import get_urlconf_from_schema
@@ -26,16 +26,15 @@ class TenantMiddleware:
         hostname = remove_www(request.get_host().split(":")[0])
         connection.set_schema_to_public()
 
+        tenant = None
+
         # Checking for static tenants
         for schema, data in settings.TENANTS.items():
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
                 tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
-                request.tenant = tenant
-                request.urlconf = get_urlconf_from_schema(tenant)
-                connection.set_schema(tenant)
-                return self.get_response(request)
+                break
 
         # Checking for dynamic tenants
         else:
@@ -56,7 +55,11 @@ class TenantMiddleware:
                 tenant.folder = prefix
                 request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
                 clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
+
+        if tenant:
             request.tenant = tenant
-            request.urlconf = get_urlconf_from_schema(tenant)
+            urlconf = get_urlconf_from_schema(tenant)
+            request.urlconf = urlconf
+            set_urlconf(urlconf)
             connection.set_schema(tenant)
-            return self.get_response(request)
+        return self.get_response(request)

@@ -23,15 +23,18 @@ django = ">=2.0,<4.0"
 psycopg2 = "^2.7"
 
 [tool.poetry.dev-dependencies]
-sphinx = "^1.8"
-doc8 = "^0.8.0"
-sphinx_rtd_theme = "^0.4.2"
-channels = "^2.1"
-codecov = "^2.0"
 black = "^19.10b0"
+channels = "^2.1"
+coverage = {extras = ["toml"], version = "^5.1"}
+doc8 = "^0.8.0"
+sphinx = "^1.8"
+sphinx_rtd_theme = "^0.4.2"
 
 [tool.black]
 line-length = 120
+
+[tool.coverage.run]
+source = ["django_pgschemas"]
 
 [build-system]
 requires = ["poetry>=0.12"]

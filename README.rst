@@ -13,9 +13,9 @@ django-pgschemas
     :alt: Join the chat at https://gitter.im/django-pgschemas
     :target: https://gitter.im/django-pgschemas/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
-.. image:: https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg
+.. image:: https://coveralls.io/repos/github/lorinkoz/django-pgschemas/badge.svg?branch=master
     :alt: Build status
-    :target: https://github.com/lorinkoz/django-pgschemas/actions
+    :target: https://coveralls.io/github/lorinkoz/django-pgschemas?branch=master
 
 .. image:: https://readthedocs.org/projects/django-pgschemas/badge/?version=latest
     :alt: Documentation status

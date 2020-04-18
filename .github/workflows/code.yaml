@@ -45,9 +45,9 @@ jobs:
       - name: Run Tests
         run: |
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v1.0.1
         if: matrix.python-version == '3.7' && matrix.django-version == '~=3.0.0'
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./.coverage
+          github-token: ${{ secrets.COVERALLS_TOKEN }}
+          path-to-lcov: ./.coverage

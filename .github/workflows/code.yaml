@@ -46,8 +46,6 @@ jobs:
         run: |
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
       - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v1.0.1
-        if: matrix.python-version == '3.7' && matrix.django-version == '~=3.0.0'
-        with:
-          github-token: ${{ secrets.COVERALLS_TOKEN }}
-          path-to-lcov: ./.coverage
+        run: |
+          COVERALLS_REPO_TOKEN=${{ secrets.COVERALLS_TOKEN }} python -m coveralls
+        if: matrix.python-version == '3.6' && matrix.django-version == '~=2.0.0'

@@ -1,9 +1,14 @@
 import re
+import sys
+from importlib.util import find_spec, module_from_spec
 
+from django.conf import settings
 from django.db import connection
 from django.urls import URLResolver
+from django.utils.module_loading import import_string
 
 from .utils import get_domain_model
+from .schema import SchemaDescriptor
 
 
 class TenantPrefixPattern:
@@ -47,3 +52,37 @@ def tenant_patterns(*urls):
     This may only be used in the root URLconf, not in an included URLconf.
     """
     return [URLResolver(TenantPrefixPattern(), list(urls))]
+
+
+def get_urlconf_from_schema(schema):
+    assert isinstance(schema, SchemaDescriptor)
+
+    if not schema.domain_url:
+        return None
+
+    # Checking for static tenants
+    if not schema.is_dynamic:
+        for schema_name, data in settings.TENANTS.items():
+            if schema_name in ["public", "default"]:
+                continue
+            if schema.domain_url in data["DOMAINS"]:
+                if "URLCONF" in data:
+                    return data["URLCONF"]
+                return None
+        return None
+
+    # Checking for dynamic tenants
+    urlconf = settings.TENANTS["default"]["URLCONF"]
+    if schema.folder:
+        dynamic_path = settings.TENANTS["default"]["URLCONF"] + "_dynamically_tenant_prefixed"
+        if not sys.modules.get(dynamic_path):
+            spec = find_spec(settings.TENANTS["default"]["URLCONF"])
+            prefixed_url_module = module_from_spec(spec)
+            spec.loader.exec_module(prefixed_url_module)
+            prefixed_url_module.urlpatterns = tenant_patterns(
+                *import_string(settings.TENANTS["default"]["URLCONF"] + ".urlpatterns")
+            )
+            sys.modules[dynamic_path] = prefixed_url_module
+            del spec
+        urlconf = dynamic_path
+    return urlconf

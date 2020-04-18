@@ -48,7 +48,9 @@ jobs:
         run: |
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
       - name: Upload coverage to Coveralls
-        uses: AndreMiras/coveralls-python-action@develop
-        with:
-          github-token: ${{ secrets.COVERALLS_TOKEN }}
         if: matrix.python-version == '3.6' && matrix.django-version == '~=2.0.0'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        run: |
+          python -m pip install coveralls
+          python -m coveralls

@@ -125,3 +125,9 @@ Utils
         is_valid_schema_name, check_schema_name, remove_www,
         run_in_public_schema, schema_exists, dynamic_models_exist,
         create_schema, drop_schema, clone_schema, create_or_clone_schema
+
+URL resolvers
+-------------
+
+.. automodule:: django_pgschemas.urlresolvers
+    :members: get_urlconf_from_schema

@@ -55,6 +55,12 @@ def tenant_patterns(*urls):
 
 
 def get_urlconf_from_schema(schema):
+    """
+    Returns the proper URLConf depending on the schema.
+    The schema must come with domain_url and folder members set.
+    If the schema comes with subfolder routing, a new module will be created
+    on the fly.
+    """
     assert isinstance(schema, SchemaDescriptor)
 
     if not schema.domain_url:
@@ -85,4 +91,5 @@ def get_urlconf_from_schema(schema):
             sys.modules[dynamic_path] = prefixed_url_module
             del spec
         urlconf = dynamic_path
+
     return urlconf

@@ -33,6 +33,9 @@ django-pgschemas
     :alt: PyPi version
     :target: http://badge.fury.io/py/django-pgschemas
 
+.. image:: https://img.shields.io/pypi/dm/django-pgschemas
+    :alt: Downloads
+
 -----
 
 .. toctree::

@@ -29,6 +29,9 @@ django-pgschemas
     :alt: PyPi version
     :target: http://badge.fury.io/py/django-pgschemas
 
+.. image:: https://img.shields.io/pypi/dm/django-pgschemas
+    :alt: Downloads
+
 |
 
 This app uses PostgreSQL schemas to support data multi-tenancy in a single

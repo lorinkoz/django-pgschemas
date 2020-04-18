@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from django_pgschemas.middleware import TenantMiddleware
 from django_pgschemas.schema import SchemaDescriptor
-from django_pgschemas.urlresolvers import TenantPrefixPattern
+from django_pgschemas.urlresolvers import TenantPrefixPattern, get_urlconf_from_schema
 from django_pgschemas.utils import get_tenant_model, get_domain_model
 
 TenantModel = get_tenant_model()
@@ -40,7 +40,7 @@ class URLResolversTestCase(TestCase):
 
         cls.reverser = reverser_func
         # This comes from app_tenants/urls.py
-        cls.paths = {"home": "/", "profile": "/profile/", "advanced-profile": "/profile/advanced/"}
+        cls.paths = {"tenant-home": "/", "profile": "/profile/", "advanced-profile": "/profile/advanced/"}
 
         for i in range(1, 4):
             schema_name = "tenant{}".format(i)
@@ -87,3 +87,66 @@ class URLResolversTestCase(TestCase):
                     self.reverser(name, domain, "/{}/".format(tenant.schema_name)),
                     "/{}{}".format(tenant.schema_name, path),
                 )
+
+
+class URLConfFactoryTestCase(TestCase):
+    """
+    Tests get_urlconf_from_schema.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        schema_name = "tenant1"
+        tenant = TenantModel(schema_name=schema_name)
+        tenant.auto_create_schema = True
+        tenant.save(verbosity=0)
+        DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
+        DomainModel.objects.create(tenant=tenant, domain="everything.test.com", folder=schema_name)  # primary
+        connection.set_schema_to_public()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        for tenant in TenantModel.objects.all():
+            tenant.auto_drop_schema = True
+            tenant.delete(force_drop=True)
+
+    def test_public(self):
+        schema = SchemaDescriptor.create(schema_name="public")
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, None)
+
+    def test_sample(self):
+        schema = SchemaDescriptor.create(schema_name="sample")
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, None)
+
+    def test_www(self):
+        schema = SchemaDescriptor.create(schema_name="www", domain_url="test.com")
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, "app_main.urls")
+
+    def test_blog(self):
+        schema = SchemaDescriptor.create(schema_name="blog", domain_url="blog.test.com")
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, "app_blog.urls")
+
+    def test_tenant1_unprefixed(self):
+        schema = TenantModel.objects.get(schema_name="tenant1")
+        schema.domain_url = "tenant1.test.com"
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, "app_tenants.urls")
+
+    def test_tenant1_prefixed(self):
+        schema = TenantModel.objects.get(schema_name="tenant1")
+        schema.domain_url = "everything.test.com"
+        schema.folder = "tenant1"
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, "app_tenants.urls_dynamically_tenant_prefixed")
+        self.assertTrue(sys.modules.get("app_tenants.urls_dynamically_tenant_prefixed"))
+
+    def test_tenant1_broken_request(self):
+        schema = TenantModel.objects.get(schema_name="tenant1")
+        urlconf = get_urlconf_from_schema(schema)
+        self.assertEqual(urlconf, None)

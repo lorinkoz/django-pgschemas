@@ -31,10 +31,8 @@ class TenantAutomaticTestCase(TransactionTestCase):
         "Tests automatic creation/deletion for new tenant's save/delete"
         self.assertFalse(schema_exists("tenant1"))
         tenant = TenantModel(schema_name="tenant1")
-        tenant.auto_create_schema = True
         tenant.save(verbosity=0)
         self.assertTrue(schema_exists("tenant1"))
-        tenant.auto_drop_schema = True
         # Self-cleanup
         tenant.delete(force_drop=True)
         self.assertFalse(schema_exists("tenant1"))
@@ -61,7 +59,6 @@ class TenantAutomaticTestCase(TransactionTestCase):
 
         self.assertFalse(schema_exists("tenant1"))
         tenant = TenantModel(schema_name="tenant1")
-        tenant.auto_create_schema = True
         schema_post_sync.connect(signal_receiver)
         with self.assertRaises(Exception):
             tenant.save(verbosity=0)
@@ -99,7 +96,6 @@ class TenantTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         tenant = TenantModel(schema_name="tenant")
-        tenant.auto_create_schema = True
         tenant.save(verbosity=0)
         catalog = Catalog.objects.create()
         catalog2 = Catalog.objects.create()
@@ -223,24 +219,23 @@ class DomainTestCase(TransactionTestCase):
     Tests domain operations.
     """
 
-    @transaction.atomic
     def test_primary_domain(self):
-        tenant1 = TenantModel.objects.create(schema_name="tenant1")
-        tenant2 = TenantModel.objects.create(schema_name="tenant2")
+        tenant1 = TenantModel(schema_name="tenant1")
+        tenant2 = TenantModel(schema_name="tenant2")
+        tenant1.save(verbosity=0)
+        tenant2.save(verbosity=0)
         domain1 = DomainModel.objects.create(domain="tenant1.test.com", tenant=tenant1)
         DomainModel.objects.create(domain="tenant1-other.test.com", tenant=tenant1, is_primary=False)
         self.assertEqual(tenant1.get_primary_domain(), domain1)
         self.assertEqual(tenant2.get_primary_domain(), None)
         for tenant in TenantModel.objects.all():
-            tenant.auto_drop_schema = True
             tenant.delete(force_drop=True)
 
-    @transaction.atomic
     def test_domain_string(self):
-        tenant = TenantModel.objects.create(schema_name="tenant")
+        tenant = TenantModel(schema_name="tenant")
+        tenant.save(verbosity=0)
         domain1 = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant)
         domain2 = DomainModel.objects.create(domain="everything.test.com", folder="tenant", tenant=tenant)
         self.assertEqual(str(domain1), "tenant.test.com")
         self.assertEqual(str(domain2), "everything.test.com/tenant")
-        tenant.auto_drop_schema = True
         tenant.delete(force_drop=True)

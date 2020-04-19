@@ -23,7 +23,8 @@ class WhoWillCommandTestCase(TransactionTestCase):
     @classmethod
     def tearDownClass(cls):
         TenantModel = get_tenant_model()
-        TenantModel.objects.all().delete()
+        for tenant in TenantModel.objects.all():
+            tenant.delete(force_drop=True)
 
     def split_output(self, buffer):
         buffer.seek(0)

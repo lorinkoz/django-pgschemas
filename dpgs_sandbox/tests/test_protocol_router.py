@@ -23,7 +23,8 @@ class TenantProtocolRouterTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         TenantModel = get_tenant_model()
-        TenantModel.objects.all().delete()
+        for tenant in TenantModel.objects.all():
+            tenant.delete(force_drop=True)
 
     def test_get_tenant_scope_static(self):
         scope = {"path": "/", "headers": [(b"host", b"blog.test.com")]}

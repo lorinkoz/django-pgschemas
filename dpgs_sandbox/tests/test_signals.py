@@ -10,6 +10,7 @@ class SignalsTestCase(TestCase):
 
     def test_tenant_delete_callback(self):
         TenantModel = get_tenant_model()
+        backup_create, backup_drop = TenantModel.auto_create_schema, TenantModel.auto_drop_schema
         TenantModel.auto_create_schema = False
         TenantModel.auto_drop_schema = True
         tenant = TenantModel(schema_name="tenant1")
@@ -18,3 +19,4 @@ class SignalsTestCase(TestCase):
         self.assertTrue(schema_exists("tenant1"))
         TenantModel.objects.all().delete()
         self.assertFalse(schema_exists("tenant1"))
+        TenantModel.auto_create_schema, TenantModel.auto_drop_schema = backup_create, backup_drop

@@ -21,7 +21,8 @@ class TenantRequestFactoryTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         TenantModel = get_tenant_model()
-        TenantModel.objects.all().delete()
+        for tenant in TenantModel.objects.all():
+            tenant.delete(force_drop=True)
 
     def test_get(self):
         request = self.request.get("/not/important/")

@@ -45,7 +45,6 @@ class URLResolversTestCase(TestCase):
         for i in range(1, 4):
             schema_name = "tenant{}".format(i)
             tenant = TenantModel(schema_name=schema_name)
-            tenant.auto_create_schema = True
             tenant.save(verbosity=0)
             DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
             DomainModel.objects.create(tenant=tenant, domain="everything.test.com", folder=schema_name)  # primary
@@ -56,7 +55,6 @@ class URLResolversTestCase(TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         for tenant in TenantModel.objects.all():
-            tenant.auto_drop_schema = True
             tenant.delete(force_drop=True)
 
     def test_tenant_prefix(self):
@@ -98,7 +96,6 @@ class URLConfFactoryTestCase(TestCase):
     def setUpClass(cls):
         schema_name = "tenant1"
         tenant = TenantModel(schema_name=schema_name)
-        tenant.auto_create_schema = True
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
         DomainModel.objects.create(tenant=tenant, domain="everything.test.com", folder=schema_name)  # primary
@@ -109,7 +106,6 @@ class URLConfFactoryTestCase(TestCase):
     def tearDownClass(cls):
         super().tearDownClass()
         for tenant in TenantModel.objects.all():
-            tenant.auto_drop_schema = True
             tenant.delete(force_drop=True)
 
     def test_public(self):

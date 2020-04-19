@@ -53,14 +53,14 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
         TenantModel = utils.get_tenant_model()
         DomainModel = utils.get_domain_model()
         tenant = TenantModel(schema_name="tenant1")
-        tenant.auto_create_schema = True
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
 
     @classmethod
     def tearDownClass(cls):
         TenantModel = utils.get_tenant_model()
-        TenantModel.objects.all().delete()
+        for tenant in TenantModel.objects.all():
+            tenant.delete(force_drop=True)
 
     def test_interactive_cloneschema(self):
         class CustomCloneSchemaCommand(CloneSchemaCommand):

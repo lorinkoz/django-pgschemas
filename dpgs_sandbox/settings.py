@@ -36,6 +36,7 @@ TENANTS = {
     "www": {
         "APPS": ["shared_common", "app_main", "django.contrib.sessions"],
         "URLCONF": "app_main.urls",
+        "WS_URLCONF": "app_main.ws_urls",
         "DOMAINS": ["test.com"],
     },
     "blog": {
@@ -46,6 +47,7 @@ TENANTS = {
     "default": {
         "APPS": ["shared_common", "app_tenants", "django.contrib.sessions"],
         "URLCONF": "app_tenants.urls",
+        "WS_URLCONF": "app_tenants.ws_urls",
         "CLONE_REFERENCE": "sample",
     },
 }

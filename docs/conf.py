@@ -21,7 +21,7 @@ import sys
 import django
 
 sys.path.insert(0, os.path.abspath("../dpgs_sandbox/"))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.base")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 django.setup()
 
 

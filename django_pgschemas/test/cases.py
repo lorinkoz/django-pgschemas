@@ -66,14 +66,14 @@ class TenantTestCase(TestCase):
 
     @classmethod
     def add_allowed_test_domain(cls):
+        cls.BACKUP_ALLOWED_HOSTS = settings.ALLOWED_HOSTS
         # ALLOWED_HOSTS is a special setting of Django setup_test_environment so we can't modify it with helpers
         if ALLOWED_TEST_DOMAIN not in settings.ALLOWED_HOSTS:
             settings.ALLOWED_HOSTS += [ALLOWED_TEST_DOMAIN]
 
     @classmethod
     def remove_allowed_test_domain(cls):
-        if ALLOWED_TEST_DOMAIN in settings.ALLOWED_HOSTS:
-            settings.ALLOWED_HOSTS.remove(ALLOWED_TEST_DOMAIN)
+        settings.ALLOWED_HOSTS = cls.BACKUP_ALLOWED_HOSTS
 
     @classmethod
     def sync_public(cls):

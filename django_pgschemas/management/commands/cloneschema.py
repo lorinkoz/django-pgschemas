@@ -28,11 +28,15 @@ class Command(BaseCommand):
             help="Just show what clone would do; without actually cloning.",
         )
 
+    def _input(self, question):
+        "Wrapper around 'input' for overriding while testing"
+        return input(question)
+
     def _ask(self, question):
         answer = None
         while answer is None:
             try:
-                raw_answer = input("{} [Y/n] ".format(question.strip())).strip() or "y"
+                raw_answer = self._input("{} [Y/n] ".format(question.strip())).strip() or "y"
                 answer = strtobool(raw_answer)
             except ValueError:
                 self.stderr.write("{} is not a valid answer.".format(raw_answer))
@@ -63,7 +67,7 @@ class Command(BaseCommand):
             )
             for field in fields:
                 while field.name not in data:
-                    raw_value = input("Value for field '{}': ".format(field.name))
+                    raw_value = self._input("Value for field '{}': ".format(field.name))
                     try:
                         data[field.name] = field.clean(raw_value, None)
                         instance = model_class(**data)

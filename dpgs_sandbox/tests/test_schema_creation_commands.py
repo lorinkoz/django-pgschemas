@@ -1,8 +1,11 @@
+from io import StringIO
+
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TransactionTestCase
 
 from django_pgschemas import utils
+from django_pgschemas.management.commands.cloneschema import Command as CloneSchemaCommand
 
 
 class SchemaCreationCommandsTestCase(TransactionTestCase):
@@ -38,3 +41,43 @@ class SchemaCreationCommandsTestCase(TransactionTestCase):
         utils.drop_schema("cloned")
         call_command("createrefschema", recreate=True, verbosity=0)  # All good too
         self.assertTrue(utils.schema_exists("sample"))
+
+
+class InteractiveCloneSchemaTestCase(TransactionTestCase):
+    """
+    Tests the interactive behaviod of the cloneschema command.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        TenantModel = utils.get_tenant_model()
+        DomainModel = utils.get_domain_model()
+        tenant = TenantModel(schema_name="tenant1")
+        tenant.auto_create_schema = True
+        tenant.save(verbosity=0)
+        DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        TenantModel = utils.get_tenant_model()
+        TenantModel.objects.all().delete()
+
+    def test_interactive_cloneschema(self):
+        class CustomCloneSchemaCommand(CloneSchemaCommand):
+            answer_provider = (
+                n
+                for n in [
+                    "y",  # Would you like to create a database entry?
+                    "",  # Domain name, simulated wrong answer
+                    "tenant2.test.com",  # Domain name, good answer
+                ]
+            )
+
+            def _input(self, question):
+                return next(self.answer_provider)
+
+        with StringIO() as stdout:
+            with StringIO() as stderr:
+                command = CustomCloneSchemaCommand(stdout=stdout, stderr=stderr)
+                call_command(command, "tenant1", "tenant2", verbosity=1)
+        self.assertTrue(utils.schema_exists("tenant2"))

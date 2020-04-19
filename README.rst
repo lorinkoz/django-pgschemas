@@ -60,15 +60,19 @@ Contributing
 - Join the discussion at https://gitter.im/django-pgschemas/community.
 - PRs are welcome! If you have questions or comments, please use the link
   above.
-- Django's code of conduct applies to all means of contribution.
-  https://www.djangoproject.com/conduct/.
+- To run the test suite you can either run ``make`` or
+  ``poetry run dpgs_sandbox/manage.py test tests``. The tests for this project
+  live inside a small django project called ``dpgs_sandbox``, database password
+  and database host can be set through the environment variables
+  ``DATABASE_PASSWORD`` and ``DATABASE_HOST``.
 
-.. attention::
+Help needed!
+------------
 
-    We are currently looking for people to test the subfolder routing in their
-    current multi-tenant projects. We have reports of third party apps not
-    working properly with ``django-pgschemas`` when using subfolder routing.
-    We need *your* help to reproduce, disect and fix the errors. Thanks!
+We are currently looking for people to test the subfolder routing in their
+existing multi-tenant projects. We have reports of third party apps not
+working properly with ``django-pgschemas`` when using subfolder routing.
+We need *your* help to reproduce, disect and fix the errors. Thanks!
 
 Credits
 -------

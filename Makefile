@@ -10,4 +10,4 @@ coverage:
 
 .PHONY: coverage-html
 coverage-html:
-	poetry run coverage run dpgs_sandbox/manage.py test tests && coverage html
+	poetry run coverage run dpgs_sandbox/manage.py test tests && poetry run coverage html

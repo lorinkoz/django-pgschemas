@@ -20,11 +20,25 @@ def run_on_schema(
     if not isinstance(command.stderr, OutputWrapper):
         command.stderr = OutputWrapper(command.stderr)
 
-    command.stdout.style_func = command.stderr.style_func = lambda message: "[%s:%s] %s" % (
-        command.style.NOTICE(executor_codename),
-        command.style.NOTICE(schema_name),
-        message,
-    )
+    # Since we are prepending every output with the schema_name and executor, we need to determine
+    # whether we need to do so based on the last ending used to write. If the last write didn't end
+    # in '\n' then we don't do the prefixing in order to keep the output looking good.
+    class StyleFunc(object):
+        last_message = None
+
+        def __call__(self, message):
+            last_message = self.last_message
+            self.last_message = message
+            if last_message is None or last_message.endswith("\n"):
+                return "[%s:%s] %s" % (
+                    command.style.NOTICE(executor_codename),
+                    command.style.NOTICE(schema_name),
+                    message,
+                )
+            return message
+
+    command.stdout.style_func = StyleFunc()
+    command.stderr.style_func = StyleFunc()
 
     connections.close_all()
     connection.set_schema_to(schema_name)

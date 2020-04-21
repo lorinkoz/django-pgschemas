@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from django.apps import apps
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, tag
 from django.urls import reverse
 
 from django_pgschemas.test.client import TenantClient
@@ -10,6 +10,7 @@ from django_pgschemas.utils import get_tenant_model, get_domain_model
 User = apps.get_model("shared_common.User")
 
 
+@tag("bug")
 class CachedTenantSubfolderBugTestCase(TransactionTestCase):
     """
     Tests the behavior of subfolder routing regarding caching of URL patterns.

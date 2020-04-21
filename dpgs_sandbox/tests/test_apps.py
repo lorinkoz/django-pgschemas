@@ -1,11 +1,7 @@
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
-
-from django_pgschemas.checks import check_apps
 
 settings_public = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.Domain"}
 settings_default = {"URLCONF": ""}
@@ -138,55 +134,6 @@ class AppConfigTestCase(TestCase):
         ):
             with self.assertRaises(ImproperlyConfigured):
                 self.app_config._check_extra_search_paths()
-
-    def test_contenttypes_location(self):
-        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.contenttypes"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'django.contrib.contenttypes' in TENANTS['default']['APPS'] must be on 'public' schema only.",
-                    id="pgschemas.W001",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
-        with override_settings(TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'django.contrib.contenttypes' in TENANTS['www']['APPS'] must be on 'public' schema only.",
-                    id="pgschemas.W001",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
-
-    def test_user_session_location(self):
-        user_app = get_user_model()._meta.app_config.name
-
-        with override_settings(TENANTS={"default": {"APPS": ["django.contrib.sessions"]}}):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
-                    % (user_app, "django.contrib.sessions", "default"),
-                    id="pgschemas.W002",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
-        with override_settings(
-            TENANTS={
-                "default": {"APPS": ["shared_common"]},
-                "www": {"APPS": ["shared_common", "django.contrib.sessions"]},
-            }
-        ):
-            errors = check_apps(self.app_config)
-            expected_errors = [
-                checks.Warning(
-                    "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
-                    % ("django.contrib.sessions", user_app, "default"),
-                    id="pgschemas.W002",
-                )
-            ]
-            self.assertEqual(errors, expected_errors)
 
     @override_settings(TENANTS={"public": settings_public, "default": settings_default})
     def test_all_good_here(self):

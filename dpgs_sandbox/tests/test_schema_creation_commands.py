@@ -1,11 +1,11 @@
 from io import StringIO
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TransactionTestCase
 
 from django_pgschemas import utils
-from django_pgschemas.management.commands.cloneschema import Command as CloneSchemaCommand
 
 
 class SchemaCreationCommandsTestCase(TransactionTestCase):
@@ -63,21 +63,20 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
             tenant.delete(force_drop=True)
 
     def test_interactive_cloneschema(self):
-        class CustomCloneSchemaCommand(CloneSchemaCommand):
-            answer_provider = (
-                n
-                for n in [
-                    "y",  # Would you like to create a database entry?
-                    "",  # Domain name, simulated wrong answer
-                    "tenant2.test.com",  # Domain name, good answer
-                ]
-            )
+        answer_provider = (
+            n
+            for n in [
+                "y",  # Would you like to create a database entry?
+                "",  # Domain name, simulated wrong answer
+                "tenant2.test.com",  # Domain name, good answer
+            ]
+        )
 
-            def _input(self, question):
-                return next(self.answer_provider)
+        def patched_input(*args, **kwargs):
+            return next(answer_provider)
 
-        with StringIO() as stdout:
-            with StringIO() as stderr:
-                command = CustomCloneSchemaCommand(stdout=stdout, stderr=stderr)
-                call_command(command, "tenant1", "tenant2", verbosity=1)
+        with patch("builtins.input", patched_input):
+            with StringIO() as stdout:
+                with StringIO() as stderr:
+                    call_command("cloneschema", "tenant1", "tenant2", verbosity=1, stdout=stdout, stderr=stderr)
         self.assertTrue(utils.schema_exists("tenant2"))

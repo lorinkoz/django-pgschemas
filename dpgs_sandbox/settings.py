@@ -61,7 +61,7 @@ for schema in TENANTS:
 ROOT_URLCONF = TENANTS["default"]["URLCONF"]
 
 AUTH_USER_MODEL = "shared_common.User"
-
+LOGIN_URL = "login"
 
 MIDDLEWARE = [
     "django_pgschemas.middleware.TenantMiddleware",

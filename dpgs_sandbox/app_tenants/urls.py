@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.urls import path
-from django.views.generic import TemplateView
 
 
 urlpatterns = [
-    path("", TemplateView.as_view(), name="tenant-home"),
-    path("profile/", TemplateView.as_view(), name="profile"),
-    path("profile/advanced/", TemplateView.as_view(), name="advanced-profile"),
+    path("", lambda request: HttpResponse(), name="tenant-home"),
+    path("profile/", lambda request: HttpResponse(), name="profile"),
+    path("profile/advanced/", login_required(lambda request: HttpResponse()), name="advanced-profile"),
+    path("login/", lambda request: HttpResponse(), name="login"),
 ]

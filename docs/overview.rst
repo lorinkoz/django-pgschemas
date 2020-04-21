@@ -54,7 +54,7 @@ represents a good compromise between simplicity and performance.
     interested in `this package`_. For other solutions of the multi-tenancy
     problem, you could also look `here`_.
 
-.. _this package: https://github.com/cistusdata/django-multitenant
+.. _this package: https://github.com/citusdata/django-multitenant
 .. _here: https://djangopackages.org/grids/g/multi-tenancy/
 
 The semi-isolated approach through PostgreSQL schemas has some advantages and

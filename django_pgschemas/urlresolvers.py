@@ -103,7 +103,7 @@ urlpatterns = tenant_patterns(*original_urlpatterns)
 def get_urlconf_from_schema(schema):
     """
     Returns the proper URLConf depending on the schema.
-    The schema must come with domain_url and folder members set.
+    The schema must come with ``domain_url`` and ``folder`` members set.
     """
     assert isinstance(schema, SchemaDescriptor)
 

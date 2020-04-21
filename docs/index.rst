@@ -45,6 +45,7 @@ django-pgschemas
     overview
     basic
     advanced
+    contrib
     troubleshooting
     reference
     credits

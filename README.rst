@@ -60,10 +60,9 @@ Contributing
 - Join the discussion at https://gitter.im/django-pgschemas/community.
 - PRs are welcome! If you have questions or comments, please use the link
   above.
-- To run the test suite you can either run ``make`` or
-  ``poetry run dpgs_sandbox/manage.py test tests``. The tests for this project
-  live inside a small django project called ``dpgs_sandbox``, database password
-  and database host can be set through the environment variables
+- To run the test suite run ``make`` or ``make coverage``. The tests for this
+  project live inside a small django project called ``dpgs_sandbox``. Database
+  password and database host can be set through the environment variables
   ``DATABASE_PASSWORD`` and ``DATABASE_HOST``.
 
 Help needed!

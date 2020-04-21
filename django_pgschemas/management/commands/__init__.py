@@ -141,19 +141,19 @@ class WrappedSchemaOption(object):
 
         if include_all_schemas:
             if not self.allow_wildcards or (not allow_static and not allow_dynamic):
-                raise CommandError("Including all schemas is now allowed")
+                raise CommandError("Including all schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(static_schemas + list(dynamic_schemas))
         if include_static_schemas:
             if not self.allow_wildcards or not allow_static:
-                raise CommandError("Including static schemas is now allowed")
+                raise CommandError("Including static schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(static_schemas)
         if include_dynamic_schemas:
             if not self.allow_wildcards or not allow_dynamic:
-                raise CommandError("Including dynamic schemas is now allowed")
+                raise CommandError("Including dynamic schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(dynamic_schemas)
         if include_tenant_schemas:
             if not self.allow_wildcards or not allow_dynamic:
-                raise CommandError("Including tenant-like schemas is now allowed")
+                raise CommandError("Including tenant-like schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(dynamic_schemas)
             if clone_reference:
                 schemas_to_return.add(clone_reference)

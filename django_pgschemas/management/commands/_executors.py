@@ -3,13 +3,18 @@ import multiprocessing
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import OutputWrapper, CommandError
+from django.core.management.base import BaseCommand, OutputWrapper, CommandError
 from django.db import connection, transaction, connections
 
 
 def run_on_schema(
     schema_name, executor_codename, command, function_name=None, args=[], kwargs={}, pass_schema_in_kwargs=False
 ):
+    if not isinstance(command, BaseCommand):
+        # Parallel executor needs to pass command 'type' instead of 'instance'
+        # Therefore, no customizations for the command can be done, nor using custom stdout, stderr
+        command = command()
+
     if not isinstance(command.stdout, OutputWrapper):
         command.stdout = OutputWrapper(command.stdout)
     if not isinstance(command.stderr, OutputWrapper):
@@ -35,6 +40,8 @@ def run_on_schema(
     transaction.commit()
     connection.close()
 
+    return schema_name
+
 
 def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
     runner = functools.partial(
@@ -48,6 +55,7 @@ def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_
     )
     for schema in schemas:
         runner(schema)
+    return schemas
 
 
 def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
@@ -56,10 +64,10 @@ def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in
     runner = functools.partial(
         run_on_schema,
         executor_codename="parallel",
-        command=command,
+        command=type(command),  # Can't pass streams to children processes
         function_name=function_name,
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
-    pool.map(runner, schemas)
+    return pool.map(runner, schemas)

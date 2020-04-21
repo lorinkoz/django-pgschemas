@@ -52,7 +52,7 @@ def tenant_patterns(*urls):
     return [URLResolver(TenantPrefixPattern(), list(urls))]
 
 
-def get_dynamic_tenant_prefixed_urlconf(urlconf):
+def get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path):
     """
     Generates a new URLConf module with all patterns prefixed with tenant.
     """
@@ -82,8 +82,22 @@ urlpatterns = tenant_patterns(*original_urlpatterns)
         del spec
         return prefixed_url_module
 
+    def get_from_lazy_module():
+        from types import ModuleType
+
+        class LazyURLConfModule(ModuleType):
+            def __getattr__(self, attr):
+                from django.utils.module_loading import import_string
+
+                if attr == "urlpatterns":
+                    return tenant_patterns(*import_string(urlconf + ".urlpatterns"))
+                return import_string(urlconf + "." + attr)
+
+        return LazyURLConfModule(dynamic_path)
+
     # return get_from_code()
     return get_from_spec()
+    # return get_from_lazy_module()
 
 
 def get_urlconf_from_schema(schema):
@@ -112,7 +126,7 @@ def get_urlconf_from_schema(schema):
     if schema.folder:
         dynamic_path = urlconf + "_dynamically_tenant_prefixed"
         if not sys.modules.get(dynamic_path):
-            sys.modules[dynamic_path] = get_dynamic_tenant_prefixed_urlconf(urlconf)
+            sys.modules[dynamic_path] = get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path)
         urlconf = dynamic_path
 
     return urlconf

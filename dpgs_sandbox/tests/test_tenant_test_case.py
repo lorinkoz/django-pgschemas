@@ -1,8 +1,10 @@
+from django.apps import apps
+
 from django_pgschemas.test.cases import TenantTestCase
 
-from app_tenants.models import TenantData
-from shared_common.models import User
-from shared_public.models import Catalog
+Catalog = apps.get_model("shared_public.Catalog")
+TenantData = apps.get_model("app_tenants.TenantData")
+User = apps.get_model("shared_common.User")
 
 
 class TestTenantTestCase(TenantTestCase):

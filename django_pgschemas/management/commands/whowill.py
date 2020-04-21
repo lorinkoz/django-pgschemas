@@ -6,4 +6,5 @@ from . import TenantCommand
 
 class Command(TenantCommand):
     def handle_tenant(self, tenant, *args, **options):
-        self.stdout.write(str(tenant.get_primary_domain() or tenant.schema_name))
+        if options["verbosity"] >= 1:
+            self.stdout.write(str(tenant.get_primary_domain() or tenant.schema_name))

@@ -1,7 +1,6 @@
 from io import StringIO
 
 from django.core import management
-from django.core.management.base import CommandError
 from django.test import TransactionTestCase
 
 from django_pgschemas.utils import get_tenant_model, get_domain_model

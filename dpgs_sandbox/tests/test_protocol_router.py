@@ -16,7 +16,7 @@ class TenantProtocolRouterTestCase(TestCase):
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
-        DomainModel.objects.create(tenant=tenant, domain="clients.test.com", folder="tenant1", is_primary=False)
+        DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder="tenant1", is_primary=False)
         cls.tenant = tenant
         cls.router = TenantProtocolRouter()
 
@@ -41,7 +41,7 @@ class TenantProtocolRouterTestCase(TestCase):
         self.assertEqual(ws_urlconf, [])
 
     def test_get_tenant_scope_dynamic_subfolder(self):
-        scope = {"path": "/tenant1/", "headers": [(b"host", b"clients.test.com")]}
+        scope = {"path": "/tenant1/", "headers": [(b"host", b"everyone.test.com")]}
         tenant, tenant_prefix, ws_urlconf = self.router.get_tenant_scope(scope)
         self.assertEqual(tenant, self.tenant)
         self.assertEqual(tenant_prefix, "tenant1")

@@ -58,6 +58,79 @@ that it is kept up to date for future tenant creation.
     corresponding database entry for it. It's a special case of a static
     tenant, and it cannot be routed.
 
+Fallback domains
+----------------
+
+If there is only one domain available, and no possibility to use subdomain
+routing, the URLs for accessing your different tenants might look like::
+
+    mydomain.com                -> main site
+    mydomain.com/customer1      -> customer 1
+    mydomain.com/customer2      -> customer 2
+
+In this case, due to the order in which domains are tested, it is not possible
+to put ``mydomain.com`` as domain for the main tenant without blocking all
+dynamic schemas from getting routed. When
+``django_pgschemas.middleware.TenantMiddleware`` is checking which tenant to
+route from the incoming domain, it checks for static tenants first, then for
+dynamic tenants. If ``mydomain.com`` is used for the main tenant (which is
+static), then URLs like ``mydomain.com/customer1/some/url/`` will match the
+main tenant always.
+
+For a case like this, we provide a setting called ``FALLBACK_DOMAINS``. If no
+tenant is found for an incoming combination of domain and subfolder, then,
+static tenants are checked again for the fallback domains.
+
+Something like this would be the proper configuration for the present case:
+
+.. code-block:: python
+
+    TENANTS = {
+        "public": {
+            "APPS": [
+                "django.contrib.contenttypes",
+                "django.contrib.staticfiles",
+                # ...
+                "django_pgschemas",
+                "shared_app",
+                # ...
+            ],
+            "TENANT_MODEL": "shared_app.Client",
+            "DOMAIN_MODEL": "shared_app.Domain",
+        },
+        "main": {
+            "APPS": [
+                "django.contrib.auth",
+                "django.contrib.sessions",
+                # ...
+                "main_app",
+            ],
+            "DOMAINS": [],  # <--- No domain here
+            "FALLBACK_DOMAINS": ["mydomain.com"], # <--- This is checked last
+            "URLCONF": "main_app.urls",
+        },
+        "default": {
+            "APPS": [
+                "django.contrib.auth",
+                "django.contrib.sessions",
+                # ...
+                "tenant_app",
+                # ...
+            ],
+            "URLCONF": "tenant_app.urls",
+        }
+    }
+
+This example assumes that dynamic tenants will get their domains set to
+``mydomain.com`` with a tenant specific subfolder, like ``client1`` or
+``client2``.
+
+Here, an incoming request for ``mydomain.com/client1/some/url/`` will fail for
+the main tenant, then match against an existing dynamic tenant. On the other
+hand, an incoming request for ``mydomain.com/some/url/`` will fail for all
+static tenants, then fail for all dynamic tenants, and will finally match
+against the fallback domains of the main tenant.
+
 Management commands
 -------------------
 

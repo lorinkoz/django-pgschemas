@@ -91,6 +91,11 @@ class AppConfigTestCase(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             self.app_config._check_default_schemas()
 
+    @override_settings(TENANTS={"default": {**settings_default, "FALLBACK_DOMAINS": ""}})
+    def test_fallback_domains_on_default(self):
+        with self.assertRaises(ImproperlyConfigured):
+            self.app_config._check_default_schemas()
+
     def test_repeated_clone_reference(self):
         with override_settings(TENANTS={"public": {}, "default": {**settings_default, "CLONE_REFERENCE": "public"}}):
             with self.assertRaises(ImproperlyConfigured):

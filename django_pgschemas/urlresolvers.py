@@ -116,9 +116,9 @@ def get_urlconf_from_schema(schema):
             if schema_name in ["public", "default"]:
                 continue
             if schema.domain_url in data["DOMAINS"]:
-                if "URLCONF" in data:
-                    return data["URLCONF"]
-                return None
+                return data["URLCONF"]
+            if schema.domain_url in data.get("FALLBACK_DOMAINS", []):
+                return data["URLCONF"]
         return None
 
     # Checking for dynamic tenants

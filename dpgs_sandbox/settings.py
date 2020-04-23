@@ -38,6 +38,7 @@ TENANTS = {
         "URLCONF": "app_main.urls",
         "WS_URLCONF": "app_main.ws_urls",
         "DOMAINS": ["test.com"],
+        "FALLBACK_DOMAINS": ["everyone.test.com"],
     },
     "blog": {
         "APPS": ["shared_common", "app_blog", "django.contrib.sessions"],

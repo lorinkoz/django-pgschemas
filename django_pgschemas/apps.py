@@ -27,6 +27,8 @@ class DjangoPGSchemasConfig(AppConfig):
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'WS_URLCONF' key.")
         if "DOMAINS" in settings.TENANTS["public"]:
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'DOMAINS' key.")
+        if "FALLBACK_DOMAINS" in settings.TENANTS["public"]:
+            raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
 
     def _check_default_schemas(self):
         if not isinstance(settings.TENANTS.get("default"), dict):
@@ -35,6 +37,8 @@ class DjangoPGSchemasConfig(AppConfig):
             raise ImproperlyConfigured("TENANTS['default'] must contain a 'URLCONF' key.")
         if "DOMAINS" in settings.TENANTS["default"]:
             raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
+        if "FALLBACK_DOMAINS" in settings.TENANTS["default"]:
+            raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key.")
         if (
             "CLONE_REFERENCE" in settings.TENANTS["default"]
             and settings.TENANTS["default"]["CLONE_REFERENCE"] in settings.TENANTS

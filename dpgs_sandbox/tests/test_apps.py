@@ -61,6 +61,11 @@ class AppConfigTestCase(TestCase):
         with self.assertRaises(ImproperlyConfigured):
             self.app_config._check_public_schema()
 
+    @override_settings(TENANTS={"public": {**settings_public, "DOMAINS": ""}})
+    def test_domains_on_public(self):
+        with self.assertRaises(ImproperlyConfigured):
+            self.app_config._check_public_schema()
+
     @override_settings(TENANTS=settings_public)
     def test_no_default(self):
         with self.assertRaises(ImproperlyConfigured):

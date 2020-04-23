@@ -25,6 +25,8 @@ class DjangoPGSchemasConfig(AppConfig):
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'URLCONF' key.")
         if "WS_URLCONF" in settings.TENANTS["public"]:
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'WS_URLCONF' key.")
+        if "DOMAINS" in settings.TENANTS["public"]:
+            raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'DOMAINS' key.")
 
     def _check_default_schemas(self):
         if not isinstance(settings.TENANTS.get("default"), dict):

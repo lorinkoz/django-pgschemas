@@ -51,10 +51,10 @@ represents a good compromise between simplicity and performance.
 .. tip::
 
     If you are looking for an implementation of the third approach, you might be
-    interested in `this package`_. For other solutions of the multi-tenancy
+    interested in `django-multitenant`_. For other solutions of the multi-tenancy
     problem, you could also look `here`_.
 
-.. _this package: https://github.com/citusdata/django-multitenant
+.. _django-multitenant: https://github.com/citusdata/django-multitenant
 .. _here: https://djangopackages.org/grids/g/multi-tenancy/
 
 The semi-isolated approach through PostgreSQL schemas has some advantages and

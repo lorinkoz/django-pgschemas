@@ -47,7 +47,7 @@ class URLResolversTestCase(TestCase):
             tenant = TenantModel(schema_name=schema_name)
             tenant.save(verbosity=0)
             DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
-            DomainModel.objects.create(tenant=tenant, domain="everything.test.com", folder=schema_name)  # primary
+            DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
         connection.set_schema_to_public()
         super().setUpClass()
 
@@ -61,7 +61,7 @@ class URLResolversTestCase(TestCase):
         tpp = TenantPrefixPattern()
         for tenant in TenantModel.objects.all():
             # Try with folder
-            tenant.domain_url = "everything.test.com"  # This should be set by middleware
+            tenant.domain_url = "everyone.test.com"  # This should be set by middleware
             with tenant:
                 self.assertEqual(tpp.tenant_prefix, tenant.get_primary_domain().folder + "/")
             # Try with subdomain
@@ -79,7 +79,7 @@ class URLResolversTestCase(TestCase):
 
     def test_prefixed_reverse(self):
         for tenant in TenantModel.objects.all():
-            domain = "everything.test.com"
+            domain = "everyone.test.com"
             for name, path in self.paths.items():
                 self.assertEqual(
                     self.reverser(name, domain, "/{}/".format(tenant.schema_name)),
@@ -98,7 +98,7 @@ class URLConfFactoryTestCase(TestCase):
         tenant = TenantModel(schema_name=schema_name)
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
-        DomainModel.objects.create(tenant=tenant, domain="everything.test.com", folder=schema_name)  # primary
+        DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
         connection.set_schema_to_public()
         super().setUpClass()
 
@@ -136,7 +136,7 @@ class URLConfFactoryTestCase(TestCase):
 
     def test_tenant1_prefixed(self):
         schema = TenantModel.objects.get(schema_name="tenant1")
-        schema.domain_url = "everything.test.com"
+        schema.domain_url = "everyone.test.com"
         schema.folder = "tenant1"
         urlconf = get_urlconf_from_schema(schema)
         self.assertEqual(urlconf, "app_tenants.urls_dynamically_tenant_prefixed")

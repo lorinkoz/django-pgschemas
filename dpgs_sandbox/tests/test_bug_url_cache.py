@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from django.apps import apps
 from django.test import TransactionTestCase, tag
-from django.urls import reverse
 
 from django_pgschemas.test.client import TenantClient
 from django_pgschemas.utils import get_tenant_model, get_domain_model

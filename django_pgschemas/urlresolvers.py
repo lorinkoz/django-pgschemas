@@ -56,48 +56,17 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path):
     """
     Generates a new URLConf module with all patterns prefixed with tenant.
     """
+    from types import ModuleType
+    from django.utils.module_loading import import_string
 
-    def get_from_code():
-        from types import ModuleType
+    class LazyURLConfModule(ModuleType):
+        def __getattr__(self, attr):
+            imported = import_string("{}.{}".format(urlconf, attr))
+            if attr == "urlpatterns":
+                return tenant_patterns(*imported)
+            return imported
 
-        DYNAMIC_MODULE_CODE = """
-from {urlconf} import *
-from {urlconf} import urlpatterns as original_urlpatterns
-from django_pgschemas.urlresolvers import tenant_patterns
-
-urlpatterns = tenant_patterns(*original_urlpatterns)
-"""
-        prefixed_url_module = ModuleType(urlconf)
-        exec(DYNAMIC_MODULE_CODE.format(urlconf=urlconf), prefixed_url_module.__dict__)
-        return prefixed_url_module
-
-    def get_from_spec():
-        from importlib.util import find_spec, module_from_spec
-        from django.utils.module_loading import import_string
-
-        spec = find_spec(urlconf)
-        prefixed_url_module = module_from_spec(spec)
-        spec.loader.exec_module(prefixed_url_module)
-        prefixed_url_module.urlpatterns = tenant_patterns(*import_string(urlconf + ".urlpatterns"))
-        del spec
-        return prefixed_url_module
-
-    def get_from_lazy_module():
-        from types import ModuleType
-
-        class LazyURLConfModule(ModuleType):
-            def __getattr__(self, attr):
-                from django.utils.module_loading import import_string
-
-                if attr == "urlpatterns":
-                    return tenant_patterns(*import_string(urlconf + ".urlpatterns"))
-                return import_string(urlconf + "." + attr)
-
-        return LazyURLConfModule(dynamic_path)
-
-    # return get_from_code()
-    return get_from_spec()
-    # return get_from_lazy_module()
+    return LazyURLConfModule(dynamic_path)
 
 
 def get_urlconf_from_schema(schema):

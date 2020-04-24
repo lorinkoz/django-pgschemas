@@ -14,6 +14,7 @@ Models
 +++++++++++++++
 
 .. autoclass:: django_pgschemas.models.DomainMixin
+    :members: absolute_url
 
 Settings
 --------
@@ -116,6 +117,15 @@ default, ``None`` means that the number of CPUs will be used.
 Default: ``"default"``
 
 The database alias where the tenant configuration is going to take place.
+
+``PGSCHEMAS_PATHNAME_FUNCTION``
++++++++++++++++++++++++++++++++
+
+Default: ``None``
+
+Function that takes a schema descriptor and returns a string identifier for the
+schema. This identifier will be used in the ``TenantFileSystemStorage`` as the
+name of the tenant folder.
 
 Utils
 -----

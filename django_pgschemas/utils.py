@@ -7,14 +7,14 @@ from django.core.management import call_command
 from django.db import connection, transaction, ProgrammingError, DEFAULT_DB_ALIAS
 
 
-def get_tenant_model():
+def get_tenant_model(require_ready=True):
     "Returns the tenant model."
-    return apps.get_model(settings.TENANTS["public"]["TENANT_MODEL"])
+    return apps.get_model(settings.TENANTS["public"]["TENANT_MODEL"], require_ready=require_ready)
 
 
-def get_domain_model():
+def get_domain_model(require_ready=True):
     "Returns the domain model."
-    return apps.get_model(settings.TENANTS["public"]["DOMAIN_MODEL"])
+    return apps.get_model(settings.TENANTS["public"]["DOMAIN_MODEL"], require_ready=require_ready)
 
 
 def get_tenant_database_alias():

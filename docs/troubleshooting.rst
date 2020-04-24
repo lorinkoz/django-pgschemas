@@ -1,6 +1,16 @@
 Troubleshooting
 ===============
 
+Schema for tenant and domain models
+-----------------------------------
+
+The application(s) that contain the tenant model and the domain model should be
+in the public schema only. Making those models available in other schemas will
+most likely cause serious bugs. This package will raise an error check if the
+tenant / domain application is found missing in
+``settings.TENANTS["public"]["APPS"]`` or present in other tenant configuration.
+You can silence this check through the code ``pgschemas.W001``.
+
 Content types
 -------------
 
@@ -8,7 +18,7 @@ Installing ``django.contrib.contenttypes`` outside of the public schema can lead
 to problems when using other static or dynamic schemas. The recommended approach
 is to have this app in ``settings.TENANTS["public"]["APPS"]``. This package
 will raise a warning check if the content types app is found somewhere else.
-You can silence this check, whose code is ``pgschemas.W001``.
+You can silence this check through the code ``pgschemas.W002``.
 
 Session leaking
 ---------------
@@ -22,7 +32,7 @@ multiple schemas. User ID is what makes authentication possible via the sessions
 app. In order to prevent session leaking, the recommended approach is to always
 put the user app and the session app together. This package will raise a warning
 check if the user app and the session app are found to not be together in the
-same schemas. You can silence this check, whose code is ``pgschemas.W002``.
+same schemas. You can silence this check through the code ``pgschemas.W003``.
 
 Moving apps between schemas
 ---------------------------

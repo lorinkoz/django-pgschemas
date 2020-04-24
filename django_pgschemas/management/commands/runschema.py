@@ -27,7 +27,7 @@ class Command(WrappedSchemaOption, BaseCommand):
             raise CommandError("Command '%s' cannot be used in runschema" % arg)
         return cmd
 
-    def run_from_argv(self, argv):
+    def run_from_argv(self, argv):  # pragma: no cover
         """
         Changes the option_list to use the options from the wrapped command.
         Adds schema parameter to specify which schema will be used when

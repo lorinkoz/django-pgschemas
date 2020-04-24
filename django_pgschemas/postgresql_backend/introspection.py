@@ -5,7 +5,7 @@ from django.utils.encoding import force_text
 from . import _constraints
 
 
-class DatabaseSchemaIntrospection(DatabaseIntrospection):
+class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
     """
     database schema introspection class
     """

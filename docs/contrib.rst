@@ -46,6 +46,21 @@ It will generate::
 
     /tenant1/static/path/to/file.txt
 
+This storage class is a convenient way of storing media files in a folder
+structure organized at the top by tenants, as well as providing a perceived
+tenant centric organization in the URLs that are generated. However, this
+storage class does NOT provide any form of security, such as controlling that
+from one tenant, files from another tenant are not accessible. Such security
+requirements have other implications that fall out of the scope of this basic
+utility.
+
+.. tip::
+
+    In a project that requires airtight security, you might want to use and
+    customize `django-private-storage`_.
+
+.. _django-private-storage: https://github.com/edoburu/django-private-storage
+
 Channels (websockets)
 ---------------------
 

@@ -125,3 +125,12 @@ class DomainMixin(models.Model):
         if self.is_primary:
             domain_list.update(is_primary=False)
         super().save(*args, **kwargs)
+
+    def absolute_url(self, path):
+        """
+        Constructs an absolute url for this domain / folder and a given path
+        """
+        folder = self.folder and "/" + self.folder
+        if not path.startswith("/"):
+            path = "/" + path
+        return "//" + self.domain + folder + path

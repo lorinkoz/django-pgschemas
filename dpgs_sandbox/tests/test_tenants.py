@@ -239,3 +239,16 @@ class DomainTestCase(TransactionTestCase):
         self.assertEqual(str(domain1), "tenant.test.com")
         self.assertEqual(str(domain2), "everything.test.com/tenant")
         tenant.delete(force_drop=True)
+
+    def test_domain_absolute_url(self):
+        tenant = TenantModel(schema_name="tenant")
+        tenant.save(verbosity=0)
+        subdomain = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant)
+        subfolder = DomainModel.objects.create(domain="everything.test.com", folder="tenant", tenant=tenant)
+        self.assertEqual(subdomain.absolute_url(""), "//tenant.test.com/")
+        self.assertEqual(subdomain.absolute_url("/some/path/"), "//tenant.test.com/some/path/")
+        self.assertEqual(subdomain.absolute_url("some/path"), "//tenant.test.com/some/path")
+        self.assertEqual(subfolder.absolute_url(""), "//everything.test.com/tenant/")
+        self.assertEqual(subfolder.absolute_url("/some/path/"), "//everything.test.com/tenant/some/path/")
+        self.assertEqual(subfolder.absolute_url("some/path"), "//everything.test.com/tenant/some/path")
+        tenant.delete(force_drop=True)

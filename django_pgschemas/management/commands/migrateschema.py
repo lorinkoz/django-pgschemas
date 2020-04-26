@@ -1,4 +1,5 @@
 from django.core import management
+from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand
 from django.core.management.commands.migrate import Command as MigrateCommand
 
@@ -12,6 +13,11 @@ class NonInteractiveRunSchemaCommand(RunSchemaCommand):
 
 class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
     allow_interactive = False
+
+    def _run_checks(self, **kwargs):
+        issues = run_checks(tags=[Tags.database])
+        issues.extend(super()._run_checks(**kwargs))
+        return issues
 
     def add_arguments(self, parser):
         super().add_arguments(parser)

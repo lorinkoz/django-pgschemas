@@ -5,7 +5,7 @@ from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_module
 
-from .utils import get_tenant_model, get_domain_model
+from .utils import get_tenant_model, get_domain_model, get_clone_reference
 
 
 def get_tenant_app():
@@ -107,4 +107,22 @@ def check_other_apps(app_configs, **kwargs):
                         id="pgschemas.W003",
                     )
                 )
+    return errors
+
+
+@checks.register(checks.Tags.database)
+def check_schema_names(app_configs, **kwargs):
+    errors = []
+    static_names = set(settings.TENANTS.keys())
+    clone_reference = get_clone_reference()
+    if clone_reference:
+        static_names.add(clone_reference)
+    dynamic_names = set(get_tenant_model().objects.values_list("schema_name", flat=True))
+    intersection = static_names & dynamic_names
+    if intersection:
+        errors.append(
+            checks.Critical(
+                "Name clash found between static and dynamic tenants: %s" % intersection, id="pgschemas.W004",
+            )
+        )
     return errors

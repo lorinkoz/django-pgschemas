@@ -76,6 +76,8 @@ We need *your* help to reproduce, disect and fix the errors. Thanks!
 Credits
 -------
 
-* Tom Turner for ``django-tenants``
-* Bernardo Pires for ``django-tenant-schemas``
-* Vlada Macek for ``django-schemata``
+* Tom Turner for `django-tenants`_
+* Bernardo Pires for `django-tenant-schemas`_
+
+.. _django-tenants: https://github.com/tomturner/django-tenants
+.. _django-tenant-schemas: https://github.com/bernardopires/django-tenant-schemas

@@ -7,8 +7,8 @@ from django.db import connection
 
 class TenantFileSystemStorage(FileSystemStorage):
     """
-    Tenant aware file system storage. Appends the schema name of the tenant to
-    the base location and base URL.
+    Tenant aware file system storage. Appends the tenant identifier to the base
+    location and base URL.
     """
 
     def get_schema_path_identifier(self):

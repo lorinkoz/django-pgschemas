@@ -35,7 +35,7 @@ can run any command on it, or edit its tables via ``shell``.
     python runschema loaddata tenant_app.products -s sample
     python runschema shell -s sample
 
-The ``runschema`` command is explained in :ref:`Management commands`.
+The ``runschema`` command is explained in :ref:`running management commands`.
 
 You don't need any extra step. As soon as a reference schema is configured,
 next time you create an instance of the tenant model, it will clone the
@@ -131,8 +131,8 @@ hand, an incoming request for ``mydomain.com/some/url/`` will fail for all
 static tenants, then fail for all dynamic tenants, and will finally match
 against the fallback domains of the main tenant.
 
-Management commands
--------------------
+Running management commands
+---------------------------
 
 Since all management commands occur outside the request/response cycle, all
 commands from Django and any other third party apps are executed by default on
@@ -215,6 +215,8 @@ The executor argument accepts two options:
 
 By default, schemas that do not exist will be created (but not synchronized),
 except if ``--no-create-schemas`` is passed.
+
+Full details for this command can be found in :ref:`runschema-cmd`.
 
 Inheritable commands
 ++++++++++++++++++++

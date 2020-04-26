@@ -7,9 +7,9 @@ All contributions and third party integrations live inside
 If you want to implement an integration with other Django packages, please
 submit a pull request containing:
 
-* The code for your integration
-* The tests for your integration
-* The docs for your integration in this section of the documentation
+* The code for your integration.
+* The tests for your integration.
+* The docs for your integration in this section of the documentation.
 
 We're striving to maintain/increase our code coverage, but please, make sure your
 integration is properly tested. Proper tests will always beat meaningless 100%

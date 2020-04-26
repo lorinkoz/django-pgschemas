@@ -8,7 +8,7 @@ from . import WrappedSchemaOption
 
 
 class Command(WrappedSchemaOption, BaseCommand):
-    help = "Wrapper around django commands for use with an individual schema"
+    help = "Wrapper around Django commands for use with an individual schema"
 
     def add_arguments(self, parser):
         super().add_arguments(parser)

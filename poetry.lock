@@ -544,6 +544,19 @@ websupport = ["sqlalchemy (>=0.9)", "whoosh (>=2.0)"]
 
 [[package]]
 category = "dev"
+description = "Sphinx plugin for help Django commands documentation."
+name = "sphinx-django-command"
+optional = false
+python-versions = "*"
+version = "0.1.3"
+
+[package.dependencies]
+Django = "*"
+docutils = "*"
+sphinx = "*"
+
+[[package]]
+category = "dev"
 description = "Read the Docs theme for Sphinx"
 name = "sphinx-rtd-theme"
 optional = false
@@ -685,7 +698,7 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "5f8b4067e79fd3a56f4a57b5a74aacb48e7f7b13bdba76ac12cf7871b84f8e39"
+content-hash = "05a9ff112439464f83c31db1a4077e9489643a969e6a93cfd727cbb7911b1d20"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1026,6 +1039,9 @@ snowballstemmer = [
 sphinx = [
     {file = "Sphinx-1.8.5-py2.py3-none-any.whl", hash = "sha256:9f3e17c64b34afc653d7c5ec95766e03043cc6d80b0de224f59b6b6e19d37c3c"},
     {file = "Sphinx-1.8.5.tar.gz", hash = "sha256:c7658aab75c920288a8cf6f09f244c6cfdae30d82d803ac1634d9f223a80ca08"},
+]
+sphinx-django-command = [
+    {file = "sphinx-django-command-0.1.3.tar.gz", hash = "sha256:837adc9146c51c7a35768e9b2f3f544056a39d0616d72550f957282cd8c678fa"},
 ]
 sphinx-rtd-theme = [
     {file = "sphinx_rtd_theme-0.4.3-py2.py3-none-any.whl", hash = "sha256:00cf895504a7895ee433807c62094cf1e95f065843bf3acd17037c3e9a2becd4"},

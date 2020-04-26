@@ -52,7 +52,7 @@ Name clash between static and dynamic schemas
 
 It is possible to define a static tenant whose name clashes with an existing
 dynamic tenant. This is especially true for the clone reference, which can be
-added as an afterthought, in order to speed up dynamic tenant creation. It is
+added as an afterthought in order to speed up dynamic tenant creation. It is
 also possible to create a dynamic tenant with a name already present in the
 static tenant configuration.
 
@@ -63,6 +63,6 @@ if a name clash is found. Since this check must query the database in order to
 fetch the schema name for all dynamic tenants, it is tagged as a database check,
 which makes it run only in database related operations and management commands.
 This means that the check will not be run via ``runserver``, but will be run in
-commands like ``migrate``, ``cloneschema`` and ``createrefschema``. If
-absolutely needed, you can silence this check through the code
-``pgschemas.W004``.
+commands like :ref:`migrate-cmd`, :ref:`cloneschema-cmd` and
+:ref:`createrefschema-cmd`. If absolutely needed, you can silence this check
+through the code ``pgschemas.W004``.

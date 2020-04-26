@@ -45,8 +45,10 @@ django-pgschemas
     overview
     basic
     advanced
+    commands
     contrib
     troubleshooting
+    settings
     reference
     credits
 

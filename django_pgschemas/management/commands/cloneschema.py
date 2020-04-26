@@ -2,6 +2,7 @@ import os
 
 from distutils.util import strtobool
 
+from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
 from ...utils import get_tenant_model, get_domain_model, clone_schema
@@ -9,6 +10,11 @@ from ...utils import get_tenant_model, get_domain_model, clone_schema
 
 class Command(BaseCommand):
     help = "Clones a schema"
+
+    def _run_checks(self, **kwargs):
+        issues = run_checks(tags=[Tags.database])
+        issues.extend(super()._run_checks(**kwargs))
+        return issues
 
     def add_arguments(self, parser):
         super().add_arguments(parser)

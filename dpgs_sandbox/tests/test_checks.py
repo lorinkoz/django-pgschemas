@@ -3,15 +3,17 @@ from django.conf import settings
 from django.core import checks
 from django.test import TestCase, override_settings
 
-from django_pgschemas.checks import check_principal_apps, check_other_apps, get_user_app
+from django_pgschemas.utils import get_tenant_model
+from django_pgschemas.checks import check_principal_apps, check_other_apps, check_schema_names, get_user_app
 
 
+TenantModel = get_tenant_model()
 BASE_PUBLIC = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
 
 
-class AppConfigTestCase(TestCase):
+class AppChecksTestCase(TestCase):
     """
-    Tests TENANTS settings is properly defined.
+    Tests multiple checks regarding applications in tenants.
     """
 
     def setUp(self):
@@ -89,3 +91,41 @@ class AppConfigTestCase(TestCase):
                 )
             ]
             self.assertEqual(errors, expected_errors)
+
+
+class NameClashCheckTestCase(TestCase):
+    """
+    Tests checks regarding name clash between static and dynamic tenants.
+    """
+
+    def setUp(self):
+        self.app_config = apps.get_app_config("django_pgschemas")
+
+    def test_name_clash(self):
+        backup_create = TenantModel.auto_create_schema
+        TenantModel.auto_create_schema = False
+        # public
+        TenantModel.objects.create(schema_name="public")
+        errors = check_schema_names(self.app_config)
+        expected_errors = [
+            checks.Critical("Name clash found between static and dynamic tenants: {'public'}", id="pgschemas.W004"),
+        ]
+        self.assertEqual(errors, expected_errors)
+        TenantModel.objects.all().delete()
+        # www
+        TenantModel.objects.create(schema_name="www")
+        errors = check_schema_names(self.app_config)
+        expected_errors = [
+            checks.Critical("Name clash found between static and dynamic tenants: {'www'}", id="pgschemas.W004"),
+        ]
+        self.assertEqual(errors, expected_errors)
+        TenantModel.objects.all().delete()
+        # sample
+        TenantModel.objects.create(schema_name="sample")
+        errors = check_schema_names(self.app_config)
+        expected_errors = [
+            checks.Critical("Name clash found between static and dynamic tenants: {'sample'}", id="pgschemas.W004"),
+        ]
+        self.assertEqual(errors, expected_errors)
+        TenantModel.objects.all().delete()
+        TenantModel.auto_create_schema = backup_create

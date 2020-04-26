@@ -7,6 +7,9 @@ from django.test import TransactionTestCase
 from django_pgschemas.utils import get_tenant_model, get_domain_model
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
 
+TenantModel = get_tenant_model()
+DomainModel = get_domain_model()
+
 
 class TenantCommandsTestCase(TransactionTestCase):
     """
@@ -15,8 +18,6 @@ class TenantCommandsTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
-        TenantModel = get_tenant_model()
-        DomainModel = get_domain_model()
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant1, domain="tenant1.test.com", is_primary=True)
@@ -28,7 +29,6 @@ class TenantCommandsTestCase(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        TenantModel = get_tenant_model()
         for tenant in TenantModel.objects.all():
             tenant.delete(force_drop=True)
 

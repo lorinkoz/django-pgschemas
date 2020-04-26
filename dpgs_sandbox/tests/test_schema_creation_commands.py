@@ -7,6 +7,9 @@ from django.test import TransactionTestCase
 
 from django_pgschemas import utils
 
+TenantModel = utils.get_tenant_model()
+DomainModel = utils.get_domain_model()
+
 
 class SchemaCreationCommandsTestCase(TransactionTestCase):
     """
@@ -50,15 +53,12 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
-        TenantModel = utils.get_tenant_model()
-        DomainModel = utils.get_domain_model()
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
 
     @classmethod
     def tearDownClass(cls):
-        TenantModel = utils.get_tenant_model()
         for tenant in TenantModel.objects.all():
             tenant.delete(force_drop=True)
 

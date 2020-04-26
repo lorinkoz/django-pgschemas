@@ -3,6 +3,9 @@ from django.test import TestCase
 from django_pgschemas.contrib.channels import TenantProtocolRouter
 from django_pgschemas.utils import get_tenant_model, get_domain_model
 
+TenantModel = get_tenant_model()
+DomainModel = get_domain_model()
+
 
 class TenantProtocolRouterTestCase(TestCase):
     """
@@ -11,8 +14,6 @@ class TenantProtocolRouterTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        TenantModel = get_tenant_model()
-        DomainModel = get_domain_model()
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
@@ -22,7 +23,6 @@ class TenantProtocolRouterTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        TenantModel = get_tenant_model()
         for tenant in TenantModel.objects.all():
             tenant.delete(force_drop=True)
 

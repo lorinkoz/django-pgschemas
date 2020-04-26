@@ -7,6 +7,9 @@ from django.utils.module_loading import import_string
 from django_pgschemas.middleware import TenantMiddleware
 from django_pgschemas.utils import get_tenant_model, get_domain_model
 
+TenantModel = get_tenant_model()
+DomainModel = get_domain_model()
+
 
 class TenantMiddlewareTestCase(TestCase):
     """
@@ -16,8 +19,6 @@ class TenantMiddlewareTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        TenantModel = get_tenant_model()
-        DomainModel = get_domain_model()
 
         def fake_get_response(request):
             return request

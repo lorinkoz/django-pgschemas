@@ -2,6 +2,8 @@ from django.test import TestCase
 
 from django_pgschemas.utils import get_tenant_model, schema_exists
 
+TenantModel = get_tenant_model()
+
 
 class SignalsTestCase(TestCase):
     """
@@ -9,7 +11,6 @@ class SignalsTestCase(TestCase):
     """
 
     def test_tenant_delete_callback(self):
-        TenantModel = get_tenant_model()
         backup_create, backup_drop = TenantModel.auto_create_schema, TenantModel.auto_drop_schema
         TenantModel.auto_create_schema = False
         TenantModel.auto_drop_schema = True

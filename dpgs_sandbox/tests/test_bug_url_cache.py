@@ -6,6 +6,8 @@ from django.test import TransactionTestCase, tag
 from django_pgschemas.test.client import TenantClient
 from django_pgschemas.utils import get_tenant_model, get_domain_model
 
+TenantModel = get_tenant_model()
+DomainModel = get_domain_model()
 User = apps.get_model("shared_common.User")
 
 
@@ -18,8 +20,6 @@ class CachedTenantSubfolderBugTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
-        TenantModel = get_tenant_model()
-        DomainModel = get_domain_model()
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         tenant2 = TenantModel(schema_name="tenant2")
@@ -35,7 +35,6 @@ class CachedTenantSubfolderBugTestCase(TransactionTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        TenantModel = get_tenant_model()
         for tenant in TenantModel.objects.all():
             tenant.delete(force_drop=True)
 

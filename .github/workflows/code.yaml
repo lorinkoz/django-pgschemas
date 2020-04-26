@@ -12,9 +12,10 @@ jobs:
       matrix:
         python-version: [3.6, 3.7, 3.8]
         django-version: ["~=2.0.0", "~=2.1.0", "~=2.2.0", "~=3.0.0"]
+        postgres-version: [10, 11, 12]
     services:
       postgres:
-        image: postgres:10.8
+        image: postgres:${{ matrix.postgres-version }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -46,7 +47,7 @@ jobs:
         run: |
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
       - name: Upload coverage to Coveralls
-        if: matrix.python-version == '3.6' && matrix.django-version == '~=2.0.0'
+        if: matrix.python-version == '3.6' && matrix.django-version == '~=2.0.0' && matrix.postgres-version == '10'
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: |

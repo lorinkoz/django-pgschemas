@@ -39,7 +39,8 @@ Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 
 - There are static tenants and dynamic tenants. Static tenants can have their
   own apps and urlconf.
-- Tenants are routed both via subdomain and via subfolder on shared subdomain.
+- Tenants can be simultaneously routed via subdomain and via subfolder on shared
+  subdomain.
 - Public is no longer the schema for storing the main site data. Public should
   be used only for true shared data across all tenants. Table "overriding" via
   search path is no longer encouraged.

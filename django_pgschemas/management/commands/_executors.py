@@ -15,8 +15,11 @@ def run_on_schema(
         # Therefore, no customizations for the command can be done, nor using custom stdout, stderr
         command = command()
 
+    command.stdout = kwargs.pop("stdout", command.stdout)
     if not isinstance(command.stdout, OutputWrapper):
         command.stdout = OutputWrapper(command.stdout)
+
+    command.stderr = kwargs.pop("stderr", command.stderr)
     if not isinstance(command.stderr, OutputWrapper):
         command.stderr = OutputWrapper(command.stderr)
 
@@ -42,8 +45,10 @@ def run_on_schema(
 
     connections.close_all()
     connection.set_schema_to(schema_name)
+
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})
+
     if function_name == "special:call_command":
         call_command(command, *args, **kwargs)
     elif function_name == "special:run_from_argv":

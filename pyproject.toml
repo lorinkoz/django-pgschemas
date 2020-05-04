@@ -27,7 +27,7 @@ black = "^19.10b0"
 channels = "^2.1"
 coverage = {extras = ["toml"], version = "^5.1"}
 doc8 = "^0.8.0"
-sphinx = "^1.8"
+sphinx = "^3.0"
 sphinx_rtd_theme = "^0.4.2"
 sphinx-django-command = "^0.1.3"
 

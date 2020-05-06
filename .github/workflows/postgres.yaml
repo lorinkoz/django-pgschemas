@@ -1,13 +1,19 @@
 name: postgres
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+    paths:
+      - pyproject.toml
+      - poetry.lock
+      - "**.py"
   pull_request:
-    branches: [master]
-  paths:
-    - pyproject.toml
-    - poetry.lock
-    - "**.py"
+    branches:
+      - master
+    paths:
+      - pyproject.toml
+      - poetry.lock
+      - "**.py"
 jobs:
   postgres-version:
     runs-on: ubuntu-latest

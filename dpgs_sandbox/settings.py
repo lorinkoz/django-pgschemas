@@ -30,8 +30,6 @@ ALLOWED_HOSTS = [".test.com"]
 TENANTS = {
     "public": {
         "APPS": ["shared_public", "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.staticfiles"],
-        "TENANT_MODEL": "shared_public.Tenant",
-        "DOMAIN_MODEL": "shared_public.Domain",
     },
     "www": {
         "APPS": ["shared_common", "app_main", "django.contrib.sessions"],
@@ -46,6 +44,8 @@ TENANTS = {
         "DOMAINS": ["blog.test.com"],
     },
     "default": {
+        "TENANT_MODEL": "shared_public.Tenant",
+        "DOMAIN_MODEL": "shared_public.Domain",
         "APPS": ["shared_common", "app_tenants", "django.contrib.sessions"],
         "URLCONF": "app_tenants.urls",
         "WS_URLCONF": "app_tenants.ws_urls",

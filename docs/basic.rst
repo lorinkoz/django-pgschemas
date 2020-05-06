@@ -65,11 +65,11 @@ Add the minimal tenant configuration.
                 "shared_app",
                 # ...
             ],
-            "TENANT_MODEL": "shared_app.Client",
-            "DOMAIN_MODEL": "shared_app.Domain",
         },
         # ...
         "default": {
+            "TENANT_MODEL": "shared_app.Client",
+            "DOMAIN_MODEL": "shared_app.Domain",
             "APPS": [
                 "django.contrib.auth",
                 "django.contrib.sessions",
@@ -138,8 +138,8 @@ More static tenants can be added and routed.
     }
 
 Dynamic tenants need to be created through instances of
-``TENANTS["public"]["TENANT_MODEL"]`` and routed through instances of
-``TENANTS["public"]["DOMAIN_MODEL"]``.
+``TENANTS["default"]["TENANT_MODEL"]`` and routed through instances of
+``TENANTS["default"]["DOMAIN_MODEL"]``.
 
 .. code-block:: python
 

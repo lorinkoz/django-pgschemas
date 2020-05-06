@@ -17,10 +17,6 @@ class DjangoPGSchemasConfig(AppConfig):
     def _check_public_schema(self):
         if not isinstance(settings.TENANTS.get("public"), dict):
             raise ImproperlyConfigured("TENANTS must contain a 'public' dict.")
-        if "TENANT_MODEL" not in settings.TENANTS["public"]:
-            raise ImproperlyConfigured("TENANTS['public'] must contain a 'TENANT_MODEL' key.")
-        if "DOMAIN_MODEL" not in settings.TENANTS["public"]:
-            raise ImproperlyConfigured("TENANTS['public'] must contain a 'DOMAIN_MODEL' key.")
         if "URLCONF" in settings.TENANTS["public"]:
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'URLCONF' key.")
         if "WS_URLCONF" in settings.TENANTS["public"]:
@@ -33,6 +29,10 @@ class DjangoPGSchemasConfig(AppConfig):
     def _check_default_schemas(self):
         if not isinstance(settings.TENANTS.get("default"), dict):
             raise ImproperlyConfigured("TENANTS must contain a 'default' dict.")
+        if "TENANT_MODEL" not in settings.TENANTS["default"]:
+            raise ImproperlyConfigured("TENANTS['default'] must contain a 'TENANT_MODEL' key.")
+        if "DOMAIN_MODEL" not in settings.TENANTS["default"]:
+            raise ImproperlyConfigured("TENANTS['default'] must contain a 'DOMAIN_MODEL' key.")
         if "URLCONF" not in settings.TENANTS["default"]:
             raise ImproperlyConfigured("TENANTS['default'] must contain a 'URLCONF' key.")
         if "DOMAINS" in settings.TENANTS["default"]:
@@ -43,7 +43,7 @@ class DjangoPGSchemasConfig(AppConfig):
             "CLONE_REFERENCE" in settings.TENANTS["default"]
             and settings.TENANTS["default"]["CLONE_REFERENCE"] in settings.TENANTS
         ):
-            raise ImproperlyConfigured("TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name")
+            raise ImproperlyConfigured("TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name.")
 
     def _check_overall_schemas(self):
         for schema in settings.TENANTS:

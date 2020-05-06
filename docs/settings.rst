@@ -21,8 +21,6 @@ A sample tenant configuration is:
                 "shared_app",
                 # ...
             ],
-            "TENANT_MODEL": "shared_app.Client",
-            "DOMAIN_MODEL": "shared_app.Domain",
         },
         "www": {
             "APPS": [
@@ -45,6 +43,8 @@ A sample tenant configuration is:
             "URLCONF": "blog_app.urls",
         },
         "default": {
+            "TENANT_MODEL": "shared_app.Client",
+            "DOMAIN_MODEL": "shared_app.Domain",
             "APPS": [
                 "django.contrib.auth",
                 "django.contrib.sessions",

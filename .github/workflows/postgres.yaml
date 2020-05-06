@@ -1,13 +1,7 @@
 name: postgres
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - pyproject.toml
-      - poetry.lock
-      - "**.py"
   pull_request:
+  push:
     branches:
       - master
     paths:

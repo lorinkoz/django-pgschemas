@@ -1,4 +1,4 @@
-from django_pgschemas.cache import make_key, reverse_key
+from django_pgschemas.contrib.cache import make_key, reverse_key
 from django_pgschemas.test.cases import FastTenantTestCase
 
 

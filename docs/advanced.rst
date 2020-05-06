@@ -253,18 +253,3 @@ The base commands are:
     appropriate type checking before accessing the tenant members, as not every
     tenant will be an instance of
     ``settings.TENANTS["public"]["TENANT_MODEL"]``.
-
-Caching
--------
-
-In order to generate tenant aware cache keys, you can use
-``django_pgschemas.cache.make_key`` as your ``KEY_FUNCTION``:
-
-.. code-block:: python
-
-    CACHES = {
-        "default": {
-            # ...
-            "KEY_FUNCTION": "django_pgschemas.cache.make_key",
-        }
-    }

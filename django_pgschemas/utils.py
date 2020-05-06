@@ -9,12 +9,12 @@ from django.db import connection, transaction, ProgrammingError, DEFAULT_DB_ALIA
 
 def get_tenant_model(require_ready=True):
     "Returns the tenant model."
-    return apps.get_model(settings.TENANTS["public"]["TENANT_MODEL"], require_ready=require_ready)
+    return apps.get_model(settings.TENANTS["default"]["TENANT_MODEL"], require_ready=require_ready)
 
 
 def get_domain_model(require_ready=True):
     "Returns the domain model."
-    return apps.get_model(settings.TENANTS["public"]["DOMAIN_MODEL"], require_ready=require_ready)
+    return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
 
 
 def get_tenant_database_alias():

@@ -4,7 +4,7 @@ Advanced configuration
 Fast dynamic tenant creation
 ----------------------------
 
-Every time a instance of ``settings.TENANTS["public"]["TENANT_MODEL"]`` is
+Every time a instance of ``settings.TENANTS["default"]["TENANT_MODEL"]`` is
 created, by default, the corresponding schema is created and synchronized
 automatically. Depending on the number of migrations you already have in place,
 or the amount of time these could take, or whether you need to pre-populate the
@@ -95,8 +95,6 @@ Something like this would be the proper configuration for the present case:
                 "shared_app",
                 # ...
             ],
-            "TENANT_MODEL": "shared_app.Client",
-            "DOMAIN_MODEL": "shared_app.Domain",
         },
         "main": {
             "APPS": [
@@ -110,6 +108,8 @@ Something like this would be the proper configuration for the present case:
             "URLCONF": "main_app.urls",
         },
         "default": {
+            "TENANT_MODEL": "shared_app.Client",
+            "DOMAIN_MODEL": "shared_app.Domain",
             "APPS": [
                 "django.contrib.auth",
                 "django.contrib.sessions",
@@ -252,4 +252,4 @@ The base commands are:
     ``django_pgschemas.schema.SchemaDescriptor``. Make sure you do the
     appropriate type checking before accessing the tenant members, as not every
     tenant will be an instance of
-    ``settings.TENANTS["public"]["TENANT_MODEL"]``.
+    ``settings.TENANTS["default"]["TENANT_MODEL"]``.

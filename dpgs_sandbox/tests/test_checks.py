@@ -8,7 +8,7 @@ from django_pgschemas.checks import check_principal_apps, check_other_apps, chec
 
 
 TenantModel = get_tenant_model()
-BASE_PUBLIC = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
+BASE_DEFAULT = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
 
 
 class AppChecksTestCase(TestCase):
@@ -20,7 +20,7 @@ class AppChecksTestCase(TestCase):
         self.app_config = apps.get_app_config("django_pgschemas")
 
     def test_core_apps_location(self):
-        with override_settings(TENANTS={"public": {"APPS": [], **BASE_PUBLIC}}):
+        with override_settings(TENANTS={"public": {"APPS": []}, "default": BASE_DEFAULT}):
             errors = check_principal_apps(self.app_config)
             expected_errors = [
                 checks.Error("Your tenant app 'shared_public' must be on the 'public' schema.", id="pgschemas.W001"),
@@ -28,7 +28,7 @@ class AppChecksTestCase(TestCase):
             ]
             self.assertEqual(errors, expected_errors)
         with override_settings(
-            TENANTS={"public": {"APPS": ["shared_public"], **BASE_PUBLIC}, "default": {"APPS": ["shared_public"]}}
+            TENANTS={"public": {"APPS": ["shared_public"]}, "default": {**BASE_DEFAULT, "APPS": ["shared_public"]}}
         ):
             errors = check_principal_apps(self.app_config)
             expected_errors = [

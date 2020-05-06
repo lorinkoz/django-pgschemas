@@ -111,7 +111,7 @@ DATABASE_ROUTERS = ("django_pgschemas.routers.SyncRouter",)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "KEY_FUNCTION": "django_pgschemas.cache.make_key",
+        "KEY_FUNCTION": "django_pgschemas.contrib.cache.make_key",
     }
 }
 

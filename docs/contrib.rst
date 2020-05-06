@@ -15,6 +15,23 @@ We're striving to maintain/increase our code coverage, but please, make sure you
 integration is properly tested. Proper tests will always beat meaningless 100%
 coverage.
 
+Caching
+-------
+
+In order to generate tenant aware cache keys, we provide
+``django_pgschemas.contrib.cache.make_key`` which can be used as
+``KEY_FUNCTION``:
+
+.. code-block:: python
+
+    CACHES = {
+        "default": {
+            # ...
+            "KEY_FUNCTION": "django_pgschemas.contrib.cache.make_key",
+        }
+    }
+
+
 Tenant aware file system storage
 --------------------------------
 

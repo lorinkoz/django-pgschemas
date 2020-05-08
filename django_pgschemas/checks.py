@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
+from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
 from .utils import get_tenant_model, get_domain_model, get_clone_reference
@@ -117,7 +118,10 @@ def check_schema_names(app_configs, **kwargs):
     clone_reference = get_clone_reference()
     if clone_reference:
         static_names.add(clone_reference)
-    dynamic_names = set(get_tenant_model().objects.values_list("schema_name", flat=True))
+    try:
+        dynamic_names = set(get_tenant_model().objects.values_list("schema_name", flat=True))
+    except ProgrammingError:  # This happens on the first run of migrate, with empty database
+        dynamic_names = set()
     intersection = static_names & dynamic_names
     if intersection:
         errors.append(

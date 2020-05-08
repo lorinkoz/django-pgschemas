@@ -8,7 +8,14 @@ from django.db import connection, transaction, connections
 
 
 def run_on_schema(
-    schema_name, executor_codename, command, function_name=None, args=[], kwargs={}, pass_schema_in_kwargs=False
+    schema_name,
+    executor_codename,
+    command,
+    function_name=None,
+    args=[],
+    kwargs={},
+    pass_schema_in_kwargs=False,
+    fork_db=False,
 ):
     if not isinstance(command, BaseCommand):
         # Parallel executor needs to pass command 'type' instead of 'instance'
@@ -43,7 +50,8 @@ def run_on_schema(
     command.stdout.style_func = StyleFunc()
     command.stderr.style_func = StyleFunc()
 
-    connections.close_all()
+    if fork_db:
+        connections.close_all()
     connection.set_schema_to(schema_name)
 
     if pass_schema_in_kwargs:
@@ -56,8 +64,9 @@ def run_on_schema(
     else:
         getattr(command, function_name)(*args, **kwargs)
 
-    transaction.commit()
-    connection.close()
+    if fork_db:
+        transaction.commit()
+        connection.close()
 
     return schema_name
 
@@ -71,6 +80,7 @@ def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
+        fork_db=False,
     )
     for schema in schemas:
         runner(schema)
@@ -88,5 +98,6 @@ def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
+        fork_db=True,
     )
     return pool.map(runner, schemas)

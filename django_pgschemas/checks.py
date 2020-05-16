@@ -120,7 +120,9 @@ def check_schema_names(app_configs, **kwargs):
         static_names.add(clone_reference)
     try:
         dynamic_names = set(get_tenant_model().objects.values_list("schema_name", flat=True))
-    except ProgrammingError:  # This happens on the first run of migrate, with empty database
+    except ProgrammingError:
+        # This happens on the first run of migrate, with empty database.
+        # It can also happen when the tenant model contains unapplied migrations that break.
         dynamic_names = set()
     intersection = static_names & dynamic_names
     if intersection:

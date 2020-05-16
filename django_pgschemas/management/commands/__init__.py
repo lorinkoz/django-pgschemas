@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
+from django.db.utils import ProgrammingError
 
 from ._executors import sequential, parallel
 from ...schema import SchemaDescriptor
@@ -80,7 +81,15 @@ class WrappedSchemaOption(object):
 
     def get_schemas_from_options(self, **options):
         skip_schema_creation = options.get("skip_schema_creation", False)
-        schemas = self._get_schemas_from_options(**options)
+        try:
+            schemas = self._get_schemas_from_options(**options)
+        except ProgrammingError:
+            # This happens with unmigrated database.
+            # It can also happen when the tenant model contains unapplied migrations that break.
+            raise CommandError(
+                "Error while attempting to retrieve dynamic schemas. "
+                "Perhaps you need to migrate the 'public' schema first?"
+            )
         if self.specific_schemas is not None:
             schemas = [x for x in schemas if x in self.specific_schemas]
             if not schemas:

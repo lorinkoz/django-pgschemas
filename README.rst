@@ -29,8 +29,9 @@ django-pgschemas
     :alt: PyPi version
     :target: http://badge.fury.io/py/django-pgschemas
 
-.. image:: https://img.shields.io/pypi/dm/django-pgschemas
+.. image:: https://pepy.tech/badge/django-pgschemas/month
     :alt: Downloads
+    :target: https://pepy.tech/project/django-pgschemas/month
 
 |
 

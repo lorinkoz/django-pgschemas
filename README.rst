@@ -50,6 +50,36 @@ Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 
 .. _django-tenants: https://github.com/tomturner/django-tenants
 
+Which package to use?
+---------------------
+
+There are currently multiple packages to handle multi-tenancy via PostgreSQL schemas.
+This table should help you make an informed decision on which one to choose.
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Package
+     - Features
+   * - `django-tenant-schemas`_
+     - Original project.
+       Now active and maintained by @goodtune.
+   * - `django-tenants`_
+     - Active and maintained by @tomturner.
+       Built on top of `django-tenant-schemas`_.
+       Uses a ``Domain`` model for allowing multiple domains per tenant.
+       Allows for parallel migrations with custom migration executor.
+       Other multiple improvements.
+   * - `django-pgschemas`_
+     - Active and maintained by @lorinkoz.
+       Built on top of `django-tenants`_.
+       Different philosphy for tenants.
+       Other improvements listed above.
+
+.. _django-tenants-schemas: https://github.com/bernardopires/django-tenant-schemas
+.. _django-tenants: https://github.com/tomturner/django-tenants
+.. _django-pgschemas: https://github.com/lorinkoz/django-pgschemas
 
 Documentation
 -------------

@@ -4,6 +4,7 @@ from django.utils.encoding import force_text
 
 from ..schema import schema_handler
 from . import _constraints
+from ..schema import schema_handler
 
 
 class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover

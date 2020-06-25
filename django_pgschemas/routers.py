@@ -1,7 +1,7 @@
 from django.apps import apps
 from django.conf import settings
-from django.db import connection
 
+from .schema import schema_handler
 from .utils import get_tenant_database_alias
 
 
@@ -16,13 +16,13 @@ class SyncRouter(object):
         return (app_config.name in app_list) or (app_config_full_name in app_list)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if db != get_tenant_database_alias() or not hasattr(connection, "schema"):
+        if db != get_tenant_database_alias() or not schema_handler.active:
             return False
         app_list = []
-        if connection.schema.schema_name == "public":
+        if schema_handler.active.schema_name == "public":
             app_list = settings.TENANTS["public"]["APPS"]
-        elif connection.schema.schema_name in settings.TENANTS:
-            app_list = settings.TENANTS[connection.schema.schema_name]["APPS"]
+        elif schema_handler.active.schema_name in settings.TENANTS:
+            app_list = settings.TENANTS[schema_handler.active.schema_name]["APPS"]
         else:
             app_list = settings.TENANTS["default"]["APPS"]
         if not app_list:

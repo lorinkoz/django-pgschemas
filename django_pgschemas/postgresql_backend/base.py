@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
-from ..schema import SchemaDescriptor
+from ..schema import schema_handler
 from ..utils import check_schema_name, get_limit_set_calls
 from .introspection import DatabaseSchemaIntrospection
 
@@ -21,42 +21,18 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
     Adds the capability to manipulate the search_path using set_schema
     """
 
-    include_public_schema = True
-
     def __init__(self, *args, **kwargs):
-        self.schema = None
-        self.search_path_set = None
         super().__init__(*args, **kwargs)
 
         # Use a patched version of the DatabaseIntrospection that only returns the table list for the
         # currently selected schema.
         self.introspection = DatabaseSchemaIntrospection(self)
-        self.set_schema_to_public()
+        schema_handler.set_schema_to_public()
 
     def close(self):
-        self.search_path_set = False
+        if schema_handler.active:
+            schema_handler.active.ready = False
         super().close()
-
-    def set_schema(self, schema_descriptor, include_public=True):
-        """
-        Main API method to set current database schema,
-        but it does not actually modify the db connection.
-        """
-        assert isinstance(
-            schema_descriptor, SchemaDescriptor
-        ), "'set_schema' must be called with a SchemaDescriptor descendant"
-        self.schema = schema_descriptor
-        self.include_public_schema = include_public
-        self.search_path_set = False
-
-    def set_schema_to(self, schema_name, domain_url=None, folder=None, include_public=True):
-        self.set_schema(SchemaDescriptor.create(schema_name, domain_url, folder), include_public)
-
-    def set_schema_to_public(self):
-        """
-        Instructs to stay in the common 'public' schema.
-        """
-        self.set_schema_to("public", include_public=False)
 
     def _cursor(self, name=None):
         """
@@ -71,21 +47,19 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
 
         # optionally limit the number of executions - under load, the execution
         # of `set search_path` can be quite time consuming
-        if (not get_limit_set_calls()) or not self.search_path_set:
+        if (not get_limit_set_calls()) or not schema_handler.active.ready:
             # Actual search_path modification for the cursor. Database will
             # search schemas from left to right when looking for the object
             # (table, index, sequence, etc.).
-            if not self.schema:
+            if not schema_handler.active:
                 raise ImproperlyConfigured("Database schema not set. Did you forget to call set_schema()?")
-            check_schema_name(self.schema.schema_name)
+            check_schema_name(schema_handler.active.schema_name)
             search_paths = []
 
-            if self.schema.schema_name == "public":
+            if schema_handler.active.schema_name == "public":
                 search_paths = ["public"]
-            elif self.include_public_schema:
-                search_paths = [self.schema.schema_name, "public"]
             else:
-                search_paths = [self.schema.schema_name]
+                search_paths = [schema_handler.active.schema_name, "public"]
             search_paths.extend(EXTRA_SEARCH_PATHS)
 
             if name:
@@ -102,9 +76,9 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             try:
                 cursor_for_search_path.execute("SET search_path = {0}".format(",".join(search_paths)))
             except (DatabaseError, psycopg2.InternalError):
-                self.search_path_set = False
+                schema_handler.active.ready = False
             else:
-                self.search_path_set = True
+                schema_handler.active.ready = True
             if name:
                 cursor_for_search_path.close()
         return cursor

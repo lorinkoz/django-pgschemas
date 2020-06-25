@@ -4,11 +4,10 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.management import call_command
-from django.db import ProgrammingError, connection, transaction
-from django.dispatch import receiver
+from django.db import ProgrammingError, transaction
 from django.test import TestCase, TransactionTestCase
 
-from django_pgschemas.schema import SchemaDescriptor
+from django_pgschemas.schema import SchemaDescriptor, schema_handler
 from django_pgschemas.signals import schema_post_sync
 from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
@@ -114,7 +113,7 @@ class TenantTestCase(TestCase):
             user.set_password("weakpassword")
             user.save()
             TenantData.objects.create(user=user, catalog=catalog)
-        connection.set_schema_to_public()
+        schema_handler.set_schema_to_public()
         super().setUpClass()
 
     @classmethod

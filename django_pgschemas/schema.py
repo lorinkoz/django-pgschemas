@@ -1,7 +1,6 @@
-from threading import local
+from asgiref.local import Local
 
-
-_active = local()
+_active = Local()
 
 
 class ActiveSchemaHandler:

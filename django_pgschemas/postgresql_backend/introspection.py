@@ -2,8 +2,8 @@ from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.db.backends.postgresql.introspection import DatabaseIntrospection
 from django.utils.encoding import force_text
 
-from . import _constraints
 from ..schema import schema_handler
+from . import _constraints
 
 
 class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover

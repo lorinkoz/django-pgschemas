@@ -50,7 +50,7 @@ class TenantMixin(SchemaDescriptor, models.Model):
         elif is_new:
             # Although we are not using the schema functions directly, the signal might be registered by a listener
             schema_needs_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
-        elif not is_new and self.auto_create_schema and not schema_exists(self.schema_name):
+        elif not is_new and self.auto_create_schema and not schema_exists(self.schema_name, self.get_database()):
             # Create schemas for existing models, deleting only the schema on failure
             try:
                 self.create_schema(verbosity=verbosity)
@@ -81,13 +81,15 @@ class TenantMixin(SchemaDescriptor, models.Model):
         """
         Creates or clones the schema ``schema_name`` for this tenant.
         """
-        return create_or_clone_schema(self.schema_name, sync_schema, verbosity)
+        return create_or_clone_schema(
+            self.schema_name, database=self.get_database(), sync_schema=sync_schema, verbosity=verbosity
+        )
 
     def drop_schema(self):
         """
         Drops the schema.
         """
-        return drop_schema(self.schema_name)
+        return drop_schema(self.schema_name, database=self.get_database())
 
     def get_primary_domain(self):
         try:

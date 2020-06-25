@@ -17,6 +17,6 @@ schema_pre_drop.__doc__ = "Sent when a schema is about to be dropped"
 def tenant_delete_callback(sender, instance, **kwargs):
     if not isinstance(instance, get_tenant_model()):
         return
-    if instance.auto_drop_schema and schema_exists(instance.schema_name):
+    if instance.auto_drop_schema and schema_exists(instance.schema_name, instance.get_database()):
         schema_pre_drop.send(sender=get_tenant_model(), tenant=instance.serializable_fields())
         instance.drop_schema()

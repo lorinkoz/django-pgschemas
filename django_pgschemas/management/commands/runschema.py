@@ -75,6 +75,7 @@ class Command(WrappedSchemaOption, BaseCommand):
         options.pop("static_schemas")
         options.pop("dynamic_schemas")
         options.pop("tenant_schemas")
+        options.pop("schema_database")
         options.pop("parallel")
         options.pop("skip_schema_creation")
         if self.allow_interactive:

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q
-from django.db.models import Value as V
+from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
@@ -67,6 +66,9 @@ class WrappedSchemaOption(object):
             help="Schema(s) to exclude when executing the current command",
         )
         parser.add_argument(
+            "--sdb", nargs="?", dest="schema_database", default="default", help="Database to operate with the schema(s)"
+        )
+        parser.add_argument(
             "--parallel",
             dest="parallel",
             action="store_true",
@@ -80,6 +82,7 @@ class WrappedSchemaOption(object):
         )
 
     def get_schemas_from_options(self, **options):
+        database = options.get("database") or options.get("schema_database")
         skip_schema_creation = options.get("skip_schema_creation", False)
         try:
             schemas = self._get_schemas_from_options(**options)
@@ -96,7 +99,7 @@ class WrappedSchemaOption(object):
                 raise CommandError("This command can only run in %s" % self.specific_schemas)
         if not skip_schema_creation:
             for schema in schemas:
-                create_schema(schema, check_if_exists=True, sync_schema=False, verbosity=0)
+                create_schema(schema, database, check_if_exists=True, sync_schema=False, verbosity=0)
         return schemas
 
     def get_executor_from_options(self, **options):
@@ -106,6 +109,7 @@ class WrappedSchemaOption(object):
         return "|".join(self.specific_schemas or []) or self.scope
 
     def _get_schemas_from_options(self, **options):
+        database = options.get("database") or options.get("schema_database")
         schemas = options.get("schemas") or []
         excluded_schemas = options.get("excluded_schemas") or []
         include_all_schemas = options.get("all_schemas") or False
@@ -139,9 +143,19 @@ class WrappedSchemaOption(object):
                 raise CommandError("No schema provided")
 
         TenantModel = get_tenant_model()
-        static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
+        static_schemas = (
+            [
+                x
+                for x in settings.TENANTS.keys()
+                if x != "default" and database in (settings.TENANTS[x].get("DATABASES") or ["default"])
+            ]
+            if allow_static
+            else []
+        )
         dynamic_schemas = (
-            TenantModel.objects.values_list("schema_name", flat=True) if dynamic_ready and allow_dynamic else []
+            [x.schema_name for x in TenantModel.objects.all() if x.get_database() == database]
+            if dynamic_ready and allow_dynamic
+            else []
         )
         if clone_reference and allow_static:
             static_schemas.append(clone_reference)
@@ -172,8 +186,10 @@ class WrappedSchemaOption(object):
                 schemas_to_return.add(schema)
             elif schema == clone_reference:
                 schemas_to_return.add(schema)
-            elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
-                schemas_to_return.add(schema)
+            elif dynamic_ready and allow_dynamic:
+                tenant = TenantModel.objects.filter(schema_name=schema).first()
+                if tenant and tenant.get_database() == database:
+                    schemas_to_return.add(schema)
 
         schemas = list(set(schemas) - schemas_to_return)
 
@@ -187,13 +203,18 @@ class WrappedSchemaOption(object):
                     and any([x for x in data["DOMAINS"] if x.startswith(schema)])
                 ]
             if dynamic_ready and allow_dynamic:
-                local += (
-                    TenantModel.objects.annotate(
-                        route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
-                    )
-                    .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
-                    .distinct()
-                    .values_list("schema_name", flat=True)
+                local += list(
+                    {
+                        x.schema_name
+                        for x in (
+                            TenantModel.objects.annotate(
+                                route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                            )
+                            .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
+                            .distinct()
+                        )
+                        if x.get_database() == database
+                    }
                 )
             if not local:
                 raise CommandError("No schema found for '%s'" % schema)
@@ -215,13 +236,18 @@ class WrappedSchemaOption(object):
                 if schema_name not in ["public", "default", clone_reference]
                 and any([x for x in data["DOMAINS"] if x.startswith(schema)])
             ]
-            local += (
-                TenantModel.objects.annotate(
-                    route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
-                )
-                .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
-                .distinct()
-                .values_list("schema_name", flat=True)
+            local += list(
+                {
+                    x.schema_name
+                    for x in (
+                        TenantModel.objects.annotate(
+                            route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                        )
+                        .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
+                        .distinct()
+                    )
+                    if x.get_database() == database
+                }
             )
             if not local:
                 raise CommandError("No schema found for '%s' (excluded)" % schema)

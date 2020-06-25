@@ -22,11 +22,6 @@ class UtilsTestCase(TestCase):
     def test_get_domain_model(self):
         self.assertEqual(utils.get_domain_model()._meta.model_name, "domain")
 
-    def test_get_tenant_database_alias(self):
-        self.assertEqual(utils.get_tenant_database_alias(), "default")
-        with override_settings(PGSCHEMAS_TENANT_DB_ALIAS="something"):
-            self.assertEqual(utils.get_tenant_database_alias(), "something")
-
     def test_get_limit_set_calls(self):
         self.assertFalse(utils.get_limit_set_calls())
         with override_settings(PGSCHEMAS_LIMIT_SET_CALLS=True):
@@ -78,38 +73,38 @@ class UtilsTestCase(TestCase):
             cursor.close()
 
     def test_schema_exists(self):
-        self.assertTrue(utils.schema_exists("public"))
-        self.assertTrue(utils.schema_exists("www"))
-        self.assertTrue(utils.schema_exists("blog"))
-        self.assertTrue(utils.schema_exists("sample"))
-        self.assertFalse(utils.schema_exists("default"))
-        self.assertFalse(utils.schema_exists("tenant"))
+        self.assertTrue(utils.schema_exists("public", "default"))
+        self.assertTrue(utils.schema_exists("www", "default"))
+        self.assertTrue(utils.schema_exists("blog", "default"))
+        self.assertTrue(utils.schema_exists("sample", "default"))
+        self.assertFalse(utils.schema_exists("default", "default"))
+        self.assertFalse(utils.schema_exists("tenant", "default"))
 
     def test_dynamic_models_exist(self):
         self.assertTrue(utils.dynamic_models_exist())
-        utils.drop_schema("public")
+        utils.drop_schema("public", "default")
         self.assertFalse(utils.dynamic_models_exist())
 
     def test_create_drop_schema(self):
-        self.assertFalse(utils.create_schema("public", check_if_exists=True))  # Schema existed already
-        self.assertTrue(utils.schema_exists("public"))  # Schema exists
-        self.assertTrue(utils.drop_schema("public"))  # Schema was dropped
-        self.assertFalse(utils.drop_schema("public"))  # Schema no longer exists
-        self.assertFalse(utils.schema_exists("public"))  # Schema doesn't exist
-        self.assertTrue(utils.create_schema("public", sync_schema=False))  # Schema was created
-        self.assertTrue(utils.schema_exists("public"))  # Schema exists
+        self.assertFalse(utils.create_schema("public", "default", check_if_exists=True))  # Schema existed already
+        self.assertTrue(utils.schema_exists("public", "default"))  # Schema exists
+        self.assertTrue(utils.drop_schema("public", "default"))  # Schema was dropped
+        self.assertFalse(utils.drop_schema("public", "default"))  # Schema no longer exists
+        self.assertFalse(utils.schema_exists("public", "default"))  # Schema doesn't exist
+        self.assertTrue(utils.create_schema("public", "default", sync_schema=False))  # Schema was created
+        self.assertTrue(utils.schema_exists("public", "default"))  # Schema exists
 
     def test_clone_schema(self):
         with schema.SchemaDescriptor.create(schema_name="public"):
-            utils._create_clone_schema_function()
-        self.assertFalse(utils.schema_exists("sample2"))  # Schema doesn't exist previously
-        utils.clone_schema("sample", "sample2", dry_run=True)  # Dry run
-        self.assertFalse(utils.schema_exists("sample2"))  # Schema won't exist, dry run
-        utils.clone_schema("sample", "sample2")  # Real run, schema was cloned
-        self.assertTrue(utils.schema_exists("sample2"))  # Schema exists
+            utils._create_clone_schema_function("default")
+        self.assertFalse(utils.schema_exists("sample2", "default"))  # Schema doesn't exist previously
+        utils.clone_schema("sample", "sample2", "default", dry_run=True)  # Dry run
+        self.assertFalse(utils.schema_exists("sample2", "default"))  # Schema won't exist, dry run
+        utils.clone_schema("sample", "sample2", "default")  # Real run, schema was cloned
+        self.assertTrue(utils.schema_exists("sample2", "default"))  # Schema exists
         with self.assertRaises(InternalError):
-            utils.clone_schema("sample", "sample2")  # Schema already exists, error
-        self.assertTrue(utils.schema_exists("sample2"))  # Schema still exists
+            utils.clone_schema("sample", "sample2", "default")  # Schema already exists, error
+        self.assertTrue(utils.schema_exists("sample2", "default"))  # Schema still exists
 
     def test_create_or_clone_schema(self):
-        self.assertFalse(utils.create_or_clone_schema("sample"))  # Schema existed
+        self.assertFalse(utils.create_or_clone_schema("sample", "default"))  # Schema existed

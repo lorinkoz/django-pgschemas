@@ -17,10 +17,6 @@ def get_domain_model(require_ready=True):
     return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
 
 
-def get_tenant_database_alias():
-    return getattr(settings, "PGSCHEMAS_TENANT_DB_ALIAS", DEFAULT_DB_ALIAS)
-
-
 def get_limit_set_calls():
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
@@ -83,7 +79,7 @@ def run_in_public_schema(func):
     return wrapper
 
 
-def schema_exists(schema_name):
+def schema_exists(schema_name, database):
     "Checks if a schema exists in database."
     sql = """
     SELECT EXISTS(
@@ -92,7 +88,7 @@ def schema_exists(schema_name):
         WHERE LOWER(nspname) = LOWER(%s)
     )
     """
-    cursor = connection.cursor()
+    cursor = connections[database].cursor()
     cursor.execute(sql, (schema_name,))
     row = cursor.fetchone()
     if row:
@@ -120,32 +116,32 @@ def dynamic_models_exist():
 
 
 @run_in_public_schema
-def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosity=1):
+def create_schema(schema_name, database, check_if_exists=False, sync_schema=True, verbosity=1):
     """
     Creates the schema ``schema_name``. Optionally checks if the schema already
     exists before creating it. Returns ``True`` if the schema was created,
     ``False`` otherwise.
     """
     check_schema_name(schema_name)
-    if check_if_exists and schema_exists(schema_name):
+    if check_if_exists and schema_exists(schema_name, database):
         return False
-    cursor = connection.cursor()
+    cursor = connections[database].cursor()
     cursor.execute("CREATE SCHEMA %s" % schema_name)
     cursor.close()
     if sync_schema:
-        call_command("migrateschema", schemas=[schema_name], verbosity=verbosity)
+        call_command("migrateschema", schemas=[schema_name], database=database, verbosity=verbosity)
     return True
 
 
 @run_in_public_schema
-def drop_schema(schema_name, check_if_exists=True, verbosity=1):
+def drop_schema(schema_name, database, check_if_exists=True, verbosity=1):
     """
     Drops the schema. Optionally checks if the schema already exists before
     dropping it.
     """
-    if check_if_exists and not schema_exists(schema_name):
+    if check_if_exists and not schema_exists(schema_name, database):
         return False
-    cursor = connection.cursor()
+    cursor = connections[database].cursor()
     cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
     cursor.close()
     return True
@@ -359,31 +355,31 @@ class DryRunException(Exception):
     pass
 
 
-def _create_clone_schema_function():
+def _create_clone_schema_function(database):
     """
     Creates a postgres function `clone_schema` that copies a schema and its
     contents. Will replace any existing `clone_schema` functions owned by the
     `postgres` superuser.
     """
-    cursor = connection.cursor()
+    cursor = connections[database].cursor()
     cursor.execute(CLONE_SCHEMA_FUNCTION)
     cursor.close()
 
 
 @run_in_public_schema
-def clone_schema(base_schema_name, new_schema_name, dry_run=False):
+def clone_schema(base_schema_name, new_schema_name, database, dry_run=False):
     """
     Creates a new schema ``new_schema_name`` as a clone of an existing schema
     ``base_schema_name``.
     """
     check_schema_name(new_schema_name)
-    cursor = connection.cursor()
+    cursor = connections[database].cursor()
 
     # check if the clone_schema function already exists in the db
     try:
         cursor.execute("SELECT 'clone_schema'::regproc")
     except ProgrammingError:  # pragma: no cover
-        _create_clone_schema_function()
+        _create_clone_schema_function(database)
         transaction.commit()
 
     try:
@@ -397,17 +393,19 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
         cursor.close()
 
 
-def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
+def create_or_clone_schema(schema_name, database, sync_schema=True, verbosity=1):
     """
     Creates the schema ``schema_name``. Optionally checks if the schema already
     exists before creating it. Returns ``True`` if the schema was created,
     ``False`` otherwise.
     """
     check_schema_name(schema_name)
-    if schema_exists(schema_name):
+    if schema_exists(schema_name, database):
         return False
     clone_reference = get_clone_reference()
-    if clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode():  # pragma: no cover
-        clone_schema(clone_reference, schema_name)
+    if (
+        clone_reference and schema_exists(clone_reference, database) and not django_is_in_test_mode()
+    ):  # pragma: no cover
+        clone_schema(clone_reference, schema_name, database)
         return True
-    return create_schema(schema_name, sync_schema=sync_schema, verbosity=verbosity)
+    return create_schema(schema_name, database, sync_schema=sync_schema, verbosity=verbosity)

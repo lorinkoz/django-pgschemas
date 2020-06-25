@@ -21,29 +21,29 @@ class SchemaCreationCommandsTestCase(TransactionTestCase):
 
         @utils.run_in_public_schema
         def fixup():
-            utils._create_clone_schema_function()
+            utils._create_clone_schema_function("default")
 
         fixup()
-        self.assertFalse(utils.schema_exists("cloned"))
+        self.assertFalse(utils.schema_exists("cloned", "default"))
         call_command("cloneschema", "sample", "cloned", verbosity=0)  # All good
-        self.assertTrue(utils.schema_exists("cloned"))
+        self.assertTrue(utils.schema_exists("cloned", "default"))
         with self.assertRaises(CommandError):  # Existing destination
             call_command("cloneschema", "sample", "cloned", verbosity=0)
         with self.assertRaises(CommandError):  # Not existing source
             call_command("cloneschema", "nonexisting", "newschema", verbosity=0)
-        utils.drop_schema("cloned")
+        utils.drop_schema("cloned", "default")
 
     def test_createrefschema(self):
         "Tests 'createrefschema' command"
-        utils.drop_schema("cloned")
+        utils.drop_schema("cloned", "default")
         call_command("createrefschema", verbosity=0)  # All good
-        self.assertTrue(utils.schema_exists("sample"))
-        utils.drop_schema("cloned")
+        self.assertTrue(utils.schema_exists("sample", "default"))
+        utils.drop_schema("cloned", "default")
         call_command("createrefschema", recreate=True, verbosity=0)  # All good too
-        self.assertTrue(utils.schema_exists("sample"))
-        utils.drop_schema("cloned")
+        self.assertTrue(utils.schema_exists("sample", "default"))
+        utils.drop_schema("cloned", "default")
         call_command("createrefschema", recreate=True, verbosity=0)  # All good too
-        self.assertTrue(utils.schema_exists("sample"))
+        self.assertTrue(utils.schema_exists("sample", "default"))
 
 
 class InteractiveCloneSchemaTestCase(TransactionTestCase):
@@ -79,4 +79,4 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
             with StringIO() as stdout:
                 with StringIO() as stderr:
                     call_command("cloneschema", "tenant1", "tenant2", verbosity=1, stdout=stdout, stderr=stderr)
-        self.assertTrue(utils.schema_exists("tenant2"))
+        self.assertTrue(utils.schema_exists("tenant2", "default"))

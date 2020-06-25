@@ -1,4 +1,39 @@
-from django.db import connection
+from threading import local
+
+
+_active = local()
+
+
+class ActiveSchemaHandler:
+    def get_active_schema(self):
+        return getattr(_active, "value", None)
+
+    def set_active_schema(self, schema):
+        _active.value = schema
+
+    active = property(get_active_schema, set_active_schema)
+
+    def set_schema(self, schema_descriptor):
+        """
+        Main API method to set current schema.
+        """
+        assert isinstance(
+            schema_descriptor, SchemaDescriptor
+        ), "'set_schema' must be called with a SchemaDescriptor descendant"
+        schema_descriptor.ready = False  # Defines whether search path has been set
+        self.set_active_schema(schema_descriptor)
+
+    def set_schema_to(self, schema_name, domain_url=None, folder=None):
+        self.set_schema(SchemaDescriptor.create(schema_name, domain_url, folder))
+
+    def set_schema_to_public(self):
+        """
+        Instructs to stay in the 'public' schema.
+        """
+        self.set_schema_to("public")
+
+
+schema_handler = ActiveSchemaHandler()
 
 
 class SchemaDescriptor(object):
@@ -23,8 +58,8 @@ class SchemaDescriptor(object):
         Usage:
             some_schema_descriptor.activate()
         """
-        self.previous_schema = connection.schema
-        connection.set_schema(self)
+        self.previous_schema = schema_handler.active
+        schema_handler.set_schema(self)
 
     def deactivate(self):
         """
@@ -34,7 +69,7 @@ class SchemaDescriptor(object):
             some_schema_descriptor.deactivate()
         """
         previous_schema = getattr(self, "previous_schema", None)
-        connection.set_schema(previous_schema) if previous_schema else connection.set_schema_to_public()
+        schema_handler.set_schema(previous_schema) if previous_schema else schema_handler.set_schema_to_public()
 
     @staticmethod
     def deactivate_all():
@@ -44,7 +79,7 @@ class SchemaDescriptor(object):
         Usage:
             SchemaDescriptor.deactivate_all()
         """
-        connection.set_schema_to_public()
+        schema_handler.set_schema_to_public()
 
     def __enter__(self):
         self.activate()

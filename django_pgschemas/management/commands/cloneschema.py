@@ -20,6 +20,9 @@ class Command(BaseCommand):
         parser.add_argument("source", help="The name of the schema you want to clone")
         parser.add_argument("destination", help="The name of the schema you want to create as clone")
         parser.add_argument(
+            "--sdb", nargs="?", dest="schema_database", default="default", help="Database to operate with the schema(s)"
+        )
+        parser.add_argument(
             "--noinput",
             "--no-input",
             action="store_false",
@@ -104,7 +107,7 @@ class Command(BaseCommand):
             if TenantModel.objects.filter(schema_name=options["source"]).exists():
                 tenant, domain = self.get_dynamic_tenant(**options)
         try:
-            clone_schema(options["source"], options["destination"], dry_run)
+            clone_schema(options["source"], options["destination"], options["schema_database"], dry_run)
             if tenant and domain:
                 if options["verbosity"] >= 1:
                     self.stdout.write("Schema cloned.")

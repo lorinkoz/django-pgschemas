@@ -28,27 +28,27 @@ class TenantAutomaticTestCase(TransactionTestCase):
 
     def test_new_creation_deletion(self):
         "Tests automatic creation/deletion for new tenant's save/delete"
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
-        self.assertTrue(schema_exists("tenant1"))
+        self.assertTrue(schema_exists("tenant1", "default"))
         # Self-cleanup
         tenant.delete(force_drop=True)
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
 
     def test_existing_creation(self):
         "Tests automatic creation for existing tenant's save"
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         tenant = TenantModel(schema_name="tenant1")
         tenant.auto_create_schema = False
         tenant.save(verbosity=0)
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         tenant.auto_create_schema = True
         tenant.save(verbosity=0)
-        self.assertTrue(schema_exists("tenant1"))
+        self.assertTrue(schema_exists("tenant1", "default"))
         # Self-cleanup
         tenant.delete(force_drop=True)
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
 
     def test_new_aborted_creation(self):
         "Tests recovery on automatic creation for new tenant's save"
@@ -56,12 +56,12 @@ class TenantAutomaticTestCase(TransactionTestCase):
         def signal_receiver(*args, **kwargs):
             raise Exception
 
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         tenant = TenantModel(schema_name="tenant1")
         schema_post_sync.connect(signal_receiver)
         with self.assertRaises(Exception):
             tenant.save(verbosity=0)
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         self.assertEqual(0, TenantModel.objects.count())
         schema_post_sync.disconnect(signal_receiver)
 
@@ -71,7 +71,7 @@ class TenantAutomaticTestCase(TransactionTestCase):
         def signal_receiver(*args, **kwargs):
             raise Exception
 
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         tenant = TenantModel(schema_name="tenant1")
         tenant.auto_create_schema = False
         tenant.save(verbosity=0)
@@ -79,7 +79,7 @@ class TenantAutomaticTestCase(TransactionTestCase):
         schema_post_sync.connect(signal_receiver)
         with self.assertRaises(Exception):
             tenant.save(verbosity=0)
-        self.assertFalse(schema_exists("tenant1"))
+        self.assertFalse(schema_exists("tenant1", "default"))
         self.assertEqual(1, TenantModel.objects.count())
         schema_post_sync.disconnect(signal_receiver)
         # Self-cleanup
@@ -122,8 +122,8 @@ class TenantTestCase(TestCase):
         for key in settings.TENANTS:
             if key == "default":
                 continue
-            drop_schema(key)
-        drop_schema("tenant")
+            drop_schema(key, "default")
+        drop_schema("tenant", "default")
         call_command("migrateschema", verbosity=0)
 
     @contextmanager

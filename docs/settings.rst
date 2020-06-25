@@ -93,13 +93,6 @@ control the max number of processes the parallel executor can spawn. By
 default, ``None`` means that the number of CPUs will be used.
 
 
-``PGSCHEMAS_TENANT_DB_ALIAS``
------------------------------
-
-Default: ``"default"``
-
-The database alias where the tenant configuration is going to take place.
-
 ``PGSCHEMAS_PATHNAME_FUNCTION``
 -------------------------------
 

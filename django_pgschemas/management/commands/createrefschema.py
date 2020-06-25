@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
@@ -20,18 +21,22 @@ class Command(BaseCommand):
         clone_reference = get_clone_reference()
         if not clone_reference:
             raise CommandError("There is no reference schema configured.")
-        if options.get("recreate", False):
-            drop_schema(clone_reference, check_if_exists=True, verbosity=options["verbosity"])
+        for database in settings.DATABASES:
+            if options.get("recreate", False):
+                drop_schema(clone_reference, database=database, check_if_exists=True, verbosity=options["verbosity"])
+                if options["verbosity"] >= 1:
+                    self.stdout.write(f"[{database}] Destroyed existing reference schema.")
+            created = create_schema(
+                clone_reference, database=database, check_if_exists=True, verbosity=options["verbosity"]
+            )
             if options["verbosity"] >= 1:
-                self.stdout.write("Destroyed existing reference schema.")
-        created = create_schema(clone_reference, check_if_exists=True, verbosity=options["verbosity"])
-        if options["verbosity"] >= 1:
-            if created:
-                self.stdout.write("Reference schema successfully created!")
-            else:
-                self.stdout.write("Reference schema already exists.")
-                self.stdout.write(
-                    self.style.WARNING(
-                        "Run this command again with --recreate if you want to recreate the reference schema."
+                if created:
+                    self.stdout.write(f"[{database}] Reference schema successfully created!")
+                else:
+                    self.stdout.write(f"[{database}] Reference schema already exists.")
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"[{database}] Run this command again with --recreate if you want to "
+                            "recreate the reference schema."
+                        )
                     )
-                )

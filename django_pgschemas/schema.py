@@ -16,10 +16,14 @@ class ActiveSchemaHandler:
         """
         Main API method to set current schema.
         """
+        from django.contrib.contenttypes.models import ContentType
+
         assert isinstance(
             schema_descriptor, SchemaDescriptor
         ), "'set_schema' must be called with a SchemaDescriptor descendant"
+
         schema_descriptor.ready = False  # Defines whether search path has been set
+        ContentType.objects.clear_cache()  # Attempting to catch change of database
         self.set_active_schema(schema_descriptor)
 
     def set_schema_to(self, schema_name, domain_url=None, folder=None):
@@ -93,3 +97,9 @@ class SchemaDescriptor(object):
         if self.domain_url:
             return "/".join([self.domain_url, self.folder]) if self.folder else self.domain_url
         return None
+
+    def get_database(self):
+        """
+        Returns the database to use for this schema.
+        """
+        return "default"

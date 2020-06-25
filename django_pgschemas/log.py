@@ -1,6 +1,6 @@
 import logging
 
-from django.db import connection
+from .schema import schema_handler
 
 
 class SchemaContextFilter(logging.Filter):
@@ -9,6 +9,6 @@ class SchemaContextFilter(logging.Filter):
     """
 
     def filter(self, record):
-        record.schema_name = connection.schema.schema_name
-        record.domain_url = connection.schema.domain_url
+        record.schema_name = schema_handler.active.schema_name
+        record.domain_url = schema_handler.active.domain_url
         return True

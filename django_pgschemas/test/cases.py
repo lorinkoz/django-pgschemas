@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.core.management import call_command
-from django.db import connection
 from django.test import TestCase
 
+from ..schema import schema_handler
 from ..utils import get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".test.com"
@@ -44,7 +44,7 @@ class TenantTestCase(TestCase):
         cls.domain = get_domain_model()(tenant=cls.tenant, domain=tenant_domain)
         cls.setup_domain(cls.domain)
         cls.domain.save()
-        connection.set_schema(cls.tenant)
+        schema_handler.set_schema(cls.tenant)
         cls.cls_atomics = cls._enter_atomics()
         try:
             cls.setUpTestData()
@@ -55,7 +55,7 @@ class TenantTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        connection.set_schema_to_public()
+        schema_handler.set_schema_to_public()
         cls.domain.delete()
         cls.tenant.delete(force_drop=True)
         cls.remove_allowed_test_domain()
@@ -134,14 +134,14 @@ class FastTenantTestCase(TenantTestCase):
         else:
             cls.setup_test_tenant_and_domain()
 
-        connection.set_schema(cls.tenant)
+        schema_handler.set_schema(cls.tenant)
 
     @classmethod
     def tearDownClass(cls):
         TenantModel = get_tenant_model()
         test_schema_name = cls.get_test_schema_name()
         TenantModel.objects.filter(schema_name=test_schema_name).delete()
-        connection.set_schema_to_public()
+        schema_handler.set_schema_to_public()
 
     def _fixture_teardown(self):
         if self.flush_data():

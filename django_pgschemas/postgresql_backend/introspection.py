@@ -3,6 +3,7 @@ from django.db.backends.postgresql.introspection import DatabaseIntrospection
 from django.utils.encoding import force_text
 
 from . import _constraints
+from ..schema import schema_handler
 
 
 class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
@@ -33,7 +34,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
             WHERE c.relkind IN ('r', 'v', '')
                 AND n.nspname = '%s'
                 AND pg_catalog.pg_table_is_visible(c.oid)"""
-            % self.connection.schema.schema_name
+            % schema_handler.active.schema_name
         )
 
         return [
@@ -51,7 +52,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
             SELECT column_name, is_nullable, column_default
             FROM information_schema.columns
             WHERE table_schema = %s and table_name = %s""",
-            [self.connection.schema.schema_name, table_name],
+            [schema_handler.active.schema_name, table_name],
         )
         field_map = {line[0]: line[1:] for line in cursor.fetchall()}
         cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
@@ -69,7 +70,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
     def get_indexes(self, cursor, table_name):
         # This query retrieves each index on the given table, including the
         # first associated field name
-        cursor.execute(self._get_indexes_query, [table_name, self.connection.schema.schema_name])
+        cursor.execute(self._get_indexes_query, [table_name, schema_handler.active.schema_name])
         indexes = {}
         for row in cursor.fetchall():
             # row[1] (idx.indkey) is stored in the DB as an array. It comes out as
@@ -103,7 +104,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
             LEFT JOIN pg_attribute a2 ON c2.oid = a2.attrelid AND a2.attnum = con.confkey[1]
             WHERE c1.relname = %s and n.nspname = %s
                 AND con.contype = 'f'""",
-            [table_name, self.connection.schema.schema_name],
+            [table_name, schema_handler.active.schema_name],
         )
         relations = {}
         for row in cursor.fetchall():
@@ -128,7 +129,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
                     AND ccu.constraint_name = tc.constraint_name
             WHERE kcu.table_name = %s AND tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = %s
         """,
-            [table_name, self.connection.schema.schema_name],
+            [table_name, schema_handler.active.schema_name],
         )
         key_columns.extend(cursor.fetchall())
         return key_columns

@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.urls import path
 
-
 urlpatterns = [
     path("", lambda request: HttpResponse(), name="tenant-home"),
     path("profile/", lambda request: HttpResponse(), name="profile"),

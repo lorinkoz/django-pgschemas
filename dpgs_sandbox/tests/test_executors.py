@@ -3,7 +3,7 @@ from django.core import management
 from django.db import connections
 from django.test import TransactionTestCase
 
-from django_pgschemas.utils import get_tenant_model, get_domain_model
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

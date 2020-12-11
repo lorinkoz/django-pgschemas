@@ -1,7 +1,7 @@
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
-from ...utils import get_clone_reference, create_schema, drop_schema
+from ...utils import create_schema, drop_schema, get_clone_reference
 
 
 class Command(BaseCommand):

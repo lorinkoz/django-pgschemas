@@ -2,13 +2,13 @@ import sys
 from importlib import import_module
 
 from django.db import connection
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from django_pgschemas.middleware import TenantMiddleware
 from django_pgschemas.schema import SchemaDescriptor
 from django_pgschemas.urlresolvers import TenantPrefixPattern, get_urlconf_from_schema
-from django_pgschemas.utils import get_tenant_model, get_domain_model
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

@@ -3,8 +3,8 @@ import multiprocessing
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand, OutputWrapper, CommandError
-from django.db import connection, transaction, connections
+from django.core.management.base import BaseCommand, CommandError, OutputWrapper
+from django.db import connection, connections, transaction
 
 
 def run_on_schema(

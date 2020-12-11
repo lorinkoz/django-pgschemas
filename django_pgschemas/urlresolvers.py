@@ -5,8 +5,8 @@ from django.conf import settings
 from django.db import connection
 from django.urls import URLResolver
 
-from .utils import get_domain_model
 from .schema import SchemaDescriptor
+from .utils import get_domain_model
 
 
 class TenantPrefixPattern:
@@ -57,6 +57,7 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path):
     Generates a new URLConf module with all patterns prefixed with tenant.
     """
     from types import ModuleType
+
     from django.utils.module_loading import import_string
 
     class LazyURLConfModule(ModuleType):

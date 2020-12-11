@@ -3,8 +3,8 @@ from django.db import models, transaction
 
 from .postgresql_backend.base import check_schema_name
 from .schema import SchemaDescriptor
-from .signals import schema_post_sync, schema_needs_sync, schema_pre_drop
-from .utils import schema_exists, create_or_clone_schema, drop_schema, get_domain_model
+from .signals import schema_needs_sync, schema_post_sync, schema_pre_drop
+from .utils import create_or_clone_schema, drop_schema, get_domain_model, schema_exists
 
 
 class TenantMixin(SchemaDescriptor, models.Model):

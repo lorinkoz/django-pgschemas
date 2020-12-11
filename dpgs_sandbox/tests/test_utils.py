@@ -3,7 +3,7 @@ from django.db import connection
 from django.db.utils import InternalError
 from django.test import TestCase, override_settings
 
-from django_pgschemas import utils, schema
+from django_pgschemas import schema, utils
 
 
 class UtilsTestCase(TestCase):

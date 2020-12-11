@@ -2,15 +2,15 @@ from contextlib import contextmanager
 
 from django.apps import apps
 from django.conf import settings
-from django.core.management import call_command
 from django.contrib.auth import authenticate
-from django.db import connection, transaction, ProgrammingError
+from django.core.management import call_command
+from django.db import ProgrammingError, connection, transaction
 from django.dispatch import receiver
 from django.test import TestCase, TransactionTestCase
 
 from django_pgschemas.schema import SchemaDescriptor
 from django_pgschemas.signals import schema_post_sync
-from django_pgschemas.utils import get_tenant_model, get_domain_model, schema_exists, drop_schema
+from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

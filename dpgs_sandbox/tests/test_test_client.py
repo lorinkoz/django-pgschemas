@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from django_pgschemas.test.client import TenantRequestFactory, TenantClient
-from django_pgschemas.utils import get_tenant_model, get_domain_model
+from django_pgschemas.test.client import TenantClient, TenantRequestFactory
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

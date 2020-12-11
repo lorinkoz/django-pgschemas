@@ -3,9 +3,8 @@ from django.conf import settings
 from django.core import checks
 from django.test import TestCase, override_settings
 
+from django_pgschemas.checks import check_other_apps, check_principal_apps, check_schema_names, get_user_app
 from django_pgschemas.utils import get_tenant_model
-from django_pgschemas.checks import check_principal_apps, check_other_apps, check_schema_names, get_user_app
-
 
 TenantModel = get_tenant_model()
 BASE_DEFAULT = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}

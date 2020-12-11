@@ -4,7 +4,7 @@ from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
-from ...schema import SchemaDescriptor
+from ...schema import schema_handler
 from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
 from ._executors import parallel, sequential
 
@@ -247,18 +247,8 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
         executor(schemas, self, "_raw_handle_tenant", args, options, pass_schema_in_kwargs=True)
 
     def _raw_handle_tenant(self, *args, **kwargs):
-        schema_name = kwargs.pop("schema_name")
-        if schema_name in settings.TENANTS:
-            domains = settings.TENANTS[schema_name].get("DOMAINS", [])
-            tenant = SchemaDescriptor.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
-            self.handle_tenant(tenant, *args, **kwargs)
-        elif schema_name == get_clone_reference():
-            tenant = SchemaDescriptor.create(schema_name=schema_name)
-            self.handle_tenant(tenant, *args, **kwargs)
-        else:
-            TenantModel = get_tenant_model()
-            tenant = TenantModel.objects.get(schema_name=schema_name)
-            self.handle_tenant(tenant, *args, **kwargs)
+        kwargs.pop("schema_name")
+        self.handle_tenant(schema_handler.active, *args, **kwargs)
 
     def handle_tenant(self, tenant, *args, **options):
         pass

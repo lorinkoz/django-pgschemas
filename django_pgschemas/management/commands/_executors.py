@@ -3,10 +3,11 @@ import multiprocessing
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand, CommandError, OutputWrapper
+from django.core.management.base import BaseCommand, OutputWrapper
 from django.db import connection, connections, transaction
 
-from ...schema import schema_handler
+from ...schema import SchemaDescriptor, schema_handler
+from ...utils import get_clone_reference, get_tenant_model
 
 
 def run_on_schema(
@@ -54,7 +55,17 @@ def run_on_schema(
 
     if fork_db:
         connections.close_all()
-    schema_handler.set_schema_to(schema_name)
+
+    if schema_name in settings.TENANTS:
+        domains = settings.TENANTS[schema_name].get("DOMAINS", [])
+        schema = SchemaDescriptor.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+    elif schema_name == get_clone_reference():
+        schema = SchemaDescriptor.create(schema_name=schema_name)
+    else:
+        TenantModel = get_tenant_model()
+        schema = TenantModel.objects.get(schema_name=schema_name)
+
+    schema_handler.set_schema(schema)
 
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})

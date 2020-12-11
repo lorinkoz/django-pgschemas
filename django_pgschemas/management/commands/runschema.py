@@ -52,7 +52,7 @@ class Command(WrappedSchemaOption, BaseCommand):
                 dynamic_schemas=schema_ns.dynamic_schemas,
                 tenant_schemas=schema_ns.tenant_schemas,
             )
-            executor = self.get_executor_from_options(executor=schema_ns.executor)
+            executor = self.get_executor_from_options(parallel=schema_ns.parallel)
         except Exception as e:
             if not isinstance(e, CommandError):
                 raise
@@ -75,7 +75,7 @@ class Command(WrappedSchemaOption, BaseCommand):
         options.pop("static_schemas")
         options.pop("dynamic_schemas")
         options.pop("tenant_schemas")
-        options.pop("executor")
+        options.pop("parallel")
         options.pop("skip_schema_creation")
         if self.allow_interactive:
             options.pop("interactive")

@@ -12,6 +12,7 @@ class NonInteractiveRunSchemaCommand(RunSchemaCommand):
 
 
 class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
+    requires_system_checks = False
     allow_interactive = False
 
     def _run_checks(self, **kwargs):

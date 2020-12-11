@@ -128,7 +128,8 @@ def check_schema_names(app_configs, **kwargs):
     if intersection:
         errors.append(
             checks.Critical(
-                "Name clash found between static and dynamic tenants: %s" % intersection, id="pgschemas.W004",
+                "Name clash found between static and dynamic tenants: %s" % intersection,
+                id="pgschemas.W004",
             )
         )
     return errors

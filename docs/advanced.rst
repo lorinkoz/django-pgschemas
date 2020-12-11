@@ -143,7 +143,7 @@ concise synopsis of the ``runschema`` command is as follows::
     usage: manage.py runschema [-s SCHEMAS [SCHEMAS ...]]
                             [-x EXCLUDED_SCHEMAS [EXCLUDED_SCHEMAS ...]]
                             [-as] [-ss] [-ds] [-ts]
-                            [--executor {sequential,parallel}]
+                            [--parallel]
                             [--no-create-schemas]
                             [--noinput]
                             command_name
@@ -178,8 +178,7 @@ concise synopsis of the ``runschema`` command is as follows::
                         Schema(s) to exclude when executing the current
                         command
 
-    --executor {sequential,parallel}
-                        Executor to be used for running command on schemas
+    --parallel          Run command in parallel mode
     --no-create-schemas
                         Skip automatic creation of non-existing schemas
 
@@ -202,16 +201,9 @@ explicitly or via wildcard params, it will be asked interactively. One notable
 exception to this is when the option ``--noinput`` is passed, in which case the
 command will fail.
 
-The executor argument accepts two options:
-
-:sequential:
-    Will run the command synchronously, one schema at a time. This is the
-    default executor.
-
-:parallel:
-    Will run the command asynchronously, spawning multiple threads controlled
-    by the setting ``PGSCHEMAS_PARALLEL_MAX_PROCESSES``. It defaults to
-    ``None``, in which case the number of CPUs will be used.
+If ``--parallel`` is passed, the command will be run asynchronously, spawning
+multiple threads controlled by the setting ``PGSCHEMAS_PARALLEL_MAX_PROCESSES``.
+It defaults to ``None``, in which case the number of CPUs will be used.
 
 By default, schemas that do not exist will be created (but not synchronized),
 except if ``--no-create-schemas`` is passed.

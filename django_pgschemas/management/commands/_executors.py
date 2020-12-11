@@ -6,6 +6,9 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, OutputWrapper
 from django.db import connection, connections, transaction
 
+from ...schema import SchemaDescriptor
+from ...utils import get_clone_reference, get_tenant_model
+
 
 def run_on_schema(
     schema_name,
@@ -57,7 +60,17 @@ def run_on_schema(
 
     if fork_db:
         connections.close_all()
-    connection.set_schema_to(schema_name)
+
+    if schema_name in settings.TENANTS:
+        domains = settings.TENANTS[schema_name].get("DOMAINS", [])
+        schema = SchemaDescriptor.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+    elif schema_name == get_clone_reference():
+        schema = SchemaDescriptor.create(schema_name=schema_name)
+    else:
+        TenantModel = get_tenant_model()
+        schema = TenantModel.objects.get(schema_name=schema_name)
+
+    connection.set_schema(schema)
 
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})

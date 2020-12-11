@@ -28,10 +28,10 @@ class ExecutorsTestCase(TransactionTestCase):
 
     def test_all_schemas_in_sequential(self):
         # If there are no errors, then this test passed
-        management.call_command("migrate", all_schemas=True, executor="sequential", verbosity=0)
+        management.call_command("migrate", all_schemas=True, parallel=False, verbosity=0)
         connections.close_all()
 
     def test_all_schemas_in_parallel(self):
         # If there are no errors, then this test passed
-        management.call_command("migrate", all_schemas=True, executor="parallel", verbosity=0)
+        management.call_command("migrate", all_schemas=True, parallel=True, verbosity=0)
         connections.close_all()

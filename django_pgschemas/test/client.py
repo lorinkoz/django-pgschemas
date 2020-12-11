@@ -1,4 +1,4 @@
-from django.test import RequestFactory, Client
+from django.test import Client, RequestFactory
 
 from ..middleware import TenantMiddleware
 

@@ -4,7 +4,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import connection, transaction, ProgrammingError, DEFAULT_DB_ALIAS
+from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
 
 
 def get_tenant_model(require_ready=True):

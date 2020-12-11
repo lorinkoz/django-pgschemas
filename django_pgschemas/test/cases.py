@@ -3,7 +3,7 @@ from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase
 
-from ..utils import get_tenant_model, get_domain_model
+from ..utils import get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".test.com"
 

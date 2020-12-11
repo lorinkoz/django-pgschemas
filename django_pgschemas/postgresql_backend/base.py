@@ -1,12 +1,12 @@
 from importlib import import_module
-import psycopg2
 
+import psycopg2
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
 from ..schema import SchemaDescriptor
-from ..utils import get_limit_set_calls, check_schema_name
+from ..utils import check_schema_name, get_limit_set_calls
 from .introspection import DatabaseSchemaIntrospection
 
 ORIGINAL_BACKEND = getattr(settings, "PGSCHEMAS_ORIGINAL_BACKEND", "django.db.backends.postgresql")

@@ -4,7 +4,7 @@ from django.apps import apps
 from django.test import TransactionTestCase, tag
 
 from django_pgschemas.test.client import TenantClient
-from django_pgschemas.utils import get_tenant_model, get_domain_model
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

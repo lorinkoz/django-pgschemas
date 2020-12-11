@@ -3,11 +3,11 @@ import re
 from django.conf import settings
 from django.db import connection
 from django.http import Http404
-from django.urls import set_urlconf, clear_url_caches
+from django.urls import clear_url_caches, set_urlconf
 
 from .schema import SchemaDescriptor
 from .urlresolvers import get_urlconf_from_schema
-from .utils import remove_www, get_domain_model
+from .utils import get_domain_model, remove_www
 
 
 class TenantMiddleware:

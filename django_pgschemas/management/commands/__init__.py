@@ -4,9 +4,9 @@ from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
-from ._executors import sequential, parallel
 from ...schema import SchemaDescriptor
-from ...utils import get_tenant_model, dynamic_models_exist, create_schema, get_clone_reference
+from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
+from ._executors import parallel, sequential
 
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 

@@ -66,11 +66,10 @@ class WrappedSchemaOption(object):
             help="Schema(s) to exclude when executing the current command",
         )
         parser.add_argument(
-            "--executor",
-            dest="executor",
-            default="sequential",
-            choices=EXECUTORS,
-            help="Executor to be used for running command on schemas",
+            "--parallel",
+            dest="parallel",
+            action="store_true",
+            help="Run command in parallel mode",
         )
         parser.add_argument(
             "--no-create-schemas",
@@ -100,7 +99,7 @@ class WrappedSchemaOption(object):
         return schemas
 
     def get_executor_from_options(self, **options):
-        return EXECUTORS[options.get("executor")]
+        return EXECUTORS["parallel"] if options.get("parallel") else EXECUTORS["sequential"]
 
     def get_scope_display(self):
         return "|".join(self.specific_schemas or []) or self.scope

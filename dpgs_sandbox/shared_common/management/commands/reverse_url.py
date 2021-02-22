@@ -9,7 +9,8 @@ class Command(TenantCommand):
     def add_arguments(self, parser):
         super().add_arguments(parser)
         parser.add_argument(
-            dest="url_name", help="Url name to resolve in the specified schema",
+            dest="url_name",
+            help="Url name to resolve in the specified schema",
         )
 
     def handle_tenant(self, tenant, *args, **options):

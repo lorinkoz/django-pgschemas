@@ -97,7 +97,7 @@ class TenantTestCase(TestCase):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
         catalog = Catalog.objects.create()
-        catalog2 = Catalog.objects.create()
+        Catalog.objects.create()
         with SchemaDescriptor.create(schema_name="www"):
             user = User.objects.create(email="main@test.com", display_name="Main User")
             user.set_password("weakpassword")

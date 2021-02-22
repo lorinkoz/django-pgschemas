@@ -3,12 +3,70 @@ from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase
 
-from ..utils import get_tenant_model, get_domain_model
+from ..schema import SchemaDescriptor
+from ..utils import get_clone_reference, get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".test.com"
 
 
-class TenantTestCase(TestCase):
+class BaseTenantTestCaseMixin:
+    @classmethod
+    def get_verbosity(cls):
+        return 0
+
+    @classmethod
+    def add_allowed_test_domain(cls):
+        cls.BACKUP_ALLOWED_HOSTS = settings.ALLOWED_HOSTS
+        # ALLOWED_HOSTS is a special setting of Django setup_test_environment so we can't modify it with helpers
+        if ALLOWED_TEST_DOMAIN not in settings.ALLOWED_HOSTS:
+            settings.ALLOWED_HOSTS += [ALLOWED_TEST_DOMAIN]
+
+    @classmethod
+    def remove_allowed_test_domain(cls):
+        settings.ALLOWED_HOSTS = cls.BACKUP_ALLOWED_HOSTS
+
+    @classmethod
+    def sync_public(cls):
+        call_command("migrateschema", schemas=["public"], verbosity=0)
+
+
+class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
+    schema_name = None  # Meant to be set by subclasses
+    tenant = None
+
+    @classmethod
+    def setUpClass(cls):
+        assert (
+            cls.schema_name in settings.TENANTS
+        ), "{class_name}.schema_name must be defined to a valid static tenant".format(class_name=cls.__name__)
+        assert (
+            cls.schema_name not in ["public", "default"] and cls.schema_name != get_clone_reference()
+        ), "{class_name}.schema_name must be defined to a valid static tenant".format(class_name=cls.__name__)
+        super(TestCase, cls).setUpClass()
+        cls.sync_public()
+        cls.add_allowed_test_domain()
+        domain = (
+            settings.TENANTS[cls.schema_name]["DOMAINS"][0]
+            if settings.TENANTS[cls.schema_name]["DOMAINS"]
+            else cls.schema_name + ALLOWED_TEST_DOMAIN
+        )
+        cls.tenant = SchemaDescriptor.create(schema_name=cls.schema_name, domain_url=domain)
+        connection.set_schema(cls.tenant)
+        cls.cls_atomics = cls._enter_atomics()
+        try:
+            cls.setUpTestData()
+        except Exception:
+            cls._rollback_atomics(cls.cls_atomics)
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        connection.set_schema_to_public()
+        cls.remove_allowed_test_domain()
+
+
+class DynamicTenantTestCase(BaseTenantTestCaseMixin, TestCase):
     tenant = None
     domain = None
 
@@ -61,25 +119,6 @@ class TenantTestCase(TestCase):
         cls.remove_allowed_test_domain()
 
     @classmethod
-    def get_verbosity(cls):
-        return 0
-
-    @classmethod
-    def add_allowed_test_domain(cls):
-        cls.BACKUP_ALLOWED_HOSTS = settings.ALLOWED_HOSTS
-        # ALLOWED_HOSTS is a special setting of Django setup_test_environment so we can't modify it with helpers
-        if ALLOWED_TEST_DOMAIN not in settings.ALLOWED_HOSTS:
-            settings.ALLOWED_HOSTS += [ALLOWED_TEST_DOMAIN]
-
-    @classmethod
-    def remove_allowed_test_domain(cls):
-        settings.ALLOWED_HOSTS = cls.BACKUP_ALLOWED_HOSTS
-
-    @classmethod
-    def sync_public(cls):
-        call_command("migrateschema", schemas=["public"], verbosity=0)
-
-    @classmethod
     def get_test_tenant_domain(cls):
         return "tenant.test.com"
 
@@ -88,7 +127,11 @@ class TenantTestCase(TestCase):
         return "test"
 
 
-class FastTenantTestCase(TenantTestCase):
+class TenantTestCase(DynamicTenantTestCase):
+    pass
+
+
+class FastDynamicTenantTestCase(DynamicTenantTestCase):
     @classmethod
     def flush_data(cls):
         """
@@ -146,3 +189,7 @@ class FastTenantTestCase(TenantTestCase):
     def _fixture_teardown(self):
         if self.flush_data():
             super()._fixture_teardown()
+
+
+class FastTenantTestCase(FastDynamicTenantTestCase):
+    pass

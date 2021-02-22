@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
-from .utils import get_tenant_model, get_domain_model, get_clone_reference
+from .utils import get_clone_reference, get_domain_model, get_tenant_model
 
 
 def get_tenant_app():
@@ -128,7 +128,8 @@ def check_schema_names(app_configs, **kwargs):
     if intersection:
         errors.append(
             checks.Critical(
-                "Name clash found between static and dynamic tenants: %s" % intersection, id="pgschemas.W004",
+                "Name clash found between static and dynamic tenants: %s" % intersection,
+                id="pgschemas.W004",
             )
         )
     return errors

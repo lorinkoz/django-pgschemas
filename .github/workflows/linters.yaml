@@ -1,7 +1,7 @@
 name: linters
 on: [push]
 jobs:
-  black:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -9,10 +9,16 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.6
-      - name: Install dependencies
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pypoetry
+          key: py3.6-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            py-poetry-
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade black
+          python -m pip install poetry
+          python -m poetry install
       - name: Run linters
-        run: |
-          black --check --exclude "migrations" django_pgschemas
+        uses: pre-commit/action@v2.0.0

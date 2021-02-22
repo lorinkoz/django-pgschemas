@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q
-from django.db.models import Value as V
+from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 

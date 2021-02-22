@@ -1,4 +1,3 @@
-from django.core import management
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand
 from django.core.management.commands.migrate import Command as MigrateCommand

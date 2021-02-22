@@ -5,12 +5,12 @@ from django.apps import apps
 from django.core import management
 from django.core.management.base import CommandError
 from django.db import models
+from django.db.utils import ProgrammingError
 from django.test import TransactionTestCase, tag
 
 from django_pgschemas.checks import check_schema_names
 from django_pgschemas.models import TenantMixin
 from django_pgschemas.utils import get_tenant_model
-
 
 TenantModel = get_tenant_model()
 
@@ -65,3 +65,30 @@ class UnappliedMigrationTestCase(TransactionTestCase):
                 "Error while attempting to retrieve dynamic schemas. "
                 "Perhaps you need to migrate the 'public' schema first?",
             )
+
+
+@tag("bug")
+class MigrateIgnoringExcludedSchemasTestCase(TransactionTestCase):
+    @classmethod
+    def setUpClass(cls):
+        tenant1 = TenantModel(schema_name="tenant1")
+        tenant1.save(verbosity=0)
+
+    @classmethod
+    def tearDownClass(cls):
+        for tenant in TenantModel.objects.all():
+            tenant.delete(force_drop=True)
+
+    def test_migrate_with_exclusions(self):
+        # We first unapply a migration with fake so we can reapply it without fake
+        # This should work without errors
+        management.call_command("migrate", "app_tenants", "0001_initial", fake=True, schemas=["tenant1"], verbosity=0)
+        # We then migrate on all schemas except for tenant1, THIS IS THE CASE WE WANT TO TEST
+        # This should work without errors
+        management.call_command("migrate", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)
+        # If we try to global migrate now, we should get a ProgrammingError
+        with self.assertRaises(ProgrammingError):
+            management.call_command("migrate", all_schemas=True, verbosity=0)
+        # We finally apply the migration again with fake
+        # This should work without errors
+        management.call_command("migrate", fake=True, all_schemas=True, verbosity=0)

@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q, Value as V
+from django.db.models import CharField, Q
+from django.db.models import Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
-from ._executors import sequential, parallel
 from ...schema import SchemaDescriptor
-from ...utils import get_tenant_model, dynamic_models_exist, create_schema, get_clone_reference
+from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
+from ._executors import parallel, sequential
 
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
@@ -191,7 +192,7 @@ class WrappedSchemaOption(object):
                     TenantModel.objects.annotate(
                         route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
                     )
-                    .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
+                    .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
                     .distinct()
                     .values_list("schema_name", flat=True)
                 )
@@ -219,7 +220,7 @@ class WrappedSchemaOption(object):
                 TenantModel.objects.annotate(
                     route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
                 )
-                .filter(Q(domains__domain__istartswith=schema) | Q(route=schema))
+                .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
                 .distinct()
                 .values_list("schema_name", flat=True)
             )

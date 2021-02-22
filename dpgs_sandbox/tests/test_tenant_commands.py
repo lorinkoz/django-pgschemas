@@ -4,8 +4,8 @@ from django.core import management
 from django.core.management.base import CommandError
 from django.test import TransactionTestCase
 
-from django_pgschemas.utils import get_tenant_model, get_domain_model
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()
@@ -118,6 +118,9 @@ class TenantCommandsTestCase(TransactionTestCase):
             str(ctx.exception),
             "More than one tenant found for schema 'tenant' by domain (excluded), please, narrow down the filter",
         )
+
+    def test_existing_schema_excluded_ok(self):
+        management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)
 
     def test_interactive_ok(self):
         def patched_input(*args, **kwargs):

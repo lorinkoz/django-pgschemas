@@ -1,6 +1,6 @@
 from django.db import models
 
-from django_pgschemas.models import TenantMixin, DomainMixin
+from django_pgschemas.models import DomainMixin, TenantMixin
 
 
 class Tenant(TenantMixin):

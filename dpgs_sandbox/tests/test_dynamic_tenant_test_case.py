@@ -1,15 +1,15 @@
 from django.apps import apps
 
-from django_pgschemas.test.cases import TenantTestCase
+from django_pgschemas.test.cases import DynamicTenantTestCase
 
 Catalog = apps.get_model("shared_public.Catalog")
 TenantData = apps.get_model("app_tenants.TenantData")
 User = apps.get_model("shared_common.User")
 
 
-class TestTenantTestCase(TenantTestCase):
+class TestDynamicTenantTestCase(DynamicTenantTestCase):
     """
-    Tests the behavior of the TenantTestCase.
+    Tests the behavior of the DynamicTenantTestCase.
     """
 
     @classmethod

@@ -9,12 +9,13 @@ repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
 keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgresql"]
 classifiers = [
-    "Development Status :: 5 - Production",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
     "Framework :: Django :: 2.0",
     "Framework :: Django :: 2.1",
     "Framework :: Django :: 2.2",
     "Framework :: Django :: 3.0",
+    "Framework :: Django :: 3.1",
 ]
 
 [tool.poetry.dependencies]

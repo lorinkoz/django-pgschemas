@@ -1,4 +1,3 @@
-import os
 from distutils.util import strtobool
 
 from django.core.checks import Tags, run_checks
@@ -44,7 +43,10 @@ class Command(BaseCommand):
                 pass
         return answer
 
-    def _check_required_field(self, field, exclude=[]):
+    def _check_required_field(self, field, exclude=None):
+        if exclude is None:
+            exclude = []
+
         return (
             field.editable
             and not field.primary_key
@@ -75,7 +77,7 @@ class Command(BaseCommand):
                         instance.clean()
                     except Exception as e:
                         if hasattr(e, "message"):
-                            self.stderr.write(e.message)
+                            self.stderr.write(e.message)  # noqa
                         elif hasattr(e, "messages"):
                             self.stderr.write(" ".join(e.messages))
                         else:
@@ -119,7 +121,7 @@ class Command(BaseCommand):
                 self.stdout.write("All done!")
         except Exception as e:
             if hasattr(e, "message"):
-                raise CommandError(e.message)
+                raise CommandError(e.message)  # noqa
             elif hasattr(e, "messages"):
                 raise CommandError(" ".join(e.messages))
             else:

@@ -1,1 +1,1 @@
-from .router import TenantProtocolRouter
+from .router import TenantProtocolRouter  # noqa

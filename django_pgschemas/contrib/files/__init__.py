@@ -1,1 +1,1 @@
-from .storage import TenantFileSystemStorage
+from .storage import TenantFileSystemStorage  # noqa

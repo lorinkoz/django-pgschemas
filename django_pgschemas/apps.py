@@ -79,7 +79,7 @@ class DjangoPGSchemasConfig(AppConfig):
                 )
 
     def ready(self):
-        from . import checks
+        from . import checks  # noqa
 
         self._check_tenant_dict()
         self._check_public_schema()

@@ -8,21 +8,23 @@ repos:
       - id: check-symlinks
       - id: check-toml
       - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
       - id: trailing-whitespace
   - repo: local
     hooks:
       - id: black
         name: black
-        entry: bash -c 'poetry run black $1'
+        entry: bash -c 'poetry run black $@'
         language: system
         types: [python]
       - id: isort
         name: isort
-        entry: bash -c 'poetry run isort $1'
+        entry: bash -c 'poetry run isort $@'
         language: system
         types: [python]
       - id: flake8
         name: flake8
-        entry: bash -c 'poetry run flake8 $1'
+        entry: bash -c 'poetry run flake8 $@'
         language: system
         types: [python]

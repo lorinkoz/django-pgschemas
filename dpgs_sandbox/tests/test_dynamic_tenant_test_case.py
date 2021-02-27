@@ -18,7 +18,7 @@ class TestDynamicTenantTestCase(DynamicTenantTestCase):
         cls.catalog = Catalog.objects.create()
 
     def test_random_operation1(self):
-        data = TenantData.objects.create(user=self.user, catalog=self.catalog)
+        TenantData.objects.create(user=self.user, catalog=self.catalog)
         self.assertEqual(TenantData.objects.count(), 1)
 
     def test_random_operation2(self):

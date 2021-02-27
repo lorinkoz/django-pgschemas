@@ -1,5 +1,4 @@
 from django.apps import apps
-from django.conf import settings
 from django.core import checks
 from django.test import TestCase, override_settings
 
@@ -32,11 +31,13 @@ class AppChecksTestCase(TestCase):
             errors = check_principal_apps(self.app_config)
             expected_errors = [
                 checks.Error(
-                    "Your tenant app 'shared_public' in TENANTS['default']['APPS'] must be on the 'public' schema only.",
+                    "Your tenant app 'shared_public' in TENANTS['default']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 ),
                 checks.Error(
-                    "Your domain app 'shared_public' in TENANTS['default']['APPS'] must be on the 'public' schema only.",
+                    "Your domain app 'shared_public' in TENANTS['default']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 ),
             ]

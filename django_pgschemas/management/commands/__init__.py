@@ -183,7 +183,7 @@ class WrappedSchemaOption(object):
                     schema_name
                     for schema_name, data in settings.TENANTS.items()
                     if schema_name not in ["public", "default"]
-                    and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+                    and any(x for x in data["DOMAINS"] if x.startswith(schema))
                 ]
             if dynamic_ready and allow_dynamic:
                 local += (
@@ -212,7 +212,7 @@ class WrappedSchemaOption(object):
                 schema_name
                 for schema_name, data in settings.TENANTS.items()
                 if schema_name not in ["public", "default", clone_reference]
-                and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+                and any(x for x in data["DOMAINS"] if x.startswith(schema))
             ]
             local += (
                 TenantModel.objects.annotate(

@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from django.core.management import call_command, get_commands, load_command_class
+from django.core.management import get_commands, load_command_class
 from django.core.management.base import BaseCommand, CommandError, SystemCheckError
 
 from . import WrappedSchemaOption

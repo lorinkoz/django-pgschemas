@@ -1,6 +1,3 @@
-from django.core import management
-from django.core.management.base import BaseCommand
-
 from . import TenantCommand
 
 

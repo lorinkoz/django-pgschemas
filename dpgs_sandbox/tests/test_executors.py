@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core import management
 from django.db import connections
 from django.test import TransactionTestCase

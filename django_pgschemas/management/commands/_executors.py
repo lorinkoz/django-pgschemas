@@ -15,11 +15,17 @@ def run_on_schema(
     executor_codename,
     command,
     function_name=None,
-    args=[],
-    kwargs={},
+    args=None,
+    kwargs=None,
     pass_schema_in_kwargs=False,
     fork_db=False,
 ):
+
+    if args is None:
+        args = []
+    if kwargs is None:
+        kwargs = {}
+
     if not isinstance(command, BaseCommand):
         # Parallel executor needs to pass command 'type' instead of 'instance'
         # Therefore, no customizations for the command can be done, nor using custom stdout, stderr
@@ -84,7 +90,7 @@ def run_on_schema(
     return schema_name
 
 
-def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def sequential(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
     runner = functools.partial(
         run_on_schema,
         executor_codename="sequential",
@@ -100,7 +106,7 @@ def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_
     return schemas
 
 
-def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def parallel(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
     processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
     pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(

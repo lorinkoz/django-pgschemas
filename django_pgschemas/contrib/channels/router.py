@@ -5,7 +5,7 @@ from django.utils.encoding import force_text
 from django.utils.module_loading import import_string
 
 from ...schema import SchemaDescriptor
-from ...utils import get_domain_model, get_tenant_model, remove_www
+from ...utils import get_domain_model, remove_www
 from .auth import TenantAuthMiddlewareStack
 
 

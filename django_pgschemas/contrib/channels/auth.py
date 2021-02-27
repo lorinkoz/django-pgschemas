@@ -1,4 +1,4 @@
-from channels.auth import AuthMiddleware, CookieMiddleware, SessionMiddleware, _get_user_session_key, login, logout
+from channels.auth import AuthMiddleware, CookieMiddleware, SessionMiddleware, _get_user_session_key
 from channels.db import database_sync_to_async
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, load_backend

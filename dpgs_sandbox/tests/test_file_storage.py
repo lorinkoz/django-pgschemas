@@ -3,7 +3,6 @@ import shutil
 import tempfile
 
 from django.core.files.base import ContentFile
-from django.db import connection
 from django.test import TransactionTestCase, override_settings
 
 from django_pgschemas.contrib.files import TenantFileSystemStorage

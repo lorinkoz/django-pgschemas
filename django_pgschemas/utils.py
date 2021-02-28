@@ -278,7 +278,7 @@ FOR record IN
     IF include_recs
       THEN
       -- Insert records from source table
-      EXECUTE 'INSERT INTO ' || buffer || ' SELECT * FROM "' || source_schema || '".' || quote_ident(object) || ';';
+      EXECUTE 'INSERT INTO ' || buffer || ' OVERRIDING SYSTEM VALUE SELECT * FROM "' || source_schema || '".' || quote_ident(object) || ';';
     END IF;
 
     FOR column_, default_ IN

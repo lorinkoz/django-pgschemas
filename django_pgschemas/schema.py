@@ -90,6 +90,14 @@ class SchemaDescriptor:
         """
         Returns the primary domain of the schema descriptor, if present.
         """
-        if self.domain_url:
-            return "/".join([self.domain_url, self.folder]) if self.folder else self.domain_url
-        return None
+
+        class AdHocDomain:
+            def __init__(self, domain, folder=None):
+                self.domain = domain
+                self.folder = folder
+                self.is_primary = True
+
+            def __str__(self):
+                return "/".join([self.domain, self.folder]) if self.folder else self.domain
+
+        return AdHocDomain(self.domain_url or self.schema_name, self.folder)

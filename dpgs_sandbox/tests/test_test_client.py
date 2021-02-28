@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from django_pgschemas.schema import SchemaDescriptor
 from django_pgschemas.test.client import TenantClient, TenantRequestFactory
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -45,9 +46,9 @@ class TenantRequestFactoryTestCase(TestCase):
         self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
 
 
-class TenantClientTestCase(TestCase):
+class DynamicTenantClientTestCase(TestCase):
     """
-    Test the behavior of the TenantClient.
+    Test the behavior of the TenantClient with a dynamic tenant.
     """
 
     @classmethod
@@ -80,4 +81,39 @@ class TenantClientTestCase(TestCase):
 
     def test_delete(self):
         response = self.tenant_client.delete("/profile/")
+        self.assertEqual(response.status_code, 200)
+
+
+class StaticTenantClientTestCase(TestCase):
+    """
+    Test the behavior of the TenantClient with a static tenant.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        tenant = SchemaDescriptor.create(schema_name="tenant1", domain_url="everyone.test.com")
+        cls.tenant_client = TenantClient(tenant)
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_get(self):
+        response = self.tenant_client.get("/ping/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_post(self):
+        response = self.tenant_client.post("/ping/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_put(self):
+        response = self.tenant_client.put("/ping/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_patch(self):
+        response = self.tenant_client.patch("/ping/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_delete(self):
+        response = self.tenant_client.delete("/ping/")
         self.assertEqual(response.status_code, 200)

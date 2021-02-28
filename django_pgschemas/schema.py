@@ -35,7 +35,7 @@ class ActiveSchemaHandler:
 schema_handler = ActiveSchemaHandler()
 
 
-class SchemaDescriptor(object):
+class SchemaDescriptor:
     schema_name = None
     domain_url = None
     folder = None

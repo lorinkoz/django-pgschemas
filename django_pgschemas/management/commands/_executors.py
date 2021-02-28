@@ -42,7 +42,7 @@ def run_on_schema(
     # Since we are prepending every output with the schema_name and executor, we need to determine
     # whether we need to do so based on the last ending used to write. If the last write didn't end
     # in '\n' then we don't do the prefixing in order to keep the output looking good.
-    class StyleFunc(object):
+    class StyleFunc:
         last_message = None
 
         def __call__(self, message):

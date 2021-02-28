@@ -11,7 +11,7 @@ from ._executors import parallel, sequential
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
 
-class WrappedSchemaOption(object):
+class WrappedSchemaOption:
     scope = "all"
     specific_schemas = None
 

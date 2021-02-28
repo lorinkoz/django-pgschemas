@@ -5,7 +5,7 @@ from .schema import schema_handler
 from .utils import get_tenant_database_alias
 
 
-class SyncRouter(object):
+class SyncRouter:
     """
     A router to control which applications will be synced depending on the schema we're syncing.
     """

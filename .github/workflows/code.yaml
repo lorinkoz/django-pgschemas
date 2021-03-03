@@ -51,4 +51,6 @@ jobs:
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        if: matrix.python-version == '3.6' && matrix.django-version == '~=3.0.0'
+        if: matrix.python-version == '3.6' && matrix.django-version == '~=2.0.0'
+        with:
+          files: ./.coverage

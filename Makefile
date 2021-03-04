@@ -15,3 +15,7 @@ coverage-html:
 .PHONY: reqs
 reqs:
 	poetry export --without-hashes --dev --format requirements.txt > requirements.txt
+
+.PHONY: update-clone-schema
+update-clone-schema:
+	curl https://raw.githubusercontent.com/denishpatel/pg-clone-schema/master/clone_schema.sql -o django_pgschemas/clone_schema.sql

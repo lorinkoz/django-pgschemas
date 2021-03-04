@@ -100,8 +100,7 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("public"))  # Schema exists
 
     def test_clone_schema(self):
-        with schema.SchemaDescriptor.create(schema_name="public"):
-            utils._create_clone_schema_function()
+        utils._create_clone_schema_function()
         self.assertFalse(utils.schema_exists("sample2"))  # Schema doesn't exist previously
         utils.clone_schema("sample", "sample2", dry_run=True)  # Dry run
         self.assertFalse(utils.schema_exists("sample2"))  # Schema won't exist, dry run

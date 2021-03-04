@@ -19,11 +19,7 @@ class SchemaCreationCommandsTestCase(TransactionTestCase):
     def test_cloneschema(self):
         "Tests 'cloneschema' command"
 
-        @utils.run_in_public_schema
-        def fixup():
-            utils._create_clone_schema_function()
-
-        fixup()
+        utils._create_clone_schema_function()
         self.assertFalse(utils.schema_exists("cloned"))
         call_command("cloneschema", "sample", "cloned", verbosity=0)  # All good
         self.assertTrue(utils.schema_exists("cloned"))

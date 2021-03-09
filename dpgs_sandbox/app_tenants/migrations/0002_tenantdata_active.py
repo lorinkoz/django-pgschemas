@@ -10,5 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name="tenantdata", name="active", field=models.BooleanField(default=True),),
+        migrations.AddField(
+            model_name="tenantdata",
+            name="active",
+            field=models.BooleanField(default=True),
+        ),
     ]

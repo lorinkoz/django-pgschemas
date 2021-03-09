@@ -1,6 +1,6 @@
 from django.db.models.indexes import Index
 
-from ..schema import schema_handler
+from ..schema import get_current_schema
 
 
 def get_constraints(self, cursor, table_name):
@@ -10,6 +10,7 @@ def get_constraints(self, cursor, table_name):
     indexes.
     """
     constraints = {}
+    current_schema = get_current_schema()
     # Loop over the key table, collecting things as constraints. The column
     # array must return column names in the same order in which they were
     # created.
@@ -40,7 +41,7 @@ def get_constraints(self, cursor, table_name):
         JOIN pg_namespace AS ns ON cl.relnamespace = ns.oid
         WHERE ns.nspname = %s AND cl.relname = %s
     """,
-        [schema_handler.active.schema_name, table_name],
+        [current_schema.schema_name if current_schema else "public", table_name],
     )
     for constraint, columns, kind, used_cols, options in cursor.fetchall():
         constraints[constraint] = {
@@ -91,7 +92,7 @@ def get_constraints(self, cursor, table_name):
         ) s2
         GROUP BY indexname, indisunique, indisprimary, amname, exprdef, attoptions;
     """,
-        [table_name, schema_handler.active.schema_name],
+        [table_name, current_schema.schema_name if current_schema else "public"],
     )
     for index, columns, unique, primary, orders, type_, definition, options in cursor.fetchall():
         if index not in constraints:

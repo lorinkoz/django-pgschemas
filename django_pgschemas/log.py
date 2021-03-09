@@ -1,6 +1,6 @@
 import logging
 
-from .schema import schema_handler
+from .schema import get_current_schema
 
 
 class SchemaContextFilter(logging.Filter):
@@ -9,6 +9,8 @@ class SchemaContextFilter(logging.Filter):
     """
 
     def filter(self, record):
-        record.schema_name = schema_handler.active.schema_name
-        record.domain_url = schema_handler.active.domain_url
+        current_schema = get_current_schema()
+        if current_schema:
+            record.schema_name = current_schema.schema_name
+            record.domain_url = current_schema.domain_url
         return True

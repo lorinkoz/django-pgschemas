@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import Http404
 from django.urls import clear_url_caches, set_urlconf
 
-from .schema import SchemaDescriptor, schema_handler
+from .schema import SchemaDescriptor, set_schema_to_public
 from .urlresolvers import get_urlconf_from_schema
 from .utils import get_domain_model, remove_www
 
@@ -23,7 +23,7 @@ class TenantMiddleware:
 
     def __call__(self, request):
         hostname = remove_www(request.get_host().split(":")[0])
-        schema_handler.set_schema_to_public()
+        set_schema_to_public()
 
         tenant = None
 
@@ -73,5 +73,5 @@ class TenantMiddleware:
         urlconf = get_urlconf_from_schema(tenant)
         request.urlconf = urlconf
         set_urlconf(urlconf)
-        schema_handler.set_schema(tenant)
+        tenant.activate()
         return self.get_response(request)

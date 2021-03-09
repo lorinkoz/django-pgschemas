@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.db import ProgrammingError, transaction
 from django.test import TestCase, TransactionTestCase
 
-from django_pgschemas.schema import SchemaDescriptor, schema_handler
+from django_pgschemas.schema import SchemaDescriptor, set_schema_to_public
 from django_pgschemas.signals import schema_post_sync
 from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
@@ -113,7 +113,7 @@ class TenantTestCase(TestCase):
             user.set_password("weakpassword")
             user.save()
             TenantData.objects.create(user=user, catalog=catalog)
-        schema_handler.set_schema_to_public()
+        set_schema_to_public()
         super().setUpClass()
 
     @classmethod
@@ -207,8 +207,7 @@ class TenantTestCase(TestCase):
             self.assertTrue(authenticate(email="tenant@test.com", password="weakpassword"))  # good
             self.assertFalse(authenticate(email="main@test.com", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="blog@test.com", password="weakpassword"))  # bad
-        # Switching to public schema
-        TenantModel.deactivate_all()
+        set_schema_to_public()
         with self.assertRaises(ProgrammingError):
             authenticate(email="unexisting@test.com", password="unexisting")  # unexisting, error
 

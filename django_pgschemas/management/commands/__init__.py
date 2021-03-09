@@ -66,10 +66,7 @@ class WrappedSchemaOption:
             help="Schema(s) to exclude when executing the current command",
         )
         parser.add_argument(
-            "--parallel",
-            dest="parallel",
-            action="store_true",
-            help="Run command in parallel mode",
+            "--parallel", dest="parallel", action="store_true", help="Run command in parallel mode",
         )
         parser.add_argument(
             "--no-create-schemas",

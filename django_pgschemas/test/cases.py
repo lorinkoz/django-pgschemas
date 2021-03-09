@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from ..schema import SchemaDescriptor, set_schema_to_public
+from ..schema import SchemaDescriptor
 from ..utils import get_clone_reference, get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".test.com"

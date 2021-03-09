@@ -2,7 +2,7 @@ from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.db.backends.postgresql.introspection import DatabaseIntrospection
 from django.utils.encoding import force_text
 
-from ..schema import schema_handler
+from ..schema import get_current_schema
 from . import _constraints
 
 
@@ -25,6 +25,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
         """
         Returns a list of table names in the current database and schema.
         """
+        current_schema = get_current_schema()
 
         cursor.execute(
             """
@@ -34,7 +35,9 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
             WHERE c.relkind IN ('r', 'v', '')
                 AND n.nspname = '%s'
                 AND pg_catalog.pg_table_is_visible(c.oid)"""
-            % schema_handler.active.schema_name
+            % current_schema.schema_name
+            if current_schema
+            else "public"
         )
 
         return [
@@ -47,12 +50,13 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
         "Returns a description of the table, with the DB-API cursor.description interface."
         # As cursor.description does not return reliably the nullable property,
         # we have to query the information_schema (#7783)
+        current_schema = get_current_schema()
         cursor.execute(
             """
             SELECT column_name, is_nullable, column_default
             FROM information_schema.columns
             WHERE table_schema = %s and table_name = %s""",
-            [schema_handler.active.schema_name, table_name],
+            [current_schema.schema_name if current_schema else "public", table_name],
         )
         field_map = {line[0]: line[1:] for line in cursor.fetchall()}
         cursor.execute("SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name))
@@ -70,7 +74,10 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
     def get_indexes(self, cursor, table_name):
         # This query retrieves each index on the given table, including the
         # first associated field name
-        cursor.execute(self._get_indexes_query, [table_name, schema_handler.active.schema_name])
+        current_schema = get_current_schema()
+        cursor.execute(
+            self._get_indexes_query, [table_name, current_schema.schema_name if current_schema else "public"]
+        )
         indexes = {}
         for row in cursor.fetchall():
             # row[1] (idx.indkey) is stored in the DB as an array. It comes out as
@@ -93,6 +100,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
         Returns a dictionary of {field_name: (field_name_other_table, other_table)}
         representing all relationships to the given table.
         """
+        current_schema = get_current_schema()
         cursor.execute(
             """
             SELECT c2.relname, a1.attname, a2.attname
@@ -104,7 +112,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
             LEFT JOIN pg_attribute a2 ON c2.oid = a2.attrelid AND a2.attnum = con.confkey[1]
             WHERE c1.relname = %s and n.nspname = %s
                 AND con.contype = 'f'""",
-            [table_name, schema_handler.active.schema_name],
+            [table_name, current_schema.schema_name if current_schema else "public"],
         )
         relations = {}
         for row in cursor.fetchall():
@@ -114,6 +122,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
     get_constraints = _constraints.get_constraints
 
     def get_key_columns(self, cursor, table_name):
+        current_schema = get_current_schema()
         key_columns = []
         cursor.execute(
             """
@@ -129,7 +138,7 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
                     AND ccu.constraint_name = tc.constraint_name
             WHERE kcu.table_name = %s AND tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = %s
         """,
-            [table_name, schema_handler.active.schema_name],
+            [table_name, current_schema.schema_name if current_schema else "public"],
         )
         key_columns.extend(cursor.fetchall())
         return key_columns

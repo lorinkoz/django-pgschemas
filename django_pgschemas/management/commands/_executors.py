@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, OutputWrapper
 from django.db import connection, connections, transaction
 
-from ...schema import SchemaDescriptor, schema_handler
+from ...schema import SchemaDescriptor
 from ...utils import get_clone_reference, get_tenant_model
 
 
@@ -71,21 +71,21 @@ def run_on_schema(
         TenantModel = get_tenant_model()
         schema = TenantModel.objects.get(schema_name=schema_name)
 
-    schema_handler.set_schema(schema)
+    with schema:
 
-    if pass_schema_in_kwargs:
-        kwargs.update({"schema_name": schema_name})
+        if pass_schema_in_kwargs:
+            kwargs.update({"schema_name": schema_name})
 
-    if function_name == "special:call_command":
-        call_command(command, *args, **kwargs)
-    elif function_name == "special:run_from_argv":
-        command.run_from_argv(args)
-    else:
-        getattr(command, function_name)(*args, **kwargs)
+        if function_name == "special:call_command":
+            call_command(command, *args, **kwargs)
+        elif function_name == "special:run_from_argv":
+            command.run_from_argv(args)
+        else:
+            getattr(command, function_name)(*args, **kwargs)
 
-    if fork_db:
-        transaction.commit()
-        connection.close()
+        if fork_db:
+            transaction.commit()
+            connection.close()
 
     return schema_name
 

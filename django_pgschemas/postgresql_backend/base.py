@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
-from ..schema import schema_handler
+from ..schema import get_current_schema, set_schema_to_public
 from ..utils import check_schema_name, get_limit_set_calls
 from .introspection import DatabaseSchemaIntrospection
 
@@ -27,11 +27,12 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
         # Use a patched version of the DatabaseIntrospection that only returns the table list for the
         # currently selected schema.
         self.introspection = DatabaseSchemaIntrospection(self)
-        schema_handler.set_schema_to_public()
+        set_schema_to_public()
 
     def close(self):
-        if schema_handler.active:
-            schema_handler.active.ready = False
+        current_schema = get_current_schema()
+        if current_schema:
+            current_schema.ready = False
         super().close()
 
     def _cursor(self, name=None):
@@ -45,21 +46,23 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
         else:
             cursor = super()._cursor()
 
+        current_schema = get_current_schema()
+
         # optionally limit the number of executions - under load, the execution
         # of `set search_path` can be quite time consuming
-        if (not get_limit_set_calls()) or not schema_handler.active.ready:
+        if (not get_limit_set_calls()) or not current_schema.ready:
             # Actual search_path modification for the cursor. Database will
             # search schemas from left to right when looking for the object
             # (table, index, sequence, etc.).
-            if not schema_handler.active:
+            if not current_schema:
                 raise ImproperlyConfigured("Database schema not set. Did you forget to call set_schema()?")
-            check_schema_name(schema_handler.active.schema_name)
+            check_schema_name(current_schema.schema_name)
             search_paths = []
 
-            if schema_handler.active.schema_name == "public":
+            if current_schema.schema_name == "public":
                 search_paths = ["public"]
             else:
-                search_paths = [schema_handler.active.schema_name, "public"]
+                search_paths = [current_schema.schema_name, "public"]
             search_paths.extend(EXTRA_SEARCH_PATHS)
 
             if name:
@@ -76,9 +79,9 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             try:
                 cursor_for_search_path.execute("SET search_path = {0}".format(",".join(search_paths)))
             except (DatabaseError, psycopg2.InternalError):
-                schema_handler.active.ready = False
+                current_schema.ready = False
             else:
-                schema_handler.active.ready = True
+                current_schema.ready = True
             if name:
                 cursor_for_search_path.close()
         return cursor

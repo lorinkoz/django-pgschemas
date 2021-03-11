@@ -12,7 +12,7 @@ class SyncRouter:
 
     def app_in_list(self, app_label, app_list):
         app_config = apps.get_app_config(app_label)
-        app_config_full_name = "{}.{}".format(app_config.__module__, app_config.__class__.__name__)
+        app_config_full_name = f"{app_config.__module__}.{app_config.__class__.__name__}"
         return (app_config.name in app_list) or (app_config_full_name in app_list)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):

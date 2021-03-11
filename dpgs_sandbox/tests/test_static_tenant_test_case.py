@@ -18,7 +18,7 @@ class TestSetUpStaticTenantTestCase(SimpleTestCase):
             klass.setUpClass()
         self.assertEqual(
             str(ctx.exception),
-            "{class_name}.schema_name must be defined to a valid static tenant".format(class_name=klass.__name__),
+            f"{klass.__name__}.schema_name must be defined to a valid static tenant",
         )
 
     def test_set_up_with_empty(self):

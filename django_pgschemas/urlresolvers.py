@@ -19,7 +19,7 @@ class TenantPrefixPattern:
             domain = DomainModel.objects.exclude(folder="").get(
                 tenant__schema_name=connection.schema.schema_name, domain=connection.schema.domain_url
             )
-            return "{}/".format(domain.folder)
+            return f"{domain.folder}/"
         except DomainModel.DoesNotExist:
             return "/"
 
@@ -38,7 +38,7 @@ class TenantPrefixPattern:
         return []
 
     def describe(self):
-        return "'{}'".format(self)
+        return f"'{self}'"
 
     def __str__(self):
         return self.tenant_prefix
@@ -62,7 +62,7 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path):
 
     class LazyURLConfModule(ModuleType):
         def __getattr__(self, attr):
-            imported = import_string("{}.{}".format(urlconf, attr))
+            imported = import_string(f"{urlconf}.{attr}")
             if attr == "urlpatterns":
                 return tenant_patterns(*imported)
             return imported

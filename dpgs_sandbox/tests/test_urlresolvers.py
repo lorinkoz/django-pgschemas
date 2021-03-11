@@ -43,10 +43,10 @@ class URLResolversTestCase(TestCase):
         cls.paths = {"tenant-home": "/", "profile": "/profile/", "advanced-profile": "/profile/advanced/"}
 
         for i in range(1, 4):
-            schema_name = "tenant{}".format(i)
+            schema_name = f"tenant{i}"
             tenant = TenantModel(schema_name=schema_name)
             tenant.save(verbosity=0)
-            DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
+            DomainModel.objects.create(tenant=tenant, domain=f"{schema_name}.test.com")
             DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
         connection.set_schema_to_public()
         super().setUpClass()
@@ -65,7 +65,7 @@ class URLResolversTestCase(TestCase):
             with tenant:
                 self.assertEqual(tpp.tenant_prefix, tenant.get_primary_domain().folder + "/")
             # Try with subdomain
-            tenant.domain_url = "{}.test.com".format(tenant.schema_name)  # This should be set by middleware
+            tenant.domain_url = f"{tenant.schema_name}.test.com"  # This should be set by middleware
             with tenant:
                 self.assertEqual(tpp.tenant_prefix, "/")
         with SchemaDescriptor.create(schema_name="tenant1", domain_url="unexisting-domain.test.com"):
@@ -73,7 +73,7 @@ class URLResolversTestCase(TestCase):
 
     def test_unprefixed_reverse(self):
         for tenant in TenantModel.objects.all():
-            domain = "{}.test.com".format(tenant.schema_name)
+            domain = f"{tenant.schema_name}.test.com"
             for name, path in self.paths.items():
                 self.assertEqual(self.reverser(name, domain), path)
 
@@ -81,10 +81,7 @@ class URLResolversTestCase(TestCase):
         for tenant in TenantModel.objects.all():
             domain = "everyone.test.com"
             for name, path in self.paths.items():
-                self.assertEqual(
-                    self.reverser(name, domain, "/{}/".format(tenant.schema_name)),
-                    "/{}{}".format(tenant.schema_name, path),
-                )
+                self.assertEqual(self.reverser(name, domain, f"/{tenant.schema_name}/"), f"/{tenant.schema_name}{path}")
 
 
 class URLConfFactoryTestCase(TestCase):
@@ -97,7 +94,7 @@ class URLConfFactoryTestCase(TestCase):
         schema_name = "tenant1"
         tenant = TenantModel(schema_name=schema_name)
         tenant.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant, domain="{}.test.com".format(schema_name))
+        DomainModel.objects.create(tenant=tenant, domain=f"{schema_name}.test.com")
         DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
         connection.set_schema_to_public()
         super().setUpClass()

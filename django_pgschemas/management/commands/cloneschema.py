@@ -36,10 +36,10 @@ class Command(BaseCommand):
         answer = None
         while answer is None:
             try:
-                raw_answer = input("{} [Y/n] ".format(question.strip())).strip() or "y"
+                raw_answer = input(f"{question.strip()} [Y/n] ").strip() or "y"
                 answer = strtobool(raw_answer)
             except ValueError:
-                self.stderr.write("{} is not a valid answer.".format(raw_answer))
+                self.stderr.write(f"{raw_answer} is not a valid answer.")
                 pass
         return answer
 
@@ -64,12 +64,10 @@ class Command(BaseCommand):
         fields = [field for field in model_class._meta.fields if self._check_required_field(field, data.keys())]
         instance = model_class(**data)
         if fields:
-            self.stdout.write(
-                self.style.WARNING("We need some data for model '{}':".format(model_class._meta.model_name))
-            )
+            self.stdout.write(self.style.WARNING(f"We need some data for model '{model_class._meta.model_name}':"))
             for field in fields:
                 while field.name not in data:
-                    raw_value = input("Value for field '{}': ".format(field.name))
+                    raw_value = input(f"Value for field '{field.name}': ")
                     try:
                         data[field.name] = field.clean(raw_value, None)
                         instance = model_class(**data)

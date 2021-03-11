@@ -38,10 +38,10 @@ class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
     def setUpClass(cls):
         assert (
             cls.schema_name in settings.TENANTS
-        ), "{class_name}.schema_name must be defined to a valid static tenant".format(class_name=cls.__name__)
+        ), f"{cls.__name__}.schema_name must be defined to a valid static tenant"
         assert (
             cls.schema_name not in ["public", "default"] and cls.schema_name != get_clone_reference()
-        ), "{class_name}.schema_name must be defined to a valid static tenant".format(class_name=cls.__name__)
+        ), f"{cls.__name__}.schema_name must be defined to a valid static tenant"
         super(TestCase, cls).setUpClass()
         cls.sync_public()
         cls.add_allowed_test_domain()

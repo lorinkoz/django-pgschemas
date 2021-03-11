@@ -78,15 +78,15 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             if not self.schema:
                 raise ImproperlyConfigured("Database schema not set. Did you forget to call set_schema()?")
             check_schema_name(self.schema.schema_name)
-            search_paths = []
+            search_path = []
 
             if self.schema.schema_name == "public":
-                search_paths = ["public"]
+                search_path = ["public"]
             elif self.include_public_schema:
-                search_paths = [self.schema.schema_name, "public"]
+                search_path = [self.schema.schema_name, "public"]
             else:
-                search_paths = [self.schema.schema_name]
-            search_paths.extend(EXTRA_SEARCH_PATHS)
+                search_path = [self.schema.schema_name]
+            search_path.extend(EXTRA_SEARCH_PATHS)
 
             if name:
                 # Named cursor can only be used once
@@ -100,7 +100,8 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             # if the next instruction is not a rollback it will just fail also, so
             # we do not have to worry that it's not the good one
             try:
-                cursor_for_search_path.execute("SET search_path = {0}".format(",".join(search_paths)))
+                search_path_string = ",".join(search_path)
+                cursor_for_search_path.execute(f"SET search_path = {search_path_string}")
             except (DatabaseError, psycopg2.InternalError):
                 self.search_path_set = False
             else:

@@ -16,9 +16,9 @@ class ExecutorsTestCase(TransactionTestCase):
     @classmethod
     def setUpClass(cls):
         for i in range(10):
-            tenant = TenantModel(schema_name="tenant{}".format(i + 1))
+            tenant = TenantModel(schema_name=f"tenant{i + 1}")
             tenant.save(verbosity=0)
-            DomainModel.objects.create(tenant=tenant, domain="tenant{}.test.com".format(i + 1), is_primary=True)
+            DomainModel.objects.create(tenant=tenant, domain=f"tenant{i + 1}.test.com", is_primary=True)
 
     @classmethod
     def tearDownClass(cls):

@@ -13,6 +13,7 @@ class NonInteractiveRunSchemaCommand(RunSchemaCommand):
 
 class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
     allow_interactive = False
+    requires_system_checks = False
 
     def _run_checks(self, **kwargs):
         issues = run_checks(tags=[Tags.database])

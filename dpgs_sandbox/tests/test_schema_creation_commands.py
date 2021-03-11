@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TransactionTestCase
+from django.test import TestCase, TransactionTestCase
 
 from django_pgschemas import utils
 
@@ -11,7 +11,7 @@ TenantModel = utils.get_tenant_model()
 DomainModel = utils.get_domain_model()
 
 
-class SchemaCreationCommandsTestCase(TransactionTestCase):
+class SchemaCreationCommandsTestCase(TestCase):
     """
     Tests that the schema creation commands do what they are expected to do.
     """

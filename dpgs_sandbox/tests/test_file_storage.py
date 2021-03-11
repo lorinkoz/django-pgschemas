@@ -3,7 +3,7 @@ import shutil
 import tempfile
 
 from django.core.files.base import ContentFile
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 
 from django_pgschemas.contrib.files import TenantFileSystemStorage
 from django_pgschemas.schema import SchemaDescriptor
@@ -12,7 +12,7 @@ from django_pgschemas.utils import get_tenant_model
 TenantModel = get_tenant_model()
 
 
-class TenantFileSystemStorageTestCase(TransactionTestCase):
+class TenantFileSystemStorageTestCase(TestCase):
     """
     Tests the tenant file system storage.
     """

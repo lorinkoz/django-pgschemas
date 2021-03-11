@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.management import call_command
 from django.db import ProgrammingError, connection, transaction
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from django_pgschemas.schema import SchemaDescriptor
 from django_pgschemas.signals import schema_post_sync
@@ -21,7 +21,7 @@ TenantData = apps.get_model("app_tenants.TenantData")
 User = apps.get_model("shared_common.User")
 
 
-class TenantAutomaticTestCase(TransactionTestCase):
+class TenantAutomaticTestCase(TestCase):
     """
     Tests tenant automatic operations.
     """
@@ -213,7 +213,7 @@ class TenantTestCase(TestCase):
             authenticate(email="unexisting@test.com", password="unexisting")  # unexisting, error
 
 
-class DomainTestCase(TransactionTestCase):
+class DomainTestCase(TestCase):
     """
     Tests domain operations.
     """

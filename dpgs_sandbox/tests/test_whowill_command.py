@@ -1,7 +1,7 @@
 from io import StringIO
 
 from django.core import management
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -9,7 +9,7 @@ TenantModel = get_tenant_model()
 DomainModel = get_domain_model()
 
 
-class WhoWillCommandTestCase(TransactionTestCase):
+class WhoWillCommandTestCase(TestCase):
     """
     Tests the whowill management command.
     """

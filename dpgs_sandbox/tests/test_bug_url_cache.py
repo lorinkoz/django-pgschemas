@@ -1,7 +1,5 @@
-from unittest.mock import patch
-
 from django.apps import apps
-from django.test import TransactionTestCase, tag
+from django.test import TestCase, tag
 
 from django_pgschemas.test.client import TenantClient
 from django_pgschemas.utils import get_domain_model, get_tenant_model
@@ -12,7 +10,7 @@ User = apps.get_model("shared_common.User")
 
 
 @tag("bug")
-class CachedTenantSubfolderBugTestCase(TransactionTestCase):
+class CachedTenantSubfolderBugTestCase(TestCase):
     """
     Tests the behavior of subfolder routing regarding caching of URL patterns.
     This test checks that a bug reported in issue #8.
@@ -38,14 +36,13 @@ class CachedTenantSubfolderBugTestCase(TransactionTestCase):
         for tenant in TenantModel.objects.all():
             tenant.delete(force_drop=True)
 
-    @patch("django_pgschemas.middleware.clear_url_caches", lambda: None)
-    def test_bug_in_cached_urls_fail(self):
-        self.client1.get("/tenant1/profile/advanced/")  # Provoke redirect to login on tenant1
-        buggy_response = self.client2.get("/tenant2/profile/advanced/")  # Provoke redirect to login on tenant2
+    def test_bug_in_cached_urls_1(self):
+        self.client1.get("/tenant2/profile/advanced/")  # Provoke redirect to login on tenant2
+        buggy_response = self.client2.get("/tenant1/profile/advanced/")  # Provoke redirect to login on tenant1
         self.assertEqual(buggy_response.status_code, 302)
-        self.assertEqual(buggy_response.url, "/tenant1/login/?next=/tenant2/profile/advanced/")
+        self.assertEqual(buggy_response.url, "/tenant1/login/?next=/tenant1/profile/advanced/")
 
-    def test_bug_in_cached_urls_success(self):
+    def test_bug_in_cached_urls_2(self):
         self.client1.get("/tenant1/profile/advanced/")  # Provoke redirect to login on tenant1
         buggy_response = self.client2.get("/tenant2/profile/advanced/")  # Provoke redirect to login on tenant2
         self.assertEqual(buggy_response.status_code, 302)

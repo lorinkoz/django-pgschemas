@@ -6,7 +6,7 @@ from django.core import management
 from django.core.management.base import CommandError
 from django.db import models
 from django.db.utils import ProgrammingError
-from django.test import TransactionTestCase, tag
+from django.test import TestCase, TransactionTestCase, tag
 
 from django_pgschemas.checks import check_schema_names
 from django_pgschemas.models import TenantMixin
@@ -39,7 +39,7 @@ class MigrationZeroRoundTripTestCase(TransactionTestCase):
 
 
 @tag("bug")
-class UnappliedMigrationTestCase(TransactionTestCase):
+class UnappliedMigrationTestCase(TestCase):
     """
     Provoke a handled ProgrammingError by running tenant command with pending model changes.
     """
@@ -68,7 +68,7 @@ class UnappliedMigrationTestCase(TransactionTestCase):
 
 
 @tag("bug")
-class MigrateIgnoringExcludedSchemasTestCase(TransactionTestCase):
+class MigrateIgnoringExcludedSchemasTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         tenant1 = TenantModel(schema_name="tenant1")

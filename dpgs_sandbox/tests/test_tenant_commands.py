@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.core import management
 from django.core.management.base import CommandError
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
 from django_pgschemas.utils import get_domain_model, get_tenant_model
@@ -11,7 +11,7 @@ TenantModel = get_tenant_model()
 DomainModel = get_domain_model()
 
 
-class TenantCommandsTestCase(TransactionTestCase):
+class TenantCommandsTestCase(TestCase):
     """
     Tests the functionality of tenant commands.
     """

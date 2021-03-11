@@ -1,11 +1,11 @@
 from io import StringIO
 
 from django.core import management
-from django.test import TransactionTestCase
+from django.test import TestCase
 from django.urls.exceptions import NoReverseMatch
 
 
-class ExternalURLResolutionTestCase(TransactionTestCase):
+class ExternalURLResolutionTestCase(TestCase):
     """
     Tests whether URLs are properly resolved when outside the request/response cycle.
     In this case, we use a special management command designed to try and reverse a given URL

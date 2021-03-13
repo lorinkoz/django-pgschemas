@@ -4,10 +4,10 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.core.management import call_command
-from django.db import ProgrammingError, connection, transaction
+from django.db import ProgrammingError, transaction
 from django.test import TestCase
 
-from django_pgschemas.schema import SchemaDescriptor
+from django_pgschemas.schema import SchemaDescriptor, activate_public
 from django_pgschemas.signals import schema_post_sync
 from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
@@ -113,7 +113,7 @@ class TenantTestCase(TestCase):
             user.set_password("weakpassword")
             user.save()
             TenantData.objects.create(user=user, catalog=catalog)
-        connection.set_schema_to_public()
+        activate_public()
         super().setUpClass()
 
     @classmethod
@@ -208,7 +208,7 @@ class TenantTestCase(TestCase):
             self.assertFalse(authenticate(email="main@test.com", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="blog@test.com", password="weakpassword"))  # bad
         # Switching to public schema
-        TenantModel.deactivate_all()
+        activate_public()
         with self.assertRaises(ProgrammingError):
             authenticate(email="unexisting@test.com", password="unexisting")  # unexisting, error
 

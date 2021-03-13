@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db import connection
 from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
+from ...schema import get_current_schema
 from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
 from ._executors import parallel, sequential
 
@@ -247,7 +247,7 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
 
     def _raw_handle_tenant(self, *args, **kwargs):
         kwargs.pop("schema_name")
-        self.handle_tenant(connection.schema, *args, **kwargs)
+        self.handle_tenant(get_current_schema(), *args, **kwargs)
 
     def handle_tenant(self, tenant, *args, **options):
         pass

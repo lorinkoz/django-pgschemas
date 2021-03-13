@@ -1,4 +1,4 @@
-from django.db import connection
+from ..schema import get_current_schema
 
 
 def make_key(key, key_prefix, version):
@@ -8,7 +8,8 @@ def make_key(key, key_prefix, version):
     Constructs the key used by all other methods. Prepends the tenant
     `schema_name` and `key_prefix'.
     """
-    return "%s:%s:%s:%s" % (connection.schema.schema_name, key_prefix, version, key)
+    current_schema = get_current_schema()
+    return "%s:%s:%s:%s" % (current_schema.schema_name, key_prefix, version, key)
 
 
 def reverse_key(key):

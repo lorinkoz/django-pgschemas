@@ -2,7 +2,8 @@ import os
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.db import connection
+
+from ...schema import get_current_schema
 
 
 class TenantFileSystemStorage(FileSystemStorage):
@@ -12,13 +13,14 @@ class TenantFileSystemStorage(FileSystemStorage):
     """
 
     def get_schema_path_identifier(self):
-        if not connection.schema:
+        current_schema = get_current_schema()
+        if current_schema is None:
             return ""
-        path_identifier = connection.schema.schema_name
-        if hasattr(connection.schema, "schema_pathname"):
-            path_identifier = connection.schema.schema_pathname()
+        path_identifier = current_schema.schema_name
+        if hasattr(current_schema, "schema_pathname"):
+            path_identifier = current_schema.schema_pathname()
         elif hasattr(settings, "PGSCHEMAS_PATHNAME_FUNCTION"):
-            path_identifier = settings.PGSCHEMAS_PATHNAME_FUNCTION(connection.schema)
+            path_identifier = settings.PGSCHEMAS_PATHNAME_FUNCTION(current_schema)
         return path_identifier
 
     @property  # To avoid caching of tenant
@@ -43,8 +45,9 @@ class TenantFileSystemStorage(FileSystemStorage):
         If the current schema is already using a folder, no path identifier is
         appended.
         """
+        current_schema = get_current_schema()
         url_folder = self.get_schema_path_identifier()
-        if url_folder and connection.schema and connection.schema.folder:
+        if url_folder and current_schema and current_schema.folder:
             # Since we're already prepending all URLs with schema, there is no
             # need to make the differentiation here
             url_folder = ""

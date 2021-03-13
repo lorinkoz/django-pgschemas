@@ -1,6 +1,21 @@
 from django.db import connection
 
 
+def get_current_schema():
+    return connection._schema
+
+
+def activate(schema):
+    connection._set_schema(schema)
+
+
+def deactivate():
+    connection._set_schema_to_public()
+
+
+activate_public = deactivate
+
+
 class SchemaDescriptor:
     schema_name = None
     domain_url = None
@@ -16,41 +31,13 @@ class SchemaDescriptor:
         tenant.folder = folder
         return tenant
 
-    def activate(self):
-        """
-        Syntax sugar that helps with fast tenant changing
-
-        Usage:
-            some_schema_descriptor.activate()
-        """
-        self.previous_schema = connection.schema
-        connection.set_schema(self)
-
-    def deactivate(self):
-        """
-        Syntax sugar to return to previous schema or public
-
-        Usage:
-            some_schema_descriptor.deactivate()
-        """
-        previous_schema = getattr(self, "previous_schema", None)
-        connection.set_schema(previous_schema) if previous_schema else connection.set_schema_to_public()
-
-    @staticmethod
-    def deactivate_all():
-        """
-        Syntax sugar to return to public schema
-
-        Usage:
-            SchemaDescriptor.deactivate_all()
-        """
-        connection.set_schema_to_public()
-
     def __enter__(self):
-        self.activate()
+        self.previous_schema = connection._schema
+        activate(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.deactivate()
+        previous_schema = getattr(self, "previous_schema", None)
+        activate(previous_schema) if previous_schema else deactivate()
 
     def get_primary_domain(self):
         """

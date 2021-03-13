@@ -1,12 +1,11 @@
 import sys
 from importlib import import_module
 
-from django.db import connection
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from django_pgschemas.middleware import TenantMiddleware
-from django_pgschemas.schema import SchemaDescriptor
+from django_pgschemas.schema import SchemaDescriptor, activate_public
 from django_pgschemas.urlresolvers import TenantPrefixPattern, get_urlconf_from_schema
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -48,7 +47,7 @@ class URLResolversTestCase(TestCase):
             tenant.save(verbosity=0)
             DomainModel.objects.create(tenant=tenant, domain=f"{schema_name}.test.com")
             DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
-        connection.set_schema_to_public()
+        activate_public()
         super().setUpClass()
 
     @classmethod
@@ -96,7 +95,7 @@ class URLConfFactoryTestCase(TestCase):
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain=f"{schema_name}.test.com")
         DomainModel.objects.create(tenant=tenant, domain="everyone.test.com", folder=schema_name)  # primary
-        connection.set_schema_to_public()
+        activate_public()
         super().setUpClass()
 
     @classmethod

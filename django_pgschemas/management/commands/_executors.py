@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, OutputWrapper
 from django.db import connection, connections, transaction
 
-from ...schema import SchemaDescriptor
+from ...schema import SchemaDescriptor, activate
 from ...utils import get_clone_reference, get_tenant_model
 
 
@@ -70,7 +70,7 @@ def run_on_schema(
         TenantModel = get_tenant_model()
         schema = TenantModel.objects.get(schema_name=schema_name)
 
-    connection.set_schema(schema)
+    activate(schema)
 
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})

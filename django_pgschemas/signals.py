@@ -3,14 +3,17 @@ from django.dispatch import Signal, receiver
 
 from .utils import get_tenant_model, schema_exists
 
-schema_post_sync = Signal(providing_args=["tenant"])
-schema_post_sync.__doc__ = "Sent after a tenant has been saved, its schema created and synced"
+schema_activate = Signal(providing_args=["schema"])
+schema_activate.__doc__ = "Sent after a schema has been activated"
 
-schema_needs_sync = Signal(providing_args=["tenant"])
-schema_needs_sync.__doc__ = "Sent when a schema needs to be synced"
+dynamic_tenant_needs_sync = Signal(providing_args=["tenant"])
+dynamic_tenant_needs_sync.__doc__ = "Sent when a schema from a dynamic tenant needs to be synced"
 
-schema_pre_drop = Signal(providing_args=["tenant"])
-schema_pre_drop.__doc__ = "Sent when a schema is about to be dropped"
+dynamic_tenant_post_sync = Signal(providing_args=["tenant"])
+dynamic_tenant_post_sync.__doc__ = "Sent after a tenant has been saved, its schema created and synced"
+
+dynamic_tenant_pre_drop = Signal(providing_args=["tenant"])
+dynamic_tenant_pre_drop.__doc__ = "Sent when a schema from a dynamic tenant is about to be dropped"
 
 
 @receiver(pre_delete)
@@ -18,5 +21,5 @@ def tenant_delete_callback(sender, instance, **kwargs):
     if not isinstance(instance, get_tenant_model()):
         return
     if instance.auto_drop_schema and schema_exists(instance.schema_name):
-        schema_pre_drop.send(sender=get_tenant_model(), tenant=instance.serializable_fields())
+        dynamic_tenant_pre_drop.send(sender=get_tenant_model(), tenant=instance.serializable_fields())
         instance.drop_schema()

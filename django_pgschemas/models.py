@@ -3,7 +3,7 @@ from django.db import models, transaction
 
 from .postgresql_backend.base import check_schema_name
 from .schema import SchemaDescriptor
-from .signals import schema_needs_sync, schema_post_sync, schema_pre_drop
+from .signals import dynamic_tenant_needs_sync, dynamic_tenant_post_sync, dynamic_tenant_pre_drop
 from .utils import create_or_clone_schema, drop_schema, get_domain_model, schema_exists
 
 
@@ -42,19 +42,19 @@ class TenantMixin(SchemaDescriptor, models.Model):
         if is_new and self.auto_create_schema:
             try:
                 self.create_schema(verbosity=verbosity)
-                schema_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+                dynamic_tenant_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the tenant, delete what we created and re-raise the exception
                 self.delete(force_drop=True)
                 raise
         elif is_new:
             # Although we are not using the schema functions directly, the signal might be registered by a listener
-            schema_needs_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+            dynamic_tenant_needs_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
         elif not is_new and self.auto_create_schema and not schema_exists(self.schema_name):
             # Create schemas for existing models, deleting only the schema on failure
             try:
                 self.create_schema(verbosity=verbosity)
-                schema_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+                dynamic_tenant_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the schema, delete what we created and re-raise the exception
                 self.drop_schema()
@@ -66,7 +66,7 @@ class TenantMixin(SchemaDescriptor, models.Model):
         ``auto_drop_schema`` is ``True``.
         """
         if force_drop or self.auto_drop_schema:
-            schema_pre_drop.send(sender=TenantMixin, tenant=self.serializable_fields())
+            dynamic_tenant_pre_drop.send(sender=TenantMixin, tenant=self.serializable_fields())
             self.drop_schema()
         super().delete(*args, **kwargs)
 

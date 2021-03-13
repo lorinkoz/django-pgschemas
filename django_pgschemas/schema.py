@@ -1,5 +1,7 @@
 from django.db import connection
 
+from .signals import schema_activate
+
 
 def get_current_schema():
     return connection._schema
@@ -7,10 +9,12 @@ def get_current_schema():
 
 def activate(schema):
     connection._set_schema(schema)
+    schema_activate.send(sender=SchemaDescriptor, schema=schema)
 
 
 def deactivate():
     connection._set_schema_to_public()
+    schema_activate.send(sender=SchemaDescriptor, schema=SchemaDescriptor.create("public"))
 
 
 activate_public = deactivate

@@ -8,7 +8,7 @@ from django.db import ProgrammingError, transaction
 from django.test import TestCase
 
 from django_pgschemas.schema import SchemaDescriptor, activate_public
-from django_pgschemas.signals import schema_post_sync
+from django_pgschemas.signals import dynamic_tenant_post_sync
 from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
 TenantModel = get_tenant_model()
@@ -58,12 +58,12 @@ class TenantAutomaticTestCase(TestCase):
 
         self.assertFalse(schema_exists("tenant1"))
         tenant = TenantModel(schema_name="tenant1")
-        schema_post_sync.connect(signal_receiver)
+        dynamic_tenant_post_sync.connect(signal_receiver)
         with self.assertRaises(Exception):
             tenant.save(verbosity=0)
         self.assertFalse(schema_exists("tenant1"))
         self.assertEqual(0, TenantModel.objects.count())
-        schema_post_sync.disconnect(signal_receiver)
+        dynamic_tenant_post_sync.disconnect(signal_receiver)
 
     def test_existing_aborted_creation(self):
         "Tests recovery on automatic creation for new tenant's save"
@@ -76,12 +76,12 @@ class TenantAutomaticTestCase(TestCase):
         tenant.auto_create_schema = False
         tenant.save(verbosity=0)
         tenant.auto_create_schema = True
-        schema_post_sync.connect(signal_receiver)
+        dynamic_tenant_post_sync.connect(signal_receiver)
         with self.assertRaises(Exception):
             tenant.save(verbosity=0)
         self.assertFalse(schema_exists("tenant1"))
         self.assertEqual(1, TenantModel.objects.count())
-        schema_post_sync.disconnect(signal_receiver)
+        dynamic_tenant_post_sync.disconnect(signal_receiver)
         # Self-cleanup
         tenant.delete(force_drop=True)
         self.assertEqual(0, TenantModel.objects.count())

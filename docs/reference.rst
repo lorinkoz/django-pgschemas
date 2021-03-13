@@ -25,6 +25,14 @@ Utils
         run_in_public_schema, schema_exists, dynamic_models_exist,
         create_schema, drop_schema, clone_schema, create_or_clone_schema
 
+Signals
+-------
+
+.. autodata:: django_pgschemas.signals.schema_activate
+.. autodata:: django_pgschemas.signals.dynamic_tenant_needs_sync
+.. autodata:: django_pgschemas.signals.dynamic_tenant_post_sync
+.. autodata:: django_pgschemas.signals.dynamic_tenant_pre_drop
+
 URL resolvers
 -------------
 

@@ -1,13 +1,38 @@
 from django.test import TestCase
 
+from django_pgschemas.schema import SchemaDescriptor, activate
+from django_pgschemas.signals import schema_activate
 from django_pgschemas.utils import get_tenant_model, schema_exists
 
 TenantModel = get_tenant_model()
 
 
-class SignalsTestCase(TestCase):
+class SignalTestCase(TestCase):
     """
     Tests signals.
+    """
+
+    def test_schema_activate(self):
+        response = {}
+        params = {
+            "schema_name": "test",
+            "domain_url": "test.com",
+            "folder": "folder",
+        }
+
+        def receiver(sender, schema, **kwargs):
+            response["value"] = schema
+
+        schema_activate.connect(receiver)
+        activate(SchemaDescriptor.create(**params))
+        schema_activate.disconnect(receiver)
+        for key, value in params.items():
+            self.assertEqual(value, getattr(response["value"], key))
+
+
+class TenantDeleteCallbackTestCase(TestCase):
+    """
+    Tests tenant_delete_callback.
     """
 
     def test_tenant_delete_callback(self):

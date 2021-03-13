@@ -88,7 +88,7 @@ use it as follows:
 
     # routing.py
 
-    from django_pgschemas.contrib.channels import TenantProtocolRouter
+    from django_pgschemas.contrib.channels2 import TenantProtocolRouter
 
     application = TenantProtocolRouter()
 

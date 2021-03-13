@@ -49,6 +49,7 @@ profile = "black"
 
 [tool.coverage.run]
 source = ["django_pgschemas"]
+omit = ["django_pgschemas/contrib/channels*"]
 
 [build-system]
 requires = ["poetry>=0.12"]

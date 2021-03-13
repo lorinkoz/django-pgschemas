@@ -117,3 +117,10 @@ You will get the current tenant in ``scope["tenant"]``.
 
 For Channels 3 to use with Django 3, you can use
 ``django_pgschemas.contrib.channels3``.
+
+.. attention::
+
+    This module is NOT included in the test battery of the package.
+    Please, create a `GitHub issue`_ for any errors you may find.
+
+.. _GitHub issue: https://github.com/lorinkoz/django-pgschemas/issues

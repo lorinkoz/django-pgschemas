@@ -1,11 +1,10 @@
 from importlib import import_module
 
 from django.http import Http404
-from django.test import TestCase, RequestFactory
-from django.utils.module_loading import import_string
+from django.test import RequestFactory, TestCase
 
 from django_pgschemas.middleware import TenantMiddleware
-from django_pgschemas.utils import get_tenant_model, get_domain_model
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()

@@ -1,11 +1,9 @@
-import os
-
 from distutils.util import strtobool
 
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
-from ...utils import get_tenant_model, get_domain_model, clone_schema
+from ...utils import clone_schema, get_domain_model, get_tenant_model
 
 
 class Command(BaseCommand):
@@ -45,7 +43,9 @@ class Command(BaseCommand):
                 pass
         return answer
 
-    def _check_required_field(self, field, exclude=[]):
+    def _check_required_field(self, field, exclude=None):
+        if exclude is None:
+            exclude = []
         return (
             field.editable
             and not field.primary_key
@@ -76,9 +76,9 @@ class Command(BaseCommand):
                         instance.clean()
                     except Exception as e:
                         if hasattr(e, "message"):
-                            self.stderr.write(e.message)
+                            self.stderr.write(e.message)  # noqa
                         elif hasattr(e, "messages"):
-                            self.stderr.write(" ".join(e.messages))
+                            self.stderr.write(" ".join(e.messages))  # noqa
                         else:
                             self.stderr.write(e)
                         data.pop(field.name, None)
@@ -120,8 +120,8 @@ class Command(BaseCommand):
                 self.stdout.write("All done!")
         except Exception as e:
             if hasattr(e, "message"):
-                raise CommandError(e.message)
+                raise CommandError(e.message)  # noqa
             elif hasattr(e, "messages"):
-                raise CommandError(" ".join(e.messages))
+                raise CommandError(" ".join(e.messages))  # noqa
             else:
                 raise CommandError(e)

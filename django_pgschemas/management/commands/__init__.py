@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q
-from django.db.models import Value as V
+from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
@@ -12,7 +11,7 @@ from ._executors import parallel, sequential
 EXECUTORS = {"sequential": sequential, "parallel": parallel}
 
 
-class WrappedSchemaOption(object):
+class WrappedSchemaOption:
     scope = "all"
     specific_schemas = None
 
@@ -185,7 +184,7 @@ class WrappedSchemaOption(object):
                     schema_name
                     for schema_name, data in settings.TENANTS.items()
                     if schema_name not in ["public", "default"]
-                    and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+                    and any(x for x in data["DOMAINS"] if x.startswith(schema))
                 ]
             if dynamic_ready and allow_dynamic:
                 local += (
@@ -214,7 +213,7 @@ class WrappedSchemaOption(object):
                 schema_name
                 for schema_name, data in settings.TENANTS.items()
                 if schema_name not in ["public", "default", clone_reference]
-                and any([x for x in data["DOMAINS"] if x.startswith(schema)])
+                and any(x for x in data["DOMAINS"] if x.startswith(schema))
             ]
             local += (
                 TenantModel.objects.annotate(

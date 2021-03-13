@@ -1,7 +1,7 @@
 -- Change History:
 -- 2021-03-03  MJV FIX: Fixed population of tables with rows section. "buffer" variable was not initialized correctly. Used new variable, tblname, to fix it.
 -- 2021-03-03  MJV FIX: Fixed Issue#34 where user-defined types in declare section of functions caused runtime errors.
--- Function: clone_schema(text, text, boolean, boolean) 
+-- Function: clone_schema(text, text, boolean, boolean)
 
 -- DROP FUNCTION clone_schema(text, text, boolean, boolean);
 
@@ -24,7 +24,7 @@ DECLARE
   object           text;
   buffer           text;
   buffer2          text;
-  buffer3          text;  
+  buffer3          text;
   srctbl           text;
   default_         text;
   column_          text;
@@ -73,7 +73,7 @@ BEGIN
 
   -- Make sure NOTICE are shown
   set client_min_messages = 'notice';
-  
+
   -- Check that source_schema exists
   SELECT oid INTO src_oid
     FROM pg_namespace
@@ -280,7 +280,7 @@ BEGIN
   cnt := 0;
   FOR tblname, relpersist, relispart, relknd  IN
     select c.relname, c.relpersistence, c.relispartition, c.relkind
-    FROM pg_class c join pg_namespace n on (n.oid = c.relnamespace) 
+    FROM pg_class c join pg_namespace n on (n.oid = c.relnamespace)
     WHERE n.nspname = quote_ident(source_schema) and c.relkind in ('r','p') order by c.relkind desc, c.relname
   LOOP
     cnt := cnt + 1;
@@ -289,7 +289,7 @@ BEGIN
     IF relpersist = 'u' THEN
       buffer2 := 'UNLOGGED ';
     END IF;
-    
+
     IF relknd = 'r' THEN
       IF ddl_only THEN
         RAISE INFO '%', 'CREATE ' || buffer2 || 'TABLE ' || buffer || ' (LIKE ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' INCLUDING ALL)';
@@ -298,18 +298,18 @@ BEGIN
       END IF;
     ELSIF relknd = 'p' THEN
       -- define parent table and assume child tables have already been created based on top level sort order.
-      SELECT 'CREATE TABLE ' || quote_ident(dest_schema) || '.' || pc.relname || E'(\n' || string_agg(pa.attname || ' ' || pg_catalog.format_type(pa.atttypid, pa.atttypmod) || 
-      coalesce(' DEFAULT ' || (SELECT pg_catalog.pg_get_expr(d.adbin, d.adrelid) FROM pg_catalog.pg_attrdef d  
-      WHERE d.adrelid = pa.attrelid AND d.adnum = pa.attnum AND pa.atthasdef), '') || ' ' || CASE pa.attnotnull WHEN TRUE THEN 'NOT NULL' ELSE 'NULL' END, E',\n') || 
-      coalesce((SELECT E',\n' || string_agg('CONSTRAINT ' || pc1.conname || ' ' || pg_get_constraintdef(pc1.oid), E',\n' ORDER BY pc1.conindid) 
-      FROM pg_constraint pc1 WHERE pc1.conrelid = pa.attrelid), '') into buffer FROM pg_catalog.pg_attribute pa JOIN pg_catalog.pg_class pc ON pc.oid = pa.attrelid AND 
-      pc.relname = quote_ident(tblname) JOIN pg_catalog.pg_namespace pn ON pn.oid = pc.relnamespace AND pn.nspname = quote_ident(source_schema) 
+      SELECT 'CREATE TABLE ' || quote_ident(dest_schema) || '.' || pc.relname || E'(\n' || string_agg(pa.attname || ' ' || pg_catalog.format_type(pa.atttypid, pa.atttypmod) ||
+      coalesce(' DEFAULT ' || (SELECT pg_catalog.pg_get_expr(d.adbin, d.adrelid) FROM pg_catalog.pg_attrdef d
+      WHERE d.adrelid = pa.attrelid AND d.adnum = pa.attnum AND pa.atthasdef), '') || ' ' || CASE pa.attnotnull WHEN TRUE THEN 'NOT NULL' ELSE 'NULL' END, E',\n') ||
+      coalesce((SELECT E',\n' || string_agg('CONSTRAINT ' || pc1.conname || ' ' || pg_get_constraintdef(pc1.oid), E',\n' ORDER BY pc1.conindid)
+      FROM pg_constraint pc1 WHERE pc1.conrelid = pa.attrelid), '') into buffer FROM pg_catalog.pg_attribute pa JOIN pg_catalog.pg_class pc ON pc.oid = pa.attrelid AND
+      pc.relname = quote_ident(tblname) JOIN pg_catalog.pg_namespace pn ON pn.oid = pc.relnamespace AND pn.nspname = quote_ident(source_schema)
       WHERE pa.attnum > 0 AND NOT pa.attisdropped GROUP BY pn.nspname, pc.relname, pa.attrelid;
-      
+
       -- append partition keyword to it
-      SELECT pg_catalog.pg_get_partkeydef(c.oid::pg_catalog.oid) into buffer2 FROM pg_catalog.pg_class c  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace 
+      SELECT pg_catalog.pg_get_partkeydef(c.oid::pg_catalog.oid) into buffer2 FROM pg_catalog.pg_class c  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
       WHERE c.relname = quote_ident(tblname) COLLATE pg_catalog.default AND n.nspname = quote_ident(source_schema) COLLATE pg_catalog.default;
-  
+
       -- RAISE NOTICE ' buffer = %   buffer2 = %',buffer, buffer2;
       qry := buffer || ') PARTITION BY ' || buffer2 || ';';
       IF ddl_only THEN
@@ -321,8 +321,8 @@ BEGIN
       -- loop for child tables and alter them to attach to parent for specific partition method.
       FOR aname, part_range, object IN
         SELECT quote_ident(dest_schema) || '.' || c1.relname as tablename, pg_catalog.pg_get_expr(c1.relpartbound, c1.oid) as partrange, quote_ident(dest_schema) || '.' || c2.relname as object
-        FROM pg_catalog.pg_class c1, pg_namespace n, pg_catalog.pg_inherits i, pg_class c2 WHERE n.nspname = 'sample' AND c1.relnamespace = n.oid AND c1.relkind = 'r' AND 
-        c1.relispartition AND c1.oid=i.inhrelid AND i.inhparent = c2.oid AND c2.relnamespace = n.oid ORDER BY pg_catalog.pg_get_expr(c1.relpartbound, c1.oid) = 'DEFAULT', c1.oid::pg_catalog.regclass::pg_catalog.text  
+        FROM pg_catalog.pg_class c1, pg_namespace n, pg_catalog.pg_inherits i, pg_class c2 WHERE n.nspname = 'sample' AND c1.relnamespace = n.oid AND c1.relkind = 'r' AND
+        c1.relispartition AND c1.oid=i.inhrelid AND i.inhparent = c2.oid AND c2.relnamespace = n.oid ORDER BY pg_catalog.pg_get_expr(c1.relpartbound, c1.oid) = 'DEFAULT', c1.oid::pg_catalog.regclass::pg_catalog.text
       LOOP
         qry := 'ALTER TABLE ONLY ' || object || ' ATTACH PARTITION ' || aname || ' ' || part_range || ';';
         IF ddl_only THEN
@@ -330,8 +330,8 @@ BEGIN
         ELSE
           EXECUTE qry;
         END IF;
-        
-      END LOOP;    
+
+      END LOOP;
     END IF;
 
     -- INCLUDING ALL creates new index names, we restore them to the old name.
@@ -357,13 +357,13 @@ BEGIN
     IF include_recs
       THEN
       -- Insert records from source table
-      
+
       -- 2021-03-03  MJV FIX
       RAISE NOTICE 'Populating cloned table, %', tblname;
       buffer := dest_schema || '.' || quote_ident(tblname);
-	  
+
       -- 2020/06/18 - Issue #31 fix: add "OVERRIDING SYSTEM VALUE" for IDENTITY columns marked as GENERATED ALWAYS.
-      select count(*) into cnt from pg_class c, pg_attribute a, pg_namespace n  
+      select count(*) into cnt from pg_class c, pg_attribute a, pg_namespace n
 	  where a.attrelid = c.oid and c.relname = quote_ident(tblname) and n.oid = c.relnamespace and n.nspname = quote_ident(source_schema) and a.attidentity = 'a';
       buffer3 := '';
       IF cnt > 0 THEN
@@ -465,7 +465,7 @@ BEGIN
           RAISE INFO '%', 'COMMENT ON MATERIALIZED VIEW ' || quote_ident(dest_schema) || '.' || object || ' IS ''' || adef || ''';';
         ELSE
           EXECUTE 'COMMENT ON MATERIALIZED VIEW ' || quote_ident(dest_schema) || '.' || object || ' IS ''' || adef || ''';';
-        END IF;	 		 
+        END IF;
       END IF;
 
       FOR aname, adef IN
@@ -488,7 +488,7 @@ BEGIN
   -- MJV FIX per issue# 34
   -- SET search_path = '';
   EXECUTE 'SET search_path = ' || quote_ident(source_schema) ;
-  
+
   FOR func_oid IN
     SELECT oid
       FROM pg_proc
@@ -599,7 +599,7 @@ BEGIN
                 EXECUTE buffer;
               END IF;
             END IF;
-			
+
           ELSIF arec.atype = 'table' THEN
             -- do each priv individually, jeeeesh!
             buffer2 := '';
@@ -663,8 +663,8 @@ BEGIN
                 RAISE INFO '%', buffer;
               ELSE
                 EXECUTE buffer;
-              END IF;			
-			ELSE  
+              END IF;
+			ELSE
               RAISE WARNING 'Unhandled TYPE Privs:: type=%  privs=%  owner=%   defaclacl=%  defaclstr=%  grantor=%  grantee=% ', arec.atype, privs, arec.owner, arec.defaclacl, arec.defaclstr, grantor, grantee;
             END IF;
 
@@ -726,7 +726,7 @@ BEGIN
   cnt := 0;
   EXECUTE 'SET search_path = ' || quote_ident(dest_schema) ;
   FOR arec IN
-    SELECT 'GRANT EXECUTE ON FUNCTION ' || quote_ident(dest_schema) || '.' || replace(regexp_replace(f.oid::regprocedure::text, '^((("[^"]*")|([^"][^.]*))\.)?', ''), source_schema, dest_schema) || ' TO "' || r.rolname || '";' as func_ddl 
+    SELECT 'GRANT EXECUTE ON FUNCTION ' || quote_ident(dest_schema) || '.' || replace(regexp_replace(f.oid::regprocedure::text, '^((("[^"]*")|([^"][^.]*))\.)?', ''), source_schema, dest_schema) || ' TO "' || r.rolname || '";' as func_ddl
     FROM pg_catalog.pg_proc f CROSS JOIN pg_catalog.pg_roles AS r WHERE f.pronamespace::regnamespace::name = quote_ident(source_schema) AND NOT r.rolsuper AND has_function_privilege(r.oid, f.oid, 'EXECUTE')
     order by regexp_replace(f.oid::regprocedure::text, '^((("[^"]*")|([^"][^.]*))\.)?', '')
   LOOP

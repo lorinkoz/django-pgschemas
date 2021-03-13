@@ -1,12 +1,11 @@
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_text
 from django.utils.module_loading import import_string
 
-from channels.routing import ProtocolTypeRouter, URLRouter
-
 from ...schema import SchemaDescriptor
-from ...utils import remove_www, get_tenant_model, get_domain_model
+from ...utils import get_domain_model, remove_www
 from .auth import TenantAuthMiddlewareStack
 
 

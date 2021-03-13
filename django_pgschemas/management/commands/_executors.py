@@ -3,8 +3,8 @@ import multiprocessing
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand, OutputWrapper, CommandError
-from django.db import connection, transaction, connections
+from django.core.management.base import BaseCommand, OutputWrapper
+from django.db import connection, connections, transaction
 
 
 def run_on_schema(
@@ -12,11 +12,16 @@ def run_on_schema(
     executor_codename,
     command,
     function_name=None,
-    args=[],
-    kwargs={},
+    args=None,
+    kwargs=None,
     pass_schema_in_kwargs=False,
     fork_db=False,
 ):
+    if args is None:
+        args = []
+    if kwargs is None:
+        kwargs = {}
+
     if not isinstance(command, BaseCommand):
         # Parallel executor needs to pass command 'type' instead of 'instance'
         # Therefore, no customizations for the command can be done, nor using custom stdout, stderr
@@ -33,7 +38,7 @@ def run_on_schema(
     # Since we are prepending every output with the schema_name and executor, we need to determine
     # whether we need to do so based on the last ending used to write. If the last write didn't end
     # in '\n' then we don't do the prefixing in order to keep the output looking good.
-    class StyleFunc(object):
+    class StyleFunc:
         last_message = None
 
         def __call__(self, message):
@@ -71,7 +76,7 @@ def run_on_schema(
     return schema_name
 
 
-def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def sequential(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
     runner = functools.partial(
         run_on_schema,
         executor_codename="sequential",
@@ -87,7 +92,7 @@ def sequential(schemas, command, function_name, args=[], kwargs={}, pass_schema_
     return schemas
 
 
-def parallel(schemas, command, function_name, args=[], kwargs={}, pass_schema_in_kwargs=False):
+def parallel(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
     processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
     pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(

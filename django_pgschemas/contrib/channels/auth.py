@@ -1,10 +1,9 @@
+from channels.auth import AuthMiddleware, CookieMiddleware, SessionMiddleware, _get_user_session_key
+from channels.db import database_sync_to_async
 from django.conf import settings
 from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, load_backend
 from django.contrib.auth.models import AnonymousUser
 from django.utils.crypto import constant_time_compare
-
-from channels.auth import login, logout, CookieMiddleware, SessionMiddleware, AuthMiddleware, _get_user_session_key
-from channels.db import database_sync_to_async
 
 
 @database_sync_to_async

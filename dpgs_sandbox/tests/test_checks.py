@@ -1,11 +1,9 @@
 from django.apps import apps
-from django.conf import settings
 from django.core import checks
 from django.test import TestCase, override_settings
 
+from django_pgschemas.checks import check_other_apps, check_principal_apps, check_schema_names, get_user_app
 from django_pgschemas.utils import get_tenant_model
-from django_pgschemas.checks import check_principal_apps, check_other_apps, check_schema_names, get_user_app
-
 
 TenantModel = get_tenant_model()
 BASE_PUBLIC = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
@@ -33,11 +31,13 @@ class AppChecksTestCase(TestCase):
             errors = check_principal_apps(self.app_config)
             expected_errors = [
                 checks.Error(
-                    "Your tenant app 'shared_public' in TENANTS['default']['APPS'] must be on the 'public' schema only.",
+                    "Your tenant app 'shared_public' in TENANTS['default']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 ),
                 checks.Error(
-                    "Your domain app 'shared_public' in TENANTS['default']['APPS'] must be on the 'public' schema only.",
+                    "Your domain app 'shared_public' in TENANTS['default']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 ),
             ]

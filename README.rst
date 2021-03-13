@@ -64,7 +64,7 @@ This table should help you make an informed decision on which one to choose.
      - Features
    * - `django-tenant-schemas`_
      - Original project.
-       Now active and maintained by `@goodtune`_.
+       Active and maintained by `@goodtune`_.
    * - `django-tenants`_
      - Active and maintained by `@tomturner`_.
        Built on top of `django-tenant-schemas`_.
@@ -88,6 +88,26 @@ Documentation
 -------------
 
 https://django-pgschemas.readthedocs.io/
+
+Breaking changes
+----------------
+
+v0.7.0
+++++++
+
+- Changed public API for getting/setting active schema. Public API is now
+  ``get_current_schema``, ``activate(schema)``, ``activate_public()``. Any
+  schema descriptor can still be used as context manager.
+- Changed location of tenant model and domain model in settings.
+  ``TENANT_MODEL`` and ``DOMAIN_MODEL`` keys are now under ``TENANTS["default"]``
+  instead of ``TENANTS["public"]``. This is required for future
+  static-tenant-only configurations.
+- Module ``cache`` renamed to ``contrib.cache``.
+- Module ``contrib.channels`` renamed to ``contrib.channels2``.
+- Added module ``contrib.channels3``.
+- Management command option ``--executor {sequential, parallel}`` renamed to
+  ``--parallel``.
+- All signals renamed. Added ``schema_activate`` signal.
 
 Contributing
 ------------

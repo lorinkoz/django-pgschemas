@@ -42,19 +42,3 @@ class SchemaDescriptor:
     def __exit__(self, exc_type, exc_val, exc_tb):
         previous_schema = getattr(self, "previous_schema", None)
         activate(previous_schema) if previous_schema else deactivate()
-
-    def get_primary_domain(self):
-        """
-        Returns the primary domain of the schema descriptor, if present.
-        """
-
-        class AdHocDomain:
-            def __init__(self, domain, folder=None):
-                self.domain = domain
-                self.folder = folder
-                self.is_primary = True
-
-            def __str__(self):
-                return "/".join([self.domain, self.folder]) if self.folder else self.domain
-
-        return AdHocDomain(self.domain_url or self.schema_name, self.folder)

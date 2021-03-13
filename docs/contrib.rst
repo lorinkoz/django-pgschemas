@@ -114,3 +114,6 @@ dynamic route will be used:
 You still need to name your channel groups appropriately, taking the
 current tenant into account if you want to keep your groups tenant-specific.
 You will get the current tenant in ``scope["tenant"]``.
+
+For Channels 3 to use with Django 3, you can use
+``django_pgschemas.contrib.channels3``.

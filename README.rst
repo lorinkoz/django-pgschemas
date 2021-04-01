@@ -112,7 +112,7 @@ v0.7.0
 Contributing
 ------------
 
-- Join the discussion at https://gitter.im/django-pgschemas/community.
+- Join the discussion at https://github.com/lorinkoz/django-pgschemas/discussions.
 - PRs are welcome! If you have questions or comments, please use the link
   above.
 - To run the test suite run ``make`` or ``make coverage``. The tests for this

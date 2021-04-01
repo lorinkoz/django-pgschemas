@@ -31,7 +31,7 @@ django-pgschemas
 
 .. image:: https://pepy.tech/badge/django-pgschemas/month
     :alt: Downloads
-    :target: https://pepy.tech/project/django-pgschemas/month
+    :target: https://pepy.tech/project/django-pgschemas/
 
 |
 

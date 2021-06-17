@@ -1,18 +1,12 @@
-from importlib import import_module
-
 import psycopg2
-from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
 from ..schema import SchemaDescriptor
 from ..utils import check_schema_name, get_limit_set_calls
 from .introspection import DatabaseSchemaIntrospection
+from .settings import EXTRA_SEARCH_PATHS, original_backend
 
-ORIGINAL_BACKEND = getattr(settings, "PGSCHEMAS_ORIGINAL_BACKEND", "django.db.backends.postgresql")
-EXTRA_SEARCH_PATHS = getattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS", [])
-
-original_backend = import_module(ORIGINAL_BACKEND + ".base")
 IntegrityError = psycopg2.IntegrityError
 
 

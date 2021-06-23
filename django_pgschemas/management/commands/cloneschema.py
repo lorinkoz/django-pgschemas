@@ -9,7 +9,7 @@ from ...utils import clone_schema, get_domain_model, get_tenant_model
 class Command(BaseCommand):
     help = "Clones a schema"
 
-    def _run_checks(self, **kwargs):
+    def _run_checks(self, **kwargs):  # pragma: no cover
         issues = run_checks(tags=[Tags.database])
         issues.extend(super()._run_checks(**kwargs))
         return issues

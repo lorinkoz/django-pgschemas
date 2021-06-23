@@ -35,8 +35,10 @@ class TenantMixin(SchemaDescriptor, models.Model):
     class Meta:
         abstract = True
 
-    def save(self, verbosity=1, *args, **kwargs):
+    def save(self, *args, **kwargs):
+        verbosity = kwargs.pop("verbosity", 1)
         is_new = self.pk is None
+
         super().save(*args, **kwargs)
 
         if is_new and self.auto_create_schema:
@@ -120,7 +122,11 @@ class DomainMixin(models.Model):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        domain_list = self.__class__.objects.filter(tenant=self.tenant, is_primary=True).exclude(pk=self.pk)
+        using = kwargs.get("using")
+        domain_list = self.__class__.objects
+        if using:
+            domain_list = domain_list.using(using)
+        domain_list = domain_list.filter(tenant=self.tenant, is_primary=True).exclude(pk=self.pk)
         self.is_primary = self.is_primary or (not domain_list.exists())
         if self.is_primary:
             domain_list.update(is_primary=False)

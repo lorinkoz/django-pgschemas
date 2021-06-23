@@ -7,7 +7,7 @@ from ...utils import create_schema, drop_schema, get_clone_reference
 class Command(BaseCommand):
     help = "Creates the reference schema for faster dynamic tenant creation"
 
-    def _run_checks(self, **kwargs):
+    def _run_checks(self, **kwargs):  # pragma: no cover
         issues = run_checks(tags=[Tags.database])
         issues.extend(super()._run_checks(**kwargs))
         return issues

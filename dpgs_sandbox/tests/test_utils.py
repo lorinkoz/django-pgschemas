@@ -57,9 +57,9 @@ class UtilsTestCase(TestCase):
                 utils.check_schema_name(schema_name)
 
     def test_remove_www(self):
-        self.assertEqual(utils.remove_www("test.com"), "test.com")
-        self.assertEqual(utils.remove_www("www.test.com"), "test.com")
-        self.assertEqual(utils.remove_www("wwwtest.com"), "wwwtest.com")
+        self.assertEqual(utils.remove_www("example.com"), "example.com")
+        self.assertEqual(utils.remove_www("www.example.com"), "example.com")
+        self.assertEqual(utils.remove_www("wwwexample.com"), "wwwexample.com")
         self.assertEqual(utils.remove_www("www."), "")
 
     def test_run_in_public_schema(self):
@@ -87,17 +87,15 @@ class UtilsTestCase(TestCase):
 
     def test_dynamic_models_exist(self):
         self.assertTrue(utils.dynamic_models_exist())
-        utils.drop_schema("public")
-        self.assertFalse(utils.dynamic_models_exist())
 
     def test_create_drop_schema(self):
-        self.assertFalse(utils.create_schema("public", check_if_exists=True))  # Schema existed already
-        self.assertTrue(utils.schema_exists("public"))  # Schema exists
-        self.assertTrue(utils.drop_schema("public"))  # Schema was dropped
-        self.assertFalse(utils.drop_schema("public"))  # Schema no longer exists
-        self.assertFalse(utils.schema_exists("public"))  # Schema doesn't exist
-        self.assertTrue(utils.create_schema("public", sync_schema=False))  # Schema was created
-        self.assertTrue(utils.schema_exists("public"))  # Schema exists
+        self.assertFalse(utils.create_schema("blog", check_if_exists=True))  # Schema existed already
+        self.assertTrue(utils.schema_exists("blog"))  # Schema exists
+        self.assertTrue(utils.drop_schema("blog"))  # Schema was dropped
+        self.assertFalse(utils.drop_schema("blog"))  # Schema no longer exists
+        self.assertFalse(utils.schema_exists("blog"))  # Schema doesn't exist
+        self.assertTrue(utils.create_schema("blog", sync_schema=True, verbosity=0))  # Schema was created
+        self.assertTrue(utils.schema_exists("blog"))  # Schema exists
 
     def test_clone_schema(self):
         utils._create_clone_schema_function()

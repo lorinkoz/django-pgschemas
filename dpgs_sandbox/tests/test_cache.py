@@ -1,8 +1,8 @@
 from django_pgschemas.contrib.cache import make_key, reverse_key
-from django_pgschemas.test.cases import FastTenantTestCase
+from django_pgschemas.test.cases import DynamicTenantTestCase
 
 
-class CacheHelperTestCase(FastTenantTestCase):
+class CacheHelperTestCase(DynamicTenantTestCase):
     def test_make_key(self):
         key = make_key(key="foo", key_prefix="", version=1)
         tenant_prefix = key.split(":")[0]

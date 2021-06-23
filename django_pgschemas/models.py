@@ -98,6 +98,9 @@ class TenantMixin(SchemaDescriptor, models.Model):
         except get_domain_model().DoesNotExist:
             return None
 
+    def setup_for_test(self):
+        pass
+
 
 class DomainMixin(models.Model):
     """
@@ -140,3 +143,6 @@ class DomainMixin(models.Model):
         if not path.startswith("/"):
             path = "/" + path
         return "//" + self.domain + folder + path
+
+    def setup_for_test(self):
+        pass

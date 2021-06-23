@@ -18,11 +18,11 @@ class ExecutorsTestCase(TransactionTestCase):
         for i in range(10):
             tenant = TenantModel(schema_name=f"tenant{i + 1}")
             tenant.save(verbosity=0)
-            DomainModel.objects.create(tenant=tenant, domain=f"tenant{i + 1}.test.com", is_primary=True)
+            DomainModel.objects.create(tenant=tenant, domain=f"tenant{i + 1}.sandbox.com", is_primary=True)
 
     @classmethod
     def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
+        for tenant in TenantModel.objects.filter(schema_name__icontains="tenant"):
             tenant.delete(force_drop=True)
 
     def test_all_schemas_in_sequential(self):

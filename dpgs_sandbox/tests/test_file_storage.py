@@ -24,8 +24,6 @@ class TenantFileSystemStorageTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
         shutil.rmtree(cls.temp_dir)
 
     def test_path_identifier_basic(self):

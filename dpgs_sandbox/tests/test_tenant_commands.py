@@ -5,10 +5,12 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
-from django_pgschemas.utils import get_domain_model, get_tenant_model
+from django_pgschemas.utils import get_domain_model, get_tenant_model, get_test_domain
 
 TenantModel = get_tenant_model()
 DomainModel = get_domain_model()
+
+TEST_DOMAIN = get_test_domain()
 
 
 class TenantCommandsTestCase(TestCase):
@@ -17,20 +19,15 @@ class TenantCommandsTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpTestData(cls):
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant1, domain="tenant1.test.com", is_primary=True)
-        DomainModel.objects.create(tenant=tenant1, domain="everyone.test.com", folder="tenant1", is_primary=False)
+        DomainModel.objects.create(tenant=tenant1, domain=f"tenant1.{TEST_DOMAIN}", is_primary=True)
+        DomainModel.objects.create(tenant=tenant1, domain=f"everyone.{TEST_DOMAIN}", folder="tenant1", is_primary=False)
         tenant2 = TenantModel(schema_name="tenant2")
         tenant2.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant2, domain="tenant2.test.com", is_primary=True)
-        DomainModel.objects.create(tenant=tenant2, domain="everyone.test.com", folder="tenant2", is_primary=False)
-
-    @classmethod
-    def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
+        DomainModel.objects.create(tenant=tenant2, domain=f"tenant2.{TEST_DOMAIN}", is_primary=True)
+        DomainModel.objects.create(tenant=tenant2, domain=f"everyone.{TEST_DOMAIN}", folder="tenant2", is_primary=False)
 
     def test_no_schema_provided(self):
         command = WhoWillCommand()
@@ -154,9 +151,9 @@ class TenantCommandsTestCase(TestCase):
             verbosity=0,
         )
         management.call_command("whowill", all_schemas=True, excluded_schemas=["public", "sample"], verbosity=0)
-        management.call_command("whowill", schemas=["everyone.test.com/tenant1"], verbosity=0)
+        management.call_command("whowill", schemas=[f"everyone.{TEST_DOMAIN}/tenant1"], verbosity=0)
         management.call_command("whowill", schemas=["tenant1"], verbosity=0)
         management.call_command(
-            "whowill", all_schemas=True, excluded_schemas=["everyone.test.com/tenant1"], verbosity=0
+            "whowill", all_schemas=True, excluded_schemas=[f"everyone.{TEST_DOMAIN}/tenant1"], verbosity=0
         )
         management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)

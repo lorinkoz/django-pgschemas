@@ -4,6 +4,7 @@ from django.db.utils import DatabaseError
 
 from ..schema import SchemaDescriptor
 from ..utils import check_schema_name, get_limit_set_calls
+from .creation import DatabaseCreation
 from .introspection import DatabaseSchemaIntrospection
 from .settings import EXTRA_SEARCH_PATHS, original_backend
 
@@ -11,6 +12,8 @@ IntegrityError = psycopg2.IntegrityError
 
 
 class DatabaseWrapper(original_backend.DatabaseWrapper):
+    creation_class = DatabaseCreation  # Use custom version of DatabaseCreation to set up the dynamic tenant and domain
+
     def __init__(self, *args, **kwargs):
         self._schema = None
         self._search_path_set = None

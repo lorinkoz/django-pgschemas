@@ -14,36 +14,31 @@ class TenantRequestFactoryTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpTestData(cls):
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
+        DomainModel.objects.create(tenant=tenant, domain="tenant1.sandbox.com", is_primary=True)
         cls.request = TenantRequestFactory(tenant)
-
-    @classmethod
-    def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
 
     def test_get(self):
         request = self.request.get("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
+        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.sandbox.com/whatever/")
 
     def test_post(self):
         request = self.request.post("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
+        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.sandbox.com/whatever/")
 
     def test_put(self):
         request = self.request.put("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
+        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.sandbox.com/whatever/")
 
     def test_patch(self):
         request = self.request.patch("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
+        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.sandbox.com/whatever/")
 
     def test_delete(self):
         request = self.request.delete("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.test.com/whatever/")
+        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.sandbox.com/whatever/")
 
 
 class DynamicTenantClientTestCase(TestCase):
@@ -52,16 +47,11 @@ class DynamicTenantClientTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpTestData(cls):
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
+        DomainModel.objects.create(tenant=tenant, domain="tenant1.sandbox.com", is_primary=True)
         cls.tenant_client = TenantClient(tenant)
-
-    @classmethod
-    def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
 
     def test_get(self):
         response = self.tenant_client.get("/profile/")
@@ -90,13 +80,9 @@ class StaticTenantClientTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
-        tenant = SchemaDescriptor.create(schema_name="tenant1", domain_url="everyone.test.com")
+    def setUpTestData(cls):
+        tenant = SchemaDescriptor.create(schema_name="tenant1", domain_url="everyone.sandbox.com")
         cls.tenant_client = TenantClient(tenant)
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
 
     def test_get(self):
         response = self.tenant_client.get("/ping/")

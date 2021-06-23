@@ -17,24 +17,19 @@ class CachedTenantSubfolderBugTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpTestData(cls):
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         tenant2 = TenantModel(schema_name="tenant2")
         tenant2.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant1, domain="everyone.test.com", folder="tenant1", is_primary=True)
-        DomainModel.objects.create(tenant=tenant2, domain="everyone.test.com", folder="tenant2", is_primary=True)
+        DomainModel.objects.create(tenant=tenant1, domain="everyone.sandbox.com", folder="tenant1", is_primary=True)
+        DomainModel.objects.create(tenant=tenant2, domain="everyone.sandbox.com", folder="tenant2", is_primary=True)
         with tenant1:
-            cls.user1 = User.objects.create(email="user1@test.com", display_name="Admin")
+            cls.user1 = User.objects.create(email="user1@sandbox.com", display_name="Admin")
         with tenant2:
-            cls.user2 = User.objects.create(email="user2@test.com", display_name="Admin")
+            cls.user2 = User.objects.create(email="user2@sandbox.com", display_name="Admin")
         cls.client1 = TenantClient(tenant1)
         cls.client2 = TenantClient(tenant2)
-
-    @classmethod
-    def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
 
     def test_bug_in_cached_urls_1(self):
         self.client1.get("/tenant2/profile/advanced/")  # Provoke redirect to login on tenant2

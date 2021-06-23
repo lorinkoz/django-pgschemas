@@ -30,6 +30,14 @@ def get_clone_reference():
     return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
 
 
+def get_test_schema_name():
+    return settings.TENANTS["default"].get("TEST_SCHEMA_NAME", "dynamic")
+
+
+def get_test_domain():
+    return settings.TENANTS["default"].get("TEST_DOMAIN", "pgschemas.test")
+
+
 def is_valid_identifier(identifier):
     "Checks the validity of identifier."
     SQL_IDENTIFIER_RE = re.compile(r"^[_a-zA-Z][_a-zA-Z0-9]{,62}$")
@@ -54,7 +62,7 @@ def check_schema_name(name):
 def remove_www(hostname):
     """
     Removes ``www``. from the beginning of the address. Only for
-    routing purposes. ``www.test.com/login/`` and ``test.com/login/`` should
+    routing purposes. ``www.example.com/login/`` and ``example.com/login/`` should
     find the same tenant.
     """
     if hostname.startswith("www."):

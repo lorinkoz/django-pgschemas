@@ -1,5 +1,8 @@
+from unittest.mock import patch
+
 from django.apps import apps
 from django.core import checks
+from django.db.utils import ProgrammingError
 from django.test import TestCase, override_settings
 
 from django_pgschemas.checks import check_other_apps, check_principal_apps, check_schema_names, get_user_app
@@ -7,6 +10,10 @@ from django_pgschemas.utils import get_tenant_model
 
 TenantModel = get_tenant_model()
 BASE_DEFAULT = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
+
+
+def mocked_get_tenant_model():
+    raise ProgrammingError
 
 
 class AppChecksTestCase(TestCase):
@@ -111,7 +118,7 @@ class NameClashCheckTestCase(TestCase):
             checks.Critical("Name clash found between static and dynamic tenants: {'public'}", id="pgschemas.W004"),
         ]
         self.assertEqual(errors, expected_errors)
-        TenantModel.objects.all().delete()
+        TenantModel.objects.filter(schema_name="public").delete()
         # www
         TenantModel.objects.create(schema_name="www")
         errors = check_schema_names(self.app_config)
@@ -119,7 +126,7 @@ class NameClashCheckTestCase(TestCase):
             checks.Critical("Name clash found between static and dynamic tenants: {'www'}", id="pgschemas.W004"),
         ]
         self.assertEqual(errors, expected_errors)
-        TenantModel.objects.all().delete()
+        TenantModel.objects.filter(schema_name="www").delete()
         # sample
         TenantModel.objects.create(schema_name="sample")
         errors = check_schema_names(self.app_config)
@@ -127,5 +134,9 @@ class NameClashCheckTestCase(TestCase):
             checks.Critical("Name clash found between static and dynamic tenants: {'sample'}", id="pgschemas.W004"),
         ]
         self.assertEqual(errors, expected_errors)
-        TenantModel.objects.all().delete()
+        TenantModel.objects.filter(schema_name="sample").delete()
         TenantModel.auto_create_schema = backup_create
+
+    @patch("django_pgschemas.checks.get_tenant_model", mocked_get_tenant_model)
+    def test_programming_error(self):
+        check_schema_names(apps.get_app_config("django_pgschemas"))

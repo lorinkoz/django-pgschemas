@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from django_pgschemas.schema import SchemaDescriptor, activate
 from django_pgschemas.signals import schema_activate
-from django_pgschemas.utils import get_tenant_model, schema_exists
+from django_pgschemas.utils import get_tenant_model, get_test_domain, schema_exists
 
 TenantModel = get_tenant_model()
 
@@ -16,7 +16,7 @@ class SignalTestCase(TestCase):
         response = {}
         params = {
             "schema_name": "test",
-            "domain_url": "test.com",
+            "domain_url": get_test_domain(),
             "folder": "folder",
         }
 
@@ -43,6 +43,6 @@ class TenantDeleteCallbackTestCase(TestCase):
         tenant.save()
         tenant.create_schema(sync_schema=False)
         self.assertTrue(schema_exists("tenant1"))
-        TenantModel.objects.all().delete()
+        TenantModel.objects.filter(schema_name__icontains="tenant").delete()
         self.assertFalse(schema_exists("tenant1"))
         TenantModel.auto_create_schema, TenantModel.auto_drop_schema = backup_create, backup_drop

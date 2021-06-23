@@ -47,24 +47,13 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
     Tests the interactive behaviod of the cloneschema command.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        tenant = TenantModel(schema_name="tenant1")
-        tenant.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        for tenant in TenantModel.objects.all():
-            tenant.delete(force_drop=True)
-
     def test_interactive_cloneschema(self):
         answer_provider = (
             n
             for n in [
                 "y",  # Would you like to create a database entry?
                 "",  # Domain name, simulated wrong answer
-                "tenant2.test.com",  # Domain name, good answer
+                "dynamic2.sandbox.com",  # Domain name, good answer
             ]
         )
 
@@ -74,5 +63,8 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
         with patch("builtins.input", patched_input):
             with StringIO() as stdout:
                 with StringIO() as stderr:
-                    call_command("cloneschema", "tenant1", "tenant2", verbosity=1, stdout=stdout, stderr=stderr)
-        self.assertTrue(utils.schema_exists("tenant2"))
+                    call_command("cloneschema", "dynamic", "dynamic2", verbosity=1, stdout=stdout, stderr=stderr)
+        self.assertTrue(utils.schema_exists("dynamic2"))
+        # Self-cleanup
+        tenant2 = TenantModel.objects.filter(schema_name="dynamic2").first()
+        tenant2.delete(force_drop=True)

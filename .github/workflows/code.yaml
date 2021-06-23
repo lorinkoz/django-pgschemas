@@ -48,7 +48,10 @@ jobs:
           python -m poetry run pip install "Django${{ matrix.django-version }}"
       - name: Run Tests
         run: |
-          python -m poetry run coverage run dpgs_sandbox/manage.py test tests -r
+          python -m poetry run dpgs_sandbox/manage.py test tests --failfast --noinput
+          python -m poetry run dpgs_sandbox/manage.py test tests --failfast --noinput --keepdb -r
+          python -m poetry run dpgs_sandbox/manage.py test tests --failfast --noinput --keepdb
+          python -m poetry run coverage run dpgs_sandbox/manage.py test tests --failfast --noinput -r
       - name: Upload coverage to Coveralls
         if: matrix.python-version == '3.6' && matrix.django-version == '~=3.2.0'
         env:

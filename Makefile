@@ -4,6 +4,14 @@
 test:
 	poetry run dpgs_sandbox/manage.py test tests
 
+
+.PHONY: testall
+testall:
+	poetry run dpgs_sandbox/manage.py test tests --noinput
+	poetry run dpgs_sandbox/manage.py test tests --noinput --keepdb -r
+	poetry run dpgs_sandbox/manage.py test tests --noinput --keepdb
+	poetry run dpgs_sandbox/manage.py test tests --noinput -r
+
 .PHONY: coverage
 coverage:
 	poetry run coverage run dpgs_sandbox/manage.py test tests

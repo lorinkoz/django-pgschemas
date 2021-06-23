@@ -88,8 +88,18 @@ https://django-pgschemas.readthedocs.io/
 Breaking changes
 ----------------
 
-v0.7.0
-++++++
+v0.8
+++++
+
+- Dynamic tenant for testing is no longer created in
+  ``DynamicTenantTestCase.setUpClass``. A default dynamic tenant is now set up
+  as part of the creation of the test database. Any required initializations
+  for the tenant model or the domain model must be done in their respective
+  ``setup_for_test`` methods.
+- Removed ``FastTenantTestCase`` and ``FastDynamicTenantTestCase``.
+
+v0.7
+++++
 
 - Changed public API for getting/setting active schema. Public API is now
   ``get_current_schema``, ``activate(schema)``, ``activate_public()``. Any

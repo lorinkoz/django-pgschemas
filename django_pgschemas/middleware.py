@@ -2,6 +2,7 @@ import re
 
 from django.conf import settings
 from django.http import Http404
+from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
 
 from .schema import SchemaDescriptor, activate, activate_public
@@ -55,6 +56,10 @@ class TenantMiddleware:
                     tenant.folder = prefix
                     request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
                     clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
+                if domain.redirect_to_primary:
+                    primary_domain = tenant.domains.get(is_primary=True)
+                    path = request.strip_tenant_from_path(request.path)
+                    return redirect(primary_domain.absolute_url(path), permanent=True)
 
         # Checking fallback domains
         if not tenant:

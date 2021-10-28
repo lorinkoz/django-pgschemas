@@ -112,6 +112,7 @@ class DomainMixin(models.Model):
     folder = models.SlugField(max_length=253, blank=True, db_index=True)
 
     is_primary = models.BooleanField(default=True)
+    redirect_to_primary = models.BooleanField(default=False)
 
     class Meta:
         abstract = True
@@ -130,6 +131,8 @@ class DomainMixin(models.Model):
         self.is_primary = self.is_primary or (not domain_list.exists())
         if self.is_primary:
             domain_list.update(is_primary=False)
+            if self.redirect_to_primary:
+                self.redirect_to_primary = False
         super().save(*args, **kwargs)
 
     def absolute_url(self, path):

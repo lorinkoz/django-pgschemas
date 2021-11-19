@@ -19,7 +19,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.6.2"
 django = ">=2.2,!=3.0,<3.3"
-psycopg2 = "^2.7"
+psycopg2 = "~2.8.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"

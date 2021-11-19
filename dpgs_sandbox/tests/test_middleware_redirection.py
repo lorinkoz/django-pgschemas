@@ -54,25 +54,25 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//tenant1.test.com/some/random/url/")
-        self.assertEqual(response.headers["Location"], "//tenant1.test.com/some/random/url/")
+        self.assertEqual(response["Location"], "//tenant1.test.com/some/random/url/")
 
     def test_folder_redirect_to_primary_domain(self):
         request = self.factory.get("/tenant1redirect/some/random/url/", HTTP_HOST="everyone.test.com")
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//tenant1.test.com/some/random/url/")
-        self.assertEqual(response.headers["Location"], "//tenant1.test.com/some/random/url/")
+        self.assertEqual(response["Location"], "//tenant1.test.com/some/random/url/")
 
     def test_domain_redirect_to_primary_folder(self):
         request = self.factory.get("/some/random/url/", HTTP_HOST="tenant2redirect.test.com")
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//everyone.test.com/tenant2/some/random/url/")
-        self.assertEqual(response.headers["Location"], "//everyone.test.com/tenant2/some/random/url/")
+        self.assertEqual(response["Location"], "//everyone.test.com/tenant2/some/random/url/")
 
     def test_folder_redirect_to_primary_folder(self):
         request = self.factory.get("/tenant2redirect/some/random/url/", HTTP_HOST="everyone.test.com")
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//everyone.test.com/tenant2/some/random/url/")
-        self.assertEqual(response.headers["Location"], "//everyone.test.com/tenant2/some/random/url/")
+        self.assertEqual(response["Location"], "//everyone.test.com/tenant2/some/random/url/")

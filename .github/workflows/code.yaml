@@ -14,7 +14,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
         django-version: ["~=2.2.0", "~=3.1.0", "~=3.2.0"]
     services:
       postgres:
@@ -49,11 +49,19 @@ jobs:
       - name: Run Tests
         run: |
           python -m poetry run coverage run dpgs_sandbox/manage.py test tests -r
-      - name: Upload coverage to Coveralls
-        if: matrix.python-version == '3.6' && matrix.django-version == '~=3.2.0'
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python -m pip install coverage[toml] coveralls
-          python -m coveralls --service=github
+          python -m poetry run coverage lcov -o ./coverage/lcov.info
+      - name: Upload coverage to Coveralls in parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: run-${{ matrix.python-version }}-${{ matrix.django-version }}
+          parallel: true
+  finish:
+    needs: django-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finish report to Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

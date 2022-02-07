@@ -255,7 +255,7 @@ class DomainTestCase(TestCase):
     def test_domain_redirect_save(self):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
-        domain = DomainModel.objects.create(domain=f"tenant.test.com", tenant=tenant, redirect_to_primary=True)
+        domain = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant, redirect_to_primary=True)
         self.assertTrue(domain.is_primary)
         self.assertFalse(domain.redirect_to_primary)
         tenant.delete(force_drop=True)

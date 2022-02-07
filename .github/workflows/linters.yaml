@@ -8,11 +8,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.6
+          python-version: ["3.x"]
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pypoetry
-          key: py3.6-poetry-${{ hashFiles('**/poetry.lock') }}
+          key: py${{ matrix.python-version }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             py-poetry-
       - name: Install Dependencies

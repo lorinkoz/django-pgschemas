@@ -11,18 +11,17 @@ keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgresql"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: Django",
-    "Framework :: Django :: 2.2",
     "Framework :: Django :: 3.1",
     "Framework :: Django :: 3.2",
 ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-django = ">=2.2,!=3.0,<3.3"
-psycopg2 = "~2.8.0"
+django = ">=3.1,<4.0"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
+black = "^22.1.0"
 channels = "^2.1"
 coverage = {extras = ["toml"], version = "^6.3"}
 doc8 = "^0.8.0"

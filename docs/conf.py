@@ -29,8 +29,8 @@ django.setup()
 # -- Project information -----------------------------------------------------
 
 project = "django-pgschemas"
-copyright = u"2020, Lorenzo Peña, Tom Turner & Bernardo Pires."
-author = u"Lorenzo Peña"
+copyright = "2020, Lorenzo Peña, Tom Turner & Bernardo Pires."
+author = "Lorenzo Peña"
 
 # The short X.Y version
 version = ""
@@ -132,7 +132,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "django-pgschemas.tex", "django-pgschemas Documentation", u"Lorenzo Peña", "manual")]
+latex_documents = [(master_doc, "django-pgschemas.tex", "django-pgschemas Documentation", "Lorenzo Peña", "manual")]
 
 
 # -- Options for manual page output ------------------------------------------

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shared_public', '0001_initial'),
+        ("shared_public", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='domain',
-            name='redirect_to_primary',
+            model_name="domain",
+            name="redirect_to_primary",
             field=models.BooleanField(default=False),
         ),
     ]

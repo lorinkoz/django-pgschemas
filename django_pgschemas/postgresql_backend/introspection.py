@@ -2,10 +2,15 @@ from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.utils.encoding import force_text
 
 from . import _constraints
-from .settings import original_backend
+from .settings import base_backend, original_backend
+
+try:
+    DatabaseIntrospection = original_backend.DatabaseIntrospection
+except AttributeError:
+    DatabaseIntrospection = base_backend.DatabaseIntrospection
 
 
-class DatabaseSchemaIntrospection(original_backend.DatabaseIntrospection):  # pragma: no cover
+class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
     """
     database schema introspection class
     """

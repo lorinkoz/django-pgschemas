@@ -1,5 +1,5 @@
 from django.db.backends.base.introspection import FieldInfo, TableInfo
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 from . import _constraints
 from .settings import base_backend, original_backend
@@ -63,9 +63,9 @@ class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
         return [
             FieldInfo(
                 *(
-                    (force_text(line[0]),)
+                    (force_str(line[0]),)
                     + line[1:6]
-                    + (field_map[force_text(line[0])][0] == "YES", field_map[force_text(line[0])][1])
+                    + (field_map[force_str(line[0])][0] == "YES", field_map[force_str(line[0])][1])
                 )
             )
             for line in cursor.description

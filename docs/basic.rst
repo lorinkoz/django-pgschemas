@@ -3,9 +3,9 @@ Installation
 
 This app requires:
 
-* Python (3.6+)
-* Django (2.2.x, 3.1.x, 3.2.x)
-* Psycopg2 (2.7+)
+* Python (3.8+)
+* Django (3.1+)
+* Psycopg2 (2.9.3+)
 
 You can install ``django-pgschemas`` via ``pip``, ``poetry`` or any other
 installer.

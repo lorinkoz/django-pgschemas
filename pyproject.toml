@@ -13,11 +13,12 @@ classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 3.1",
     "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-django = ">=3.1,<4.0"
+python = "^3.8"
+django = ">=3.1,<4.1"
 psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]

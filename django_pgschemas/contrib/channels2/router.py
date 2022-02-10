@@ -1,7 +1,7 @@
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 
 from ...schema import SchemaDescriptor
@@ -36,7 +36,7 @@ class TenantProtocolRouter:
         """
         Get tenant and websockets urlconf based on scope host.
         """
-        hostname = force_text(dict(scope["headers"]).get(b"host", b""))
+        hostname = force_str(dict(scope["headers"]).get(b"host", b""))
         hostname = remove_www(hostname.split(":")[0])
 
         tenant = None

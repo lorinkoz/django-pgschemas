@@ -5,5 +5,4 @@ python:
   install:
     - method: pip
       path: .
-    - method: pip
-      path: sphinx-django-command
+    - requirements: docs/requirements.txt

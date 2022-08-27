@@ -166,71 +166,53 @@ class WrappedSchemaOption:
             if clone_reference:
                 schemas_to_return.add(clone_reference)
 
-        for schema in schemas:
-            if schema in settings.TENANTS and schema != "default" and allow_static:
-                schemas_to_return.add(schema)
-            elif schema == clone_reference:
-                schemas_to_return.add(schema)
-            elif dynamic_ready and TenantModel.objects.filter(schema_name=schema).exists() and allow_dynamic:
-                schemas_to_return.add(schema)
-
-        schemas = list(set(schemas) - schemas_to_return)
-
-        for schema in schemas:
-            local = []
-            if allow_static:
-                local += [
-                    schema_name
-                    for schema_name, data in settings.TENANTS.items()
-                    if schema_name not in ["public", "default"]
-                    and any(x for x in data["DOMAINS"] if x.startswith(schema))
-                ]
-            if dynamic_ready and allow_dynamic:
-                local += (
-                    TenantModel.objects.annotate(
-                        route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+        def find_schema_by_reference(reference, as_excluded=False):
+            if reference in settings.TENANTS and reference != "default" and allow_static:
+                return reference
+            elif reference == clone_reference:
+                return reference
+            elif dynamic_ready and TenantModel.objects.filter(schema_name=reference).exists() and allow_dynamic:
+                return reference
+            else:
+                local = []
+                if allow_static:
+                    local += [
+                        schema_name
+                        for schema_name, data in settings.TENANTS.items()
+                        if schema_name not in ["public", "default"]
+                        and any(x for x in data["DOMAINS"] if x.startswith(reference))
+                    ]
+                if dynamic_ready and allow_dynamic:
+                    local += (
+                        TenantModel.objects.annotate(
+                            route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                        )
+                        .filter(
+                            Q(schema_name=reference) | Q(domains__domain__istartswith=reference) | Q(route=reference)
+                        )
+                        .distinct()
+                        .values_list("schema_name", flat=True)
                     )
-                    .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
-                    .distinct()
-                    .values_list("schema_name", flat=True)
-                )
-            if not local:
-                raise CommandError("No schema found for '%s'" % schema)
-            if len(local) > 1:
-                raise CommandError(
-                    "More than one tenant found for schema '%s' by domain, please, narrow down the filter" % schema
-                )
-            schemas_to_return.add(local.pop())
+                if not local:
+                    message = "No schema found for '%s' (excluded)" if as_excluded else "No schema found for '%s'"
+                    raise CommandError(message % reference)
+                if len(local) > 1:
+                    message = (
+                        "More than one tenant found for schema '%s' by domain (excluded), "
+                        "please, narrow down the filter"
+                        if as_excluded
+                        else "More than one tenant found for schema '%s' by domain, please, narrow down the filter"
+                    )
+                    raise CommandError(message % reference)
+                return local[0]
 
-        excluded = []
+        for schema in schemas:
+            included = find_schema_by_reference(schema, as_excluded=False)
+            schemas_to_return.add(included)
+
         for schema in excluded_schemas:
-            local = []
-            if schema in ["public", clone_reference]:
-                excluded.append(schema)
-                continue
-            local += [
-                schema_name
-                for schema_name, data in settings.TENANTS.items()
-                if schema_name not in ["public", "default", clone_reference]
-                and any(x for x in data["DOMAINS"] if x.startswith(schema))
-            ]
-            local += (
-                TenantModel.objects.annotate(
-                    route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
-                )
-                .filter(Q(schema_name=schema) | Q(domains__domain__istartswith=schema) | Q(route=schema))
-                .distinct()
-                .values_list("schema_name", flat=True)
-            )
-            if not local:
-                raise CommandError("No schema found for '%s' (excluded)" % schema)
-            if len(local) > 1:
-                raise CommandError(
-                    "More than one tenant found for schema '%s' by domain (excluded), please, narrow down the filter"
-                    % schema
-                )
-            excluded += local
-        schemas_to_return -= set(excluded)
+            excluded = find_schema_by_reference(schema, as_excluded=True)
+            schemas_to_return -= {excluded}
 
         return (
             list(schemas_to_return)

@@ -1,5 +1,7 @@
 from django.db.models.indexes import Index
 
+from ..schema import get_current_schema
+
 
 def get_constraints(self, cursor, table_name):
     """
@@ -38,7 +40,7 @@ def get_constraints(self, cursor, table_name):
         JOIN pg_namespace AS ns ON cl.relnamespace = ns.oid
         WHERE ns.nspname = %s AND cl.relname = %s
     """,
-        [self.connection._schema.schema_name, table_name],
+        [get_current_schema().schema_name, table_name],
     )
     for constraint, columns, kind, used_cols, options in cursor.fetchall():
         constraints[constraint] = {
@@ -89,7 +91,7 @@ def get_constraints(self, cursor, table_name):
         ) s2
         GROUP BY indexname, indisunique, indisprimary, amname, exprdef, attoptions;
     """,
-        [table_name, self.connection._schema.schema_name],
+        [table_name, get_current_schema().schema_name],
     )
     for index, columns, unique, primary, orders, type_, definition, options in cursor.fetchall():
         if index not in constraints:

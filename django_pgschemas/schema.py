@@ -1,19 +1,28 @@
-from django.db import connection
+from asgiref.local import Local
 
 from .signals import schema_activate
 
+_active = Local()
+
+
+def get_default_schema():
+    return SchemaDescriptor.create("public")
+
 
 def get_current_schema():
-    return connection._schema
+    current_schema = getattr(_active, "value", None)
+    return current_schema or get_default_schema()
 
 
 def activate(schema):
-    connection._set_schema(schema)
+    assert isinstance(schema, SchemaDescriptor), "'set_schema' must be called with a SchemaDescriptor descendant"
+    _active.value = schema
     schema_activate.send(sender=SchemaDescriptor, schema=schema)
 
 
 def deactivate():
-    connection._set_schema_to_public()
+    if hasattr(_active, "value"):
+        del _active.value
     schema_activate.send(sender=SchemaDescriptor, schema=SchemaDescriptor.create("public"))
 
 
@@ -36,7 +45,7 @@ class SchemaDescriptor:
         return tenant
 
     def __enter__(self):
-        self.previous_schema = connection._schema
+        self.previous_schema = get_current_schema()
         activate(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):

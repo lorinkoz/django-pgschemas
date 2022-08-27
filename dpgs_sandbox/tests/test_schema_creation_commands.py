@@ -51,7 +51,7 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
     def setUpClass(cls):
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant, domain="tenant1.test.com", is_primary=True)
+        DomainModel.objects.create(tenant=tenant, domain="tenant1.localhost", is_primary=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -64,7 +64,7 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
             for n in [
                 "y",  # Would you like to create a database entry?
                 "",  # Domain name, simulated wrong answer
-                "tenant2.test.com",  # Domain name, good answer
+                "tenant2.localhost",  # Domain name, good answer
             ]
         )
 

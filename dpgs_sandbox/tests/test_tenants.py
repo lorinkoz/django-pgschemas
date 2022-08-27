@@ -99,17 +99,17 @@ class TenantTestCase(TestCase):
         catalog = Catalog.objects.create()
         Catalog.objects.create()
         with SchemaDescriptor.create(schema_name="www"):
-            user = User.objects.create(email="main@test.com", display_name="Main User")
+            user = User.objects.create(email="main@localhost", display_name="Main User")
             user.set_password("weakpassword")
             user.save()
             MainData.objects.create()
         with SchemaDescriptor.create(schema_name="blog"):
-            user = User.objects.create(email="blog@test.com", display_name="Blog User")
+            user = User.objects.create(email="blog@localhost", display_name="Blog User")
             user.set_password("weakpassword")
             user.save()
             BlogEntry.objects.create(user=user)
         with TenantModel.objects.first():
-            user = User.objects.create(email="tenant@test.com", display_name="Tenant User")
+            user = User.objects.create(email="tenant@localhost", display_name="Tenant User")
             user.set_password("weakpassword")
             user.save()
             TenantData.objects.create(user=user, catalog=catalog)
@@ -196,21 +196,21 @@ class TenantTestCase(TestCase):
 
     def test_cross_authentication(self):
         with SchemaDescriptor.create(schema_name="www"):
-            self.assertTrue(authenticate(email="main@test.com", password="weakpassword"))  # good
-            self.assertFalse(authenticate(email="blog@test.com", password="weakpassword"))  # bad
-            self.assertFalse(authenticate(email="tenant@test.com", password="weakpassword"))  # bad
+            self.assertTrue(authenticate(email="main@localhost", password="weakpassword"))  # good
+            self.assertFalse(authenticate(email="blog@localhost", password="weakpassword"))  # bad
+            self.assertFalse(authenticate(email="tenant@localhost", password="weakpassword"))  # bad
         with SchemaDescriptor.create(schema_name="blog"):
-            self.assertTrue(authenticate(email="blog@test.com", password="weakpassword"))  # good
-            self.assertFalse(authenticate(email="main@test.com", password="weakpassword"))  # bad
-            self.assertFalse(authenticate(email="tenant@test.com", password="weakpassword"))  # bad
+            self.assertTrue(authenticate(email="blog@localhost", password="weakpassword"))  # good
+            self.assertFalse(authenticate(email="main@localhost", password="weakpassword"))  # bad
+            self.assertFalse(authenticate(email="tenant@localhost", password="weakpassword"))  # bad
         with TenantModel.objects.first():
-            self.assertTrue(authenticate(email="tenant@test.com", password="weakpassword"))  # good
-            self.assertFalse(authenticate(email="main@test.com", password="weakpassword"))  # bad
-            self.assertFalse(authenticate(email="blog@test.com", password="weakpassword"))  # bad
+            self.assertTrue(authenticate(email="tenant@localhost", password="weakpassword"))  # good
+            self.assertFalse(authenticate(email="main@localhost", password="weakpassword"))  # bad
+            self.assertFalse(authenticate(email="blog@localhost", password="weakpassword"))  # bad
         # Switching to public schema
         activate_public()
         with self.assertRaises(ProgrammingError):
-            authenticate(email="unexisting@test.com", password="unexisting")  # unexisting, error
+            authenticate(email="unexisting@localhost", password="unexisting")  # unexisting, error
 
 
 class DomainTestCase(TestCase):
@@ -223,8 +223,8 @@ class DomainTestCase(TestCase):
         tenant2 = TenantModel(schema_name="tenant2")
         tenant1.save(verbosity=0)
         tenant2.save(verbosity=0)
-        domain1 = DomainModel.objects.create(domain="tenant1.test.com", tenant=tenant1)
-        DomainModel.objects.create(domain="tenant1-other.test.com", tenant=tenant1, is_primary=False)
+        domain1 = DomainModel.objects.create(domain="tenant1.localhost", tenant=tenant1)
+        DomainModel.objects.create(domain="tenant1-other.localhost", tenant=tenant1, is_primary=False)
         self.assertEqual(tenant1.get_primary_domain(), domain1)
         self.assertEqual(tenant2.get_primary_domain(), None)
         for tenant in TenantModel.objects.all():
@@ -233,29 +233,29 @@ class DomainTestCase(TestCase):
     def test_domain_string(self):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
-        domain1 = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant)
-        domain2 = DomainModel.objects.create(domain="everyone.test.com", folder="tenant", tenant=tenant)
-        self.assertEqual(str(domain1), "tenant.test.com")
-        self.assertEqual(str(domain2), "everyone.test.com/tenant")
+        domain1 = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant)
+        domain2 = DomainModel.objects.create(domain="everyone.localhost", folder="tenant", tenant=tenant)
+        self.assertEqual(str(domain1), "tenant.localhost")
+        self.assertEqual(str(domain2), "everyone.localhost/tenant")
         tenant.delete(force_drop=True)
 
     def test_domain_absolute_url(self):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
-        subdomain = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant)
-        subfolder = DomainModel.objects.create(domain="everyone.test.com", folder="tenant", tenant=tenant)
-        self.assertEqual(subdomain.absolute_url(""), "//tenant.test.com/")
-        self.assertEqual(subdomain.absolute_url("/some/path/"), "//tenant.test.com/some/path/")
-        self.assertEqual(subdomain.absolute_url("some/path"), "//tenant.test.com/some/path")
-        self.assertEqual(subfolder.absolute_url(""), "//everyone.test.com/tenant/")
-        self.assertEqual(subfolder.absolute_url("/some/path/"), "//everyone.test.com/tenant/some/path/")
-        self.assertEqual(subfolder.absolute_url("some/path"), "//everyone.test.com/tenant/some/path")
+        subdomain = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant)
+        subfolder = DomainModel.objects.create(domain="everyone.localhost", folder="tenant", tenant=tenant)
+        self.assertEqual(subdomain.absolute_url(""), "//tenant.localhost/")
+        self.assertEqual(subdomain.absolute_url("/some/path/"), "//tenant.localhost/some/path/")
+        self.assertEqual(subdomain.absolute_url("some/path"), "//tenant.localhost/some/path")
+        self.assertEqual(subfolder.absolute_url(""), "//everyone.localhost/tenant/")
+        self.assertEqual(subfolder.absolute_url("/some/path/"), "//everyone.localhost/tenant/some/path/")
+        self.assertEqual(subfolder.absolute_url("some/path"), "//everyone.localhost/tenant/some/path")
         tenant.delete(force_drop=True)
 
     def test_domain_redirect_save(self):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
-        domain = DomainModel.objects.create(domain="tenant.test.com", tenant=tenant, redirect_to_primary=True)
+        domain = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant, redirect_to_primary=True)
         self.assertTrue(domain.is_primary)
         self.assertFalse(domain.redirect_to_primary)
         tenant.delete(force_drop=True)

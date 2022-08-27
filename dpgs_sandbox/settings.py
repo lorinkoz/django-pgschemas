@@ -25,7 +25,7 @@ SECRET_KEY = "asd#$#ae)^gegm6m9omvic^ct@*@bkf!0afe*+4h$5-zmf^h&$u4(1vr"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [".test.com"]
+ALLOWED_HOSTS = [".localhost"]
 
 TENANTS = {
     "public": {
@@ -35,13 +35,13 @@ TENANTS = {
         "APPS": ["shared_common", "app_main", "django.contrib.sessions"],
         "URLCONF": "app_main.urls",
         "WS_URLCONF": "app_main.ws_urls",
-        "DOMAINS": ["test.com"],
-        "FALLBACK_DOMAINS": ["everyone.test.com"],
+        "DOMAINS": ["localhost"],
+        "FALLBACK_DOMAINS": ["everyone.localhost"],
     },
     "blog": {
         "APPS": ["shared_common", "app_blog", "django.contrib.sessions"],
         "URLCONF": "app_blog.urls",
-        "DOMAINS": ["blog.test.com"],
+        "DOMAINS": ["blog.localhost"],
     },
     "default": {
         "TENANT_MODEL": "shared_public.Tenant",

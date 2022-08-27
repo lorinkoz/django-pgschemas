@@ -5,7 +5,7 @@ from django.test import TestCase
 from ..schema import SchemaDescriptor, activate, activate_public
 from ..utils import get_clone_reference, get_domain_model, get_tenant_model
 
-ALLOWED_TEST_DOMAIN = ".test.com"
+ALLOWED_TEST_DOMAIN = ".localhost"
 
 
 class BaseTenantTestCaseMixin:
@@ -119,7 +119,7 @@ class DynamicTenantTestCase(BaseTenantTestCaseMixin, TestCase):
 
     @classmethod
     def get_test_tenant_domain(cls):
-        return "tenant.test.com"
+        return "tenant.localhost"
 
     @classmethod
     def get_test_schema_name(cls):

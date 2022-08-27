@@ -20,12 +20,12 @@ class TenantCommandsTestCase(TestCase):
     def setUpClass(cls):
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant1, domain="tenant1.test.com", is_primary=True)
-        DomainModel.objects.create(tenant=tenant1, domain="everyone.test.com", folder="tenant1", is_primary=False)
+        DomainModel.objects.create(tenant=tenant1, domain="tenant1.localhost", is_primary=True)
+        DomainModel.objects.create(tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=False)
         tenant2 = TenantModel(schema_name="tenant2")
         tenant2.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant2, domain="tenant2.test.com", is_primary=True)
-        DomainModel.objects.create(tenant=tenant2, domain="everyone.test.com", folder="tenant2", is_primary=False)
+        DomainModel.objects.create(tenant=tenant2, domain="tenant2.localhost", is_primary=True)
+        DomainModel.objects.create(tenant=tenant2, domain="everyone.localhost", folder="tenant2", is_primary=False)
 
     @classmethod
     def tearDownClass(cls):
@@ -154,9 +154,9 @@ class TenantCommandsTestCase(TestCase):
             verbosity=0,
         )
         management.call_command("whowill", all_schemas=True, excluded_schemas=["public", "sample"], verbosity=0)
-        management.call_command("whowill", schemas=["everyone.test.com/tenant1"], verbosity=0)
+        management.call_command("whowill", schemas=["everyone.localhost/tenant1"], verbosity=0)
         management.call_command("whowill", schemas=["tenant1"], verbosity=0)
         management.call_command(
-            "whowill", all_schemas=True, excluded_schemas=["everyone.test.com/tenant1"], verbosity=0
+            "whowill", all_schemas=True, excluded_schemas=["everyone.localhost/tenant1"], verbosity=0
         )
         management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)

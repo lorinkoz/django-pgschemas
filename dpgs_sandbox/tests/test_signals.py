@@ -16,7 +16,7 @@ class SignalTestCase(TestCase):
         response = {}
         params = {
             "schema_name": "test",
-            "domain_url": "test.com",
+            "domain_url": "localhost",
             "folder": "folder",
         }
 

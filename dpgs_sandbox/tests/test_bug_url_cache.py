@@ -22,12 +22,12 @@ class CachedTenantSubfolderBugTestCase(TestCase):
         tenant1.save(verbosity=0)
         tenant2 = TenantModel(schema_name="tenant2")
         tenant2.save(verbosity=0)
-        DomainModel.objects.create(tenant=tenant1, domain="everyone.test.com", folder="tenant1", is_primary=True)
-        DomainModel.objects.create(tenant=tenant2, domain="everyone.test.com", folder="tenant2", is_primary=True)
+        DomainModel.objects.create(tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=True)
+        DomainModel.objects.create(tenant=tenant2, domain="everyone.localhost", folder="tenant2", is_primary=True)
         with tenant1:
-            cls.user1 = User.objects.create(email="user1@test.com", display_name="Admin")
+            cls.user1 = User.objects.create(email="user1@localhost", display_name="Admin")
         with tenant2:
-            cls.user2 = User.objects.create(email="user2@test.com", display_name="Admin")
+            cls.user2 = User.objects.create(email="user2@localhost", display_name="Admin")
         cls.client1 = TenantClient(tenant1)
         cls.client2 = TenantClient(tenant2)
 

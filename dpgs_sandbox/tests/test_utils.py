@@ -57,9 +57,9 @@ class UtilsTestCase(TestCase):
                 utils.check_schema_name(schema_name)
 
     def test_remove_www(self):
-        self.assertEqual(utils.remove_www("test.com"), "test.com")
-        self.assertEqual(utils.remove_www("www.test.com"), "test.com")
-        self.assertEqual(utils.remove_www("wwwtest.com"), "wwwtest.com")
+        self.assertEqual(utils.remove_www("localhost"), "localhost")
+        self.assertEqual(utils.remove_www("www.localhost"), "localhost")
+        self.assertEqual(utils.remove_www("wwwlocalhost"), "wwwlocalhost")
         self.assertEqual(utils.remove_www("www."), "")
 
     def test_run_in_public_schema(self):

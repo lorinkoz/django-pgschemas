@@ -67,7 +67,7 @@ class TestStaticTenantTestCase(StaticTenantTestCase):
     def test_correct_set_up(self):
         self.assertTrue(self.tenant)
         self.assertEqual(self.tenant.schema_name, "blog")
-        self.assertEqual(self.tenant.domain_url, "blog.test.com")
+        self.assertEqual(self.tenant.domain_url, "blog.localhost")
 
     def test_random_operation1(self):
         BlogEntry.objects.create(user=self.user)

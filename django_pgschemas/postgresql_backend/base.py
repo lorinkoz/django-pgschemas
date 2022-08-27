@@ -65,9 +65,9 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             try:
                 cursor_for_search_path.execute(f"SET search_path = {search_path_for_current_schema}")
             except (DatabaseError, psycopg2.InternalError):
-                self._search_path = search_path_for_current_schema
-            else:
                 self._search_path = None
+            else:
+                self._search_path = search_path_for_current_schema
             if name:
                 cursor_for_search_path.close()
         return cursor

@@ -1,9 +1,10 @@
 from django.http import HttpResponse
 from django.urls import path
-from django.views.generic import TemplateView
+
+from dpgs_sandbox.views import generic
 
 urlpatterns = [
-    path("", TemplateView.as_view(), name="main-home"),
-    path("register/", TemplateView.as_view(), name="register"),
+    path("", generic, name="main-home"),
+    path("register/", generic, name="register"),
     path("ping/", lambda request: HttpResponse(), name="ping"),
 ]

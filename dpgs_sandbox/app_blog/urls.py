@@ -1,7 +1,8 @@
 from django.urls import path
-from django.views.generic import TemplateView
+
+from dpgs_sandbox.views import generic
 
 urlpatterns = [
-    path("", TemplateView.as_view(), name="blog-home"),
-    path("entries/", TemplateView.as_view(), name="entries"),
+    path("", generic, name="blog-home"),
+    path("entries/", generic, name="entries"),
 ]

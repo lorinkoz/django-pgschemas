@@ -60,25 +60,19 @@ This table should help you make an informed decision on which one to choose.
      - Features
    * - `django-tenant-schemas`_
      - Original project.
-       Active and maintained by `@goodtune`_.
    * - `django-tenants`_
-     - Active and maintained by `@tomturner`_.
-       Built on top of `django-tenant-schemas`_.
+     - Built on top of `django-tenant-schemas`_.
        Uses a ``Domain`` model for allowing multiple domains per tenant.
        Allows for parallel migrations with custom migration executor.
        Other multiple improvements.
    * - `django-pgschemas`_
-     - Active and maintained by `@lorinkoz`_.
-       Built on top of `django-tenants`_.
+     - Built on top of `django-tenants`_.
        Different philosphy for tenants.
        Other improvements listed above.
 
 .. _django-tenants-schemas: https://github.com/bernardopires/django-tenant-schemas
-.. _@goodtune: https://github.com/goodtune
 .. _django-tenants: https://github.com/tomturner/django-tenants
-.. _@tomturner: https://github.com/tomturner
 .. _django-pgschemas: https://github.com/lorinkoz/django-pgschemas
-.. _@lorinkoz: https://github.com/lorinkoz
 
 Documentation
 -------------

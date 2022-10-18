@@ -82,6 +82,11 @@ https://django-pgschemas.readthedocs.io/
 Breaking changes
 ----------------
 
+v0.11.0
++++++++
+
+- [INTERNAL] Now storing active schema in ``asgiref.local`` instead of the connection object.
+
 v0.9.0
 ++++++
 

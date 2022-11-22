@@ -5,16 +5,16 @@ from .signals import schema_activate
 _active = Local()
 
 
-def get_default_schema():
+def get_default_schema() -> "Schema":
     return Schema.create("public")
 
 
-def get_current_schema():
+def get_current_schema() -> "Schema":
     current_schema = getattr(_active, "value", None)
     return current_schema or get_default_schema()
 
 
-def activate(schema):
+def activate(schema: "Schema"):
     if not isinstance(schema, Schema):
         raise RuntimeError("'activate' must be called with a Schema descendant")
 
@@ -41,7 +41,7 @@ class Schema:
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name, domain_url=None, folder=None):
+    def create(schema_name: str, domain_url: str | None = None, folder: str | None = None):
         schema = Schema()
         schema.schema_name = schema_name
         schema.domain_url = domain_url

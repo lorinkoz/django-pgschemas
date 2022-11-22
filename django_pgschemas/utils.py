@@ -6,43 +6,44 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
+from django.db.models import Model
 
 
-def get_tenant_model(require_ready=True):
+def get_tenant_model(require_ready: bool = True) -> Model:
     "Returns the tenant model."
     return apps.get_model(settings.TENANTS["default"]["TENANT_MODEL"], require_ready=require_ready)
 
 
-def get_domain_model(require_ready=True):
+def get_domain_model(require_ready: bool = True) -> Model:
     "Returns the domain model."
     return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
 
 
-def get_tenant_database_alias():
+def get_tenant_database_alias() -> str:
     return getattr(settings, "PGSCHEMAS_TENANT_DB_ALIAS", DEFAULT_DB_ALIAS)
 
 
-def get_limit_set_calls():
+def get_limit_set_calls() -> bool:
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
 
-def get_clone_reference():
+def get_clone_reference() -> str | None:
     return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
 
 
-def is_valid_identifier(identifier):
+def is_valid_identifier(identifier: str) -> bool:
     "Checks the validity of identifier."
     SQL_IDENTIFIER_RE = re.compile(r"^[_a-zA-Z][_a-zA-Z0-9]{,62}$")
     return bool(SQL_IDENTIFIER_RE.match(identifier))
 
 
-def is_valid_schema_name(name):
+def is_valid_schema_name(name: str) -> bool:
     "Checks the validity of a schema name."
     SQL_SCHEMA_NAME_RESERVED_RE = re.compile(r"^pg_", re.IGNORECASE)
     return is_valid_identifier(name) and not SQL_SCHEMA_NAME_RESERVED_RE.match(name)
 
 
-def check_schema_name(name):
+def check_schema_name(name: str):
     """
     Checks schema name and raises ``ValidationError`` if ``name`` is not a
     valid identifier.
@@ -51,7 +52,7 @@ def check_schema_name(name):
         raise ValidationError("Invalid string used for the schema name.")
 
 
-def remove_www(hostname):
+def remove_www(hostname: str) -> str:
     """
     Removes ``www``. from the beginning of the address. Only for
     routing purposes. ``www.test.com/login/`` and ``test.com/login/`` should
@@ -62,7 +63,7 @@ def remove_www(hostname):
     return hostname
 
 
-def django_is_in_test_mode():
+def django_is_in_test_mode() -> bool:
     """
     I know this is very ugly! I'm looking for more elegant solutions.
     See: http://stackoverflow.com/questions/6957016/detect-django-testing-mode
@@ -84,7 +85,7 @@ def run_in_public_schema(func):
     return wrapper
 
 
-def schema_exists(schema_name):
+def schema_exists(schema_name: str) -> bool:
     "Checks if a schema exists in database."
     sql = """
     SELECT EXISTS(
@@ -105,7 +106,7 @@ def schema_exists(schema_name):
 
 
 @run_in_public_schema
-def dynamic_models_exist():
+def dynamic_models_exist() -> bool:
     "Checks if tenant model and domain model have been synced."
     sql = """
     SELECT count(*)
@@ -121,7 +122,12 @@ def dynamic_models_exist():
 
 
 @run_in_public_schema
-def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosity=1):
+def create_schema(
+    schema_name: str,
+    check_if_exists: bool = False,
+    sync_schema: bool = True,
+    verbosity: int = 1,
+) -> bool:
     """
     Creates the schema ``schema_name``. Optionally checks if the schema already
     exists before creating it. Returns ``True`` if the schema was created,
@@ -139,7 +145,7 @@ def create_schema(schema_name, check_if_exists=False, sync_schema=True, verbosit
 
 
 @run_in_public_schema
-def drop_schema(schema_name, check_if_exists=True, verbosity=1):
+def drop_schema(schema_name: str, check_if_exists: bool = True, verbosity: int = 1) -> bool:
     """
     Drops the schema. Optionally checks if the schema already exists before
     dropping it.
@@ -175,7 +181,7 @@ def _create_clone_schema_function():
 
 
 @run_in_public_schema
-def clone_schema(base_schema_name, new_schema_name, dry_run=False):
+def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = False):
     """
     Creates a new schema ``new_schema_name`` as a clone of an existing schema
     ``base_schema_name``.
@@ -200,7 +206,7 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
         cursor.close()
 
 
-def create_or_clone_schema(schema_name, sync_schema=True, verbosity=1):
+def create_or_clone_schema(schema_name: str, sync_schema: bool = True, verbosity: int = 1) -> bool:
     """
     Creates the schema ``schema_name``. Optionally checks if the schema already
     exists before creating it. Returns ``True`` if the schema was created,

@@ -670,21 +670,6 @@ files = [
 flake8 = ">=3.0,<3.2.0 || >3.2.0"
 
 [[package]]
-name = "flake8-no-types"
-version = "1.5.1"
-description = "A flake8 plugin to ban type hints."
-category = "dev"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "flake8-no-types-1.5.1.tar.gz", hash = "sha256:bced358eba1400a08042aaae8b760fb5c4e12847786eb528d3fb51accbbaf422"},
-    {file = "flake8_no_types-1.5.1-py3-none-any.whl", hash = "sha256:5b09293dcc32c73808fbdba858f44875dd79dbbd8b392e95a6985a6feb50354b"},
-]
-
-[package.dependencies]
-flake8 = ">=3.0,<3.2.0 || >3.2.0"
-
-[[package]]
 name = "flake8-tidy-imports"
 version = "4.9.0"
 description = "A flake8 plugin that helps you write tidier imports."
@@ -1479,4 +1464,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1"
-content-hash = "2713d146c0611f3b91c2b08f73454bfc240483691a753974d0eda61203a87de8"
+content-hash = "0d855005225cb91737c9242de8175b25a375646ce781510d7ae802bf46937f4f"

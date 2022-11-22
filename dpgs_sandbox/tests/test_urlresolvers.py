@@ -5,7 +5,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from django_pgschemas.middleware import TenantMiddleware
-from django_pgschemas.schema import SchemaDescriptor, activate_public
+from django_pgschemas.schema import Schema, activate_public
 from django_pgschemas.urlresolvers import TenantPrefixPattern, get_urlconf_from_schema
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -69,7 +69,7 @@ class URLResolversTestCase(TestCase):
             tenant.folder = ""  # This should be set by middleware
             with tenant:
                 self.assertEqual(tpp.tenant_prefix, "/")
-        with SchemaDescriptor.create(schema_name="tenant1", domain_url="unexisting-domain.localhost"):
+        with Schema.create(schema_name="tenant1", domain_url="unexisting-domain.localhost"):
             self.assertEqual(tpp.tenant_prefix, "/")
 
     def test_unprefixed_reverse(self):
@@ -107,22 +107,22 @@ class URLConfFactoryTestCase(TestCase):
             tenant.delete(force_drop=True)
 
     def test_public(self):
-        schema = SchemaDescriptor.create(schema_name="public")
+        schema = Schema.create(schema_name="public")
         urlconf = get_urlconf_from_schema(schema)
         self.assertEqual(urlconf, None)
 
     def test_sample(self):
-        schema = SchemaDescriptor.create(schema_name="sample")
+        schema = Schema.create(schema_name="sample")
         urlconf = get_urlconf_from_schema(schema)
         self.assertEqual(urlconf, None)
 
     def test_www(self):
-        schema = SchemaDescriptor.create(schema_name="www", domain_url="localhost")
+        schema = Schema.create(schema_name="www", domain_url="localhost")
         urlconf = get_urlconf_from_schema(schema)
         self.assertEqual(urlconf, "app_main.urls")
 
     def test_blog(self):
-        schema = SchemaDescriptor.create(schema_name="blog", domain_url="blog.localhost")
+        schema = Schema.create(schema_name="blog", domain_url="blog.localhost")
         urlconf = get_urlconf_from_schema(schema)
         self.assertEqual(urlconf, "app_blog.urls")
 

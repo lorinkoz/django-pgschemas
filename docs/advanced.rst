@@ -241,7 +241,7 @@ The base commands are:
 
     Since these commands can work with both static and dynamic tenants, the
     parameter ``tenant`` will be an instance of
-    ``django_pgschemas.schema.SchemaDescriptor``. Make sure you do the
+    ``django_pgschemas.schema.Schema``. Make sure you do the
     appropriate type checking before accessing the tenant members, as not every
     tenant will be an instance of
     ``settings.TENANTS["default"]["TENANT_MODEL"]``.

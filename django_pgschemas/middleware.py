@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
 
-from .schema import SchemaDescriptor, activate, activate_public
+from .schema import Schema, activate, activate_public
 from .urlresolvers import get_urlconf_from_schema
 from .utils import get_domain_model, remove_www
 
@@ -33,7 +33,7 @@ class TenantMiddleware:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
+                tenant = Schema.create(schema_name=schema, domain_url=hostname)
                 break
 
         # Checking for dynamic tenants
@@ -67,7 +67,7 @@ class TenantMiddleware:
                 if schema in ["public", "default"]:
                     continue
                 if hostname in data.get("FALLBACK_DOMAINS", []):
-                    tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
+                    tenant = Schema.create(schema_name=schema, domain_url=hostname)
                     break
 
         # No tenant found from domain / folder

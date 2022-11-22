@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={"abstract": False},
-            bases=(django_pgschemas.schema.SchemaDescriptor, models.Model),
+            bases=(django_pgschemas.schema.Schema, models.Model),
         ),
         migrations.AddField(
             model_name="domain",

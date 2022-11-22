@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.db import ProgrammingError, transaction
 from django.test import TestCase
 
-from django_pgschemas.schema import SchemaDescriptor, activate_public
+from django_pgschemas.schema import Schema, activate_public
 from django_pgschemas.signals import dynamic_tenant_post_sync
 from django_pgschemas.utils import drop_schema, get_domain_model, get_tenant_model, schema_exists
 
@@ -98,12 +98,12 @@ class TenantTestCase(TestCase):
         tenant.save(verbosity=0)
         catalog = Catalog.objects.create()
         Catalog.objects.create()
-        with SchemaDescriptor.create(schema_name="www"):
+        with Schema.create(schema_name="www"):
             user = User.objects.create(email="main@localhost", display_name="Main User")
             user.set_password("weakpassword")
             user.save()
             MainData.objects.create()
-        with SchemaDescriptor.create(schema_name="blog"):
+        with Schema.create(schema_name="blog"):
             user = User.objects.create(email="blog@localhost", display_name="Blog User")
             user.set_password("weakpassword")
             user.save()
@@ -151,7 +151,7 @@ class TenantTestCase(TestCase):
             list(TenantData.objects.all())
 
     def test_synced_main_apps(self):
-        with SchemaDescriptor.create(schema_name="www"):
+        with Schema.create(schema_name="www"):
             # Expected synced apps
             self.assertEqual(2, Catalog.objects.count())
             self.assertEqual(1, MainData.objects.count())
@@ -163,7 +163,7 @@ class TenantTestCase(TestCase):
                 list(TenantData.objects.all())
 
     def test_synced_blog_apps(self):
-        with SchemaDescriptor.create(schema_name="blog"):
+        with Schema.create(schema_name="blog"):
             # Expected synced apps
             self.assertEqual(2, Catalog.objects.count())
             self.assertEqual(1, BlogEntry.objects.count())
@@ -195,11 +195,11 @@ class TenantTestCase(TestCase):
                 list(BlogEntry.objects.all())
 
     def test_cross_authentication(self):
-        with SchemaDescriptor.create(schema_name="www"):
+        with Schema.create(schema_name="www"):
             self.assertTrue(authenticate(email="main@localhost", password="weakpassword"))  # good
             self.assertFalse(authenticate(email="blog@localhost", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="tenant@localhost", password="weakpassword"))  # bad
-        with SchemaDescriptor.create(schema_name="blog"):
+        with Schema.create(schema_name="blog"):
             self.assertTrue(authenticate(email="blog@localhost", password="weakpassword"))  # good
             self.assertFalse(authenticate(email="main@localhost", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="tenant@localhost", password="weakpassword"))  # bad

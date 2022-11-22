@@ -4,7 +4,7 @@ import sys
 from django.conf import settings
 from django.urls import URLResolver
 
-from .schema import SchemaDescriptor, get_current_schema
+from .schema import Schema, get_current_schema
 
 
 class TenantPrefixPattern:
@@ -67,7 +67,8 @@ def get_urlconf_from_schema(schema):
     Returns the proper URLConf depending on the schema.
     The schema must come with ``domain_url`` and ``folder`` members set.
     """
-    assert isinstance(schema, SchemaDescriptor)
+    if not isinstance(schema, Schema):
+        raise RuntimeError("'get_urlconf_from_schema' must be called with a Schema descendant")
 
     if not schema.domain_url:
         return None

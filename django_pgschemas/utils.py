@@ -76,9 +76,9 @@ def run_in_public_schema(func):
     "Decorator that makes decorated function to be run in the public schema."
 
     def wrapper(*args, **kwargs):
-        from .schema import SchemaDescriptor
+        from .schema import Schema
 
-        with SchemaDescriptor.create(schema_name="public"):
+        with Schema.create(schema_name="public"):
             return func(*args, **kwargs)
 
     return wrapper

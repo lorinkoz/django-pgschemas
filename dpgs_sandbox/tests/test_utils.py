@@ -70,7 +70,7 @@ class UtilsTestCase(TestCase):
             self.assertEqual(cursor.fetchone(), ("public",))
             cursor.close()
 
-        with schema.SchemaDescriptor.create(schema_name="test"):
+        with schema.Schema.create(schema_name="test"):
             inner()
             cursor = connection.cursor()
             cursor.execute("SHOW search_path")

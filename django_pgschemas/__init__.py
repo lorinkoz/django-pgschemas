@@ -1,5 +1,5 @@
 from .schema import (
-    SchemaDescriptor,
+    Schema,
     activate,
     activate_public,
     deactivate,
@@ -7,7 +7,7 @@ from .schema import (
 )
 
 __all__ = [
-    "SchemaDescriptor",
+    "Schema",
     "activate",
     "activate_public",
     "deactivate",

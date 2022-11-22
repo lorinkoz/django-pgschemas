@@ -18,12 +18,7 @@ class TenantMiddlewareTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-
-        def fake_get_response(request):
-            return request
-
         cls.factory = RequestFactory()
-        cls.middleware = TenantMiddleware(fake_get_response)
         tenant1 = TenantModel(schema_name="tenant1")
         tenant2 = TenantModel(schema_name="tenant2")
         tenant1.auto_create_schema = tenant2.auto_create_schema = False
@@ -34,6 +29,12 @@ class TenantMiddlewareTestCase(TestCase):
         DomainModel(domain="tenant2.localhost", tenant=tenant2).save()
         DomainModel(domain="everyone.localhost", folder="tenant2", tenant=tenant2).save()
         DomainModel(domain="special.localhost", folder="tenant2", tenant=tenant2).save()
+
+    def middleware(self, request):
+        def fake_get_response(request):
+            return request
+
+        return TenantMiddleware(fake_get_response)(request)
 
     def test_static_tenants_www(self):
         request = self.factory.get("/", HTTP_HOST="www.localhost")

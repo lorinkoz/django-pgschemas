@@ -10,19 +10,13 @@ from .urlresolvers import get_urlconf_from_schema
 from .utils import get_domain_model, remove_www
 
 
-class TenantMiddleware:
+def TenantMiddleware(get_response):
     """
     This middleware should be placed at the very top of the middleware stack.
-    Selects the proper static/dynamic schema using the request host. Can fail in
-    various ways which is better than corrupting or revealing data.
+    Selects the proper static/dynamic tenant using the request host.
     """
 
-    TENANT_NOT_FOUND_EXCEPTION = Http404
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
+    def middleware(request):
         hostname = remove_www(request.get_host().split(":")[0])
 
         activate_public()
@@ -72,7 +66,7 @@ class TenantMiddleware:
 
         # No tenant found from domain / folder
         if not tenant:
-            raise self.TENANT_NOT_FOUND_EXCEPTION("No tenant for hostname '%s'" % hostname)
+            raise Http404("No tenant for hostname '%s'" % hostname)
 
         request.tenant = tenant
         urlconf = get_urlconf_from_schema(tenant)
@@ -80,4 +74,6 @@ class TenantMiddleware:
         set_urlconf(urlconf)
 
         activate(tenant)
-        return self.get_response(request)
+        return get_response(request)
+
+    return middleware

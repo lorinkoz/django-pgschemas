@@ -14,11 +14,8 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        def fake_get_response(request):
-            return request
 
         cls.factory = RequestFactory()
-        cls.middleware = TenantMiddleware(fake_get_response)
         tenant1 = TenantModel(schema_name="tenant1")
         tenant2 = TenantModel(schema_name="tenant2")
         tenant1.auto_create_schema = tenant2.auto_create_schema = False
@@ -48,6 +45,12 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
             is_primary=False,
             redirect_to_primary=True,
         ).save()
+
+    def middleware(self, request):
+        def fake_get_response(request):
+            return request
+
+        return TenantMiddleware(fake_get_response)(request)
 
     def test_domain_redirect_to_primary_domain(self):
         request = self.factory.get("/some/random/url/", HTTP_HOST="tenant1redirect.localhost")

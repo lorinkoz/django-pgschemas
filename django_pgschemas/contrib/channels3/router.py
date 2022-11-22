@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 
-from ...schema import SchemaDescriptor
+from ...schema import Schema
 from ...utils import get_domain_model, remove_www
 from .auth import TenantAuthMiddlewareStack
 
@@ -49,7 +49,7 @@ class TenantProtocolRouter:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = SchemaDescriptor.create(schema_name=schema, domain_url=hostname)
+                tenant = Schema.create(schema_name=schema, domain_url=hostname)
                 if "WS_URLCONF" in data:
                     ws_urlconf = data["WS_URLCONF"]
                 return tenant, "", import_string(ws_urlconf + ".urlpatterns")

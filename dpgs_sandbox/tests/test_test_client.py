@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from django_pgschemas.schema import SchemaDescriptor
+from django_pgschemas.schema import Schema
 from django_pgschemas.test.client import TenantClient, TenantRequestFactory
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -91,7 +91,7 @@ class StaticTenantClientTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        tenant = SchemaDescriptor.create(schema_name="tenant1", domain_url="everyone.localhost")
+        tenant = Schema.create(schema_name="tenant1", domain_url="everyone.localhost")
         cls.tenant_client = TenantClient(tenant)
 
     @classmethod

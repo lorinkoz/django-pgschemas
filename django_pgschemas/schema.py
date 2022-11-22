@@ -6,7 +6,7 @@ _active = Local()
 
 
 def get_default_schema():
-    return SchemaDescriptor.create("public")
+    return Schema.create("public")
 
 
 def get_current_schema():
@@ -15,21 +15,25 @@ def get_current_schema():
 
 
 def activate(schema):
-    assert isinstance(schema, SchemaDescriptor), "'set_schema' must be called with a SchemaDescriptor descendant"
+    if not isinstance(schema, Schema):
+        raise RuntimeError("'activate' must be called with a Schema descendant")
+
     _active.value = schema
-    schema_activate.send(sender=SchemaDescriptor, schema=schema)
+
+    schema_activate.send(sender=Schema, schema=schema)
 
 
 def deactivate():
     if hasattr(_active, "value"):
         del _active.value
-    schema_activate.send(sender=SchemaDescriptor, schema=SchemaDescriptor.create("public"))
+
+    schema_activate.send(sender=Schema, schema=Schema.create("public"))
 
 
 activate_public = deactivate
 
 
-class SchemaDescriptor:
+class Schema:
     schema_name = None
     domain_url = None
     folder = None
@@ -38,16 +42,16 @@ class SchemaDescriptor:
 
     @staticmethod
     def create(schema_name, domain_url=None, folder=None):
-        tenant = SchemaDescriptor()
-        tenant.schema_name = schema_name
-        tenant.domain_url = domain_url
-        tenant.folder = folder
-        return tenant
+        schema = Schema()
+        schema.schema_name = schema_name
+        schema.domain_url = domain_url
+        schema.folder = folder
+        return schema
 
     def __enter__(self):
-        self.previous_schema = get_current_schema()
+        self._previous_schema = get_current_schema()
         activate(self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        previous_schema = getattr(self, "previous_schema", None)
-        activate(previous_schema) if previous_schema else deactivate()
+        _previous_schema = getattr(self, "_previous_schema", None)
+        activate(_previous_schema) if _previous_schema else deactivate()

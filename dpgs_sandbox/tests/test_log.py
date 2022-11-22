@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from django_pgschemas.log import SchemaContextFilter
-from django_pgschemas.schema import SchemaDescriptor
+from django_pgschemas.schema import Schema
 
 
 class SchemaContextFilterTestCase(TestCase):
@@ -15,7 +15,7 @@ class SchemaContextFilterTestCase(TestCase):
 
         record = FakeRecord()
         scf = SchemaContextFilter()
-        with SchemaDescriptor.create(schema_name="some-tenant", domain_url="some-tenant.some-url.com"):
+        with Schema.create(schema_name="some-tenant", domain_url="some-tenant.some-url.com"):
             scf.filter(record)
         self.assertEqual(record.schema_name, "some-tenant")
         self.assertEqual(record.domain_url, "some-tenant.some-url.com")

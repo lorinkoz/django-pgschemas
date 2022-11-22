@@ -329,17 +329,6 @@ python-versions = ">=3.7"
 flake8 = ">=3.0,<3.2.0 || >3.2.0"
 
 [[package]]
-name = "flake8-no-types"
-version = "1.5.1"
-description = "A flake8 plugin to ban type hints."
-category = "dev"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-flake8 = ">=3.0,<3.2.0 || >3.2.0"
-
-[[package]]
 name = "flake8-tidy-imports"
 version = "4.8.0"
 description = "A flake8 plugin that helps you write tidier imports."
@@ -853,7 +842,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "0ea7d326bd9cbd8ecc2a6d0f19705934b5cf533392d011ab8c57aa4c8d96c56e"
+content-hash = "8abffc61f040a889f004cd92bb862105415dcdbe15fd4a4b967f8c6ff5941499"
 
 [metadata.files]
 alabaster = [
@@ -1112,10 +1101,6 @@ flake8-bugbear = [
 flake8-comprehensions = [
     {file = "flake8-comprehensions-3.10.1.tar.gz", hash = "sha256:412052ac4a947f36b891143430fef4859705af11b2572fbb689f90d372cf26ab"},
     {file = "flake8_comprehensions-3.10.1-py3-none-any.whl", hash = "sha256:d763de3c74bc18a79c039a7ec732e0a1985b0c79309ceb51e56401ad0a2cd44e"},
-]
-flake8-no-types = [
-    {file = "flake8-no-types-1.5.1.tar.gz", hash = "sha256:bced358eba1400a08042aaae8b760fb5c4e12847786eb528d3fb51accbbaf422"},
-    {file = "flake8_no_types-1.5.1-py3-none-any.whl", hash = "sha256:5b09293dcc32c73808fbdba858f44875dd79dbbd8b392e95a6985a6feb50354b"},
 ]
 flake8-tidy-imports = [
     {file = "flake8-tidy-imports-4.8.0.tar.gz", hash = "sha256:df44f9c841b5dfb3a7a1f0da8546b319d772c2a816a1afefcce43e167a593d83"},

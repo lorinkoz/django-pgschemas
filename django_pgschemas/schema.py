@@ -5,17 +5,19 @@ from .signals import schema_activate
 _active = Local()
 
 
-def get_default_schema():
+def get_default_schema() -> "SchemaDescriptor":
     return SchemaDescriptor.create("public")
 
 
-def get_current_schema():
+def get_current_schema() -> "SchemaDescriptor":
     current_schema = getattr(_active, "value", None)
     return current_schema or get_default_schema()
 
 
-def activate(schema):
-    assert isinstance(schema, SchemaDescriptor), "'set_schema' must be called with a SchemaDescriptor descendant"
+def activate(schema: "SchemaDescriptor"):
+    if not isinstance(schema, SchemaDescriptor):
+        raise RuntimeError("'activate' must be called with a SchemaDescriptor descendant")
+
     _active.value = schema
     schema_activate.send(sender=SchemaDescriptor, schema=schema)
 
@@ -37,12 +39,12 @@ class SchemaDescriptor:
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name, domain_url=None, folder=None):
-        tenant = SchemaDescriptor()
-        tenant.schema_name = schema_name
-        tenant.domain_url = domain_url
-        tenant.folder = folder
-        return tenant
+    def create(schema_name: str, domain_url: str | None = None, folder: str | None = None):
+        schema = SchemaDescriptor()
+        schema.schema_name = schema_name
+        schema.domain_url = domain_url
+        schema.folder = folder
+        return schema
 
     def __enter__(self):
         self.previous_schema = get_current_schema()

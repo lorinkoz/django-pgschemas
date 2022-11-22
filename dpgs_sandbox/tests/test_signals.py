@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from django_pgschemas.schema import SchemaDescriptor, activate
+from django_pgschemas.schema import Schema, activate
 from django_pgschemas.signals import schema_activate
 from django_pgschemas.utils import get_tenant_model, schema_exists
 
@@ -24,7 +24,7 @@ class SignalTestCase(TestCase):
             response["value"] = schema
 
         schema_activate.connect(receiver)
-        activate(SchemaDescriptor.create(**params))
+        activate(Schema.create(**params))
         schema_activate.disconnect(receiver)
         for key, value in params.items():
             self.assertEqual(value, getattr(response["value"], key))

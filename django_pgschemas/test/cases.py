@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from ..schema import SchemaDescriptor, activate, activate_public
+from ..schema import Schema, activate, activate_public
 from ..utils import get_clone_reference, get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".localhost"
@@ -50,7 +50,7 @@ class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
             if settings.TENANTS[cls.schema_name]["DOMAINS"]
             else cls.schema_name + ALLOWED_TEST_DOMAIN
         )
-        cls.tenant = SchemaDescriptor.create(schema_name=cls.schema_name, domain_url=domain)
+        cls.tenant = Schema.create(schema_name=cls.schema_name, domain_url=domain)
         activate(cls.tenant)
         cls.cls_atomics = cls._enter_atomics()
         try:

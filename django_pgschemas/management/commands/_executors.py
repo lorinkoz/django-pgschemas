@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
 from django.db import connection, connections, transaction
 
-from ...schema import SchemaDescriptor, activate
+from ...schema import Schema, activate
 from ...utils import get_clone_reference, get_tenant_model
 
 
@@ -63,11 +63,9 @@ def run_on_schema(
 
     if schema_name in settings.TENANTS:
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
-        schema = SchemaDescriptor.create(
-            schema_name=schema_name, domain_url=domains[0] if domains else None
-        )
+        schema = Schema.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
     elif schema_name == get_clone_reference():
-        schema = SchemaDescriptor.create(schema_name=schema_name)
+        schema = Schema.create(schema_name=schema_name)
     elif (TenantModel := get_tenant_model()) is not None:
         schema = TenantModel.objects.get(schema_name=schema_name)
     else:

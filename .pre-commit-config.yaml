@@ -24,9 +24,9 @@ repos:
         entry: bash -c 'poetry run isort $0 $@'
         language: system
         types: [python]
-      - id: flake8
-        name: flake8
-        entry: bash -c 'poetry run flake8 $0 $@'
+      - id: ruff
+        name: ruff
+        entry: bash -c 'poetry run ruff --fix $0 $@'
         language: system
         types: [python]
   - repo: https://github.com/adamchainz/django-upgrade

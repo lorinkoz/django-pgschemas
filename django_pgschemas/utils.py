@@ -165,8 +165,8 @@ def _create_clone_schema_function():
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_schema.sql")) as f:
         CLONE_SCHEMA_FUNCTION = (
             f.read()
-            .replace("RAISE NOTICE 'source schema", "RAISE EXCEPTION 'source schema")
-            .replace("RAISE NOTICE 'dest schema", "RAISE EXCEPTION 'dest schema")
+            .replace("RAISE NOTICE ' source schema", "RAISE EXCEPTION ' source schema")
+            .replace("RAISE NOTICE ' dest schema", "RAISE EXCEPTION ' dest schema")
         )
 
     cursor = connection.cursor()
@@ -185,14 +185,14 @@ def clone_schema(base_schema_name, new_schema_name, dry_run=False):
 
     # check if the clone_schema function already exists in the db
     try:
-        cursor.execute("SELECT 'public.clone_schema(text, text, boolean, boolean)'::regprocedure")
+        cursor.execute("SELECT 'public.clone_schema(text, text, public.cloneparms[])'::regprocedure")
     except ProgrammingError:  # pragma: no cover
         _create_clone_schema_function()
         transaction.commit()
 
     try:
         with transaction.atomic():
-            cursor.callproc("clone_schema", [base_schema_name, new_schema_name, True, False])
+            cursor.callproc("clone_schema", [base_schema_name, new_schema_name, "DATA"])
             cursor.close()
             if dry_run:
                 raise DryRunException

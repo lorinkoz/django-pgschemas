@@ -1,35 +1,12 @@
 import os
 import re
-from typing import Optional
 
-from django.apps import apps
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
-from django.db.models import Model
+from django.db import ProgrammingError, connection, transaction
 
-
-def get_tenant_model(require_ready: bool = True) -> Model:
-    "Returns the tenant model."
-    return apps.get_model(settings.TENANTS["default"]["TENANT_MODEL"], require_ready=require_ready)
-
-
-def get_domain_model(require_ready: bool = True) -> Model:
-    "Returns the domain model."
-    return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
-
-
-def get_tenant_database_alias() -> str:
-    return getattr(settings, "PGSCHEMAS_TENANT_DB_ALIAS", DEFAULT_DB_ALIAS)
-
-
-def get_limit_set_calls() -> bool:
-    return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
-
-
-def get_clone_reference() -> Optional[str]:
-    return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
+from .other import django_is_in_test_mode
+from .settings import get_clone_reference, get_domain_model, get_tenant_model
 
 
 def is_valid_identifier(identifier: str) -> bool:
@@ -53,32 +30,11 @@ def check_schema_name(name: str):
         raise ValidationError("Invalid string used for the schema name.")
 
 
-def remove_www(hostname: str) -> str:
-    """
-    Removes ``www``. from the beginning of the address. Only for
-    routing purposes. ``www.test.com/login/`` and ``test.com/login/`` should
-    find the same tenant.
-    """
-    if hostname.startswith("www."):
-        return hostname[4:]
-    return hostname
-
-
-def django_is_in_test_mode() -> bool:
-    """
-    I know this is very ugly! I'm looking for more elegant solutions.
-    See: http://stackoverflow.com/questions/6957016/detect-django-testing-mode
-    """
-    from django.core import mail
-
-    return hasattr(mail, "outbox")
-
-
 def run_in_public_schema(func):
     "Decorator that makes decorated function to be run in the public schema."
 
     def wrapper(*args, **kwargs):
-        from .schema import Schema
+        from ..schema import Schema
 
         with Schema.create(schema_name="public"):
             return func(*args, **kwargs)
@@ -163,13 +119,13 @@ class DryRunException(Exception):
     pass
 
 
-def _create_clone_schema_function():
+def create_clone_schema_function():
     """
     Creates a postgres function `clone_schema` that copies a schema and its
     contents. Will replace any existing `clone_schema` functions owned by the
     `postgres` superuser.
     """
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_schema.sql")) as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "clone_schema.sql")) as f:
         CLONE_SCHEMA_FUNCTION = (
             f.read()
             .replace("RAISE NOTICE ' source schema", "RAISE EXCEPTION ' source schema")
@@ -194,7 +150,7 @@ def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = Fa
     try:
         cursor.execute("SELECT 'public.clone_schema(text, text, public.cloneparms[])'::regprocedure")
     except ProgrammingError:  # pragma: no cover
-        _create_clone_schema_function()
+        create_clone_schema_function()
         transaction.commit()
 
     try:

@@ -5,10 +5,16 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, TransactionTestCase
 
-from django_pgschemas import utils
+from django_pgschemas.utils import (
+    create_clone_schema_function,
+    drop_schema,
+    get_domain_model,
+    get_tenant_model,
+    schema_exists,
+)
 
-TenantModel = utils.get_tenant_model()
-DomainModel = utils.get_domain_model()
+TenantModel = get_tenant_model()
+DomainModel = get_domain_model()
 
 
 class SchemaCreationCommandsTestCase(TestCase):
@@ -19,27 +25,27 @@ class SchemaCreationCommandsTestCase(TestCase):
     def test_cloneschema(self):
         "Tests 'cloneschema' command"
 
-        utils._create_clone_schema_function()
-        self.assertFalse(utils.schema_exists("cloned"))
+        create_clone_schema_function()
+        self.assertFalse(schema_exists("cloned"))
         call_command("cloneschema", "sample", "cloned", verbosity=0)  # All good
-        self.assertTrue(utils.schema_exists("cloned"))
+        self.assertTrue(schema_exists("cloned"))
         with self.assertRaises(CommandError):  # Existing destination
             call_command("cloneschema", "sample", "cloned", verbosity=0)
         with self.assertRaises(CommandError):  # Not existing source
             call_command("cloneschema", "nonexisting", "newschema", verbosity=0)
-        utils.drop_schema("cloned")
+        drop_schema("cloned")
 
     def test_createrefschema(self):
         "Tests 'createrefschema' command"
-        utils.drop_schema("cloned")
+        drop_schema("cloned")
         call_command("createrefschema", verbosity=0)  # All good
-        self.assertTrue(utils.schema_exists("sample"))
-        utils.drop_schema("cloned")
+        self.assertTrue(schema_exists("sample"))
+        drop_schema("cloned")
         call_command("createrefschema", recreate=True, verbosity=0)  # All good too
-        self.assertTrue(utils.schema_exists("sample"))
-        utils.drop_schema("cloned")
+        self.assertTrue(schema_exists("sample"))
+        drop_schema("cloned")
         call_command("createrefschema", recreate=True, verbosity=0)  # All good too
-        self.assertTrue(utils.schema_exists("sample"))
+        self.assertTrue(schema_exists("sample"))
 
 
 class InteractiveCloneSchemaTestCase(TransactionTestCase):
@@ -75,4 +81,4 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
             with StringIO() as stdout:
                 with StringIO() as stderr:
                     call_command("cloneschema", "tenant1", "tenant2", verbosity=1, stdout=stdout, stderr=stderr)
-        self.assertTrue(utils.schema_exists("tenant2"))
+        self.assertTrue(schema_exists("tenant2"))

@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -27,7 +28,7 @@ def get_limit_set_calls() -> bool:
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
 
-def get_clone_reference() -> str | None:
+def get_clone_reference() -> Optional[str]:
     return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
 
 

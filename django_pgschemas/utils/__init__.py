@@ -1,3 +1,4 @@
+from .iterator import SchemaClass, iterate_schemas
 from .other import django_is_in_test_mode, remove_www
 from .schemas import (
     check_schema_name,
@@ -36,7 +37,9 @@ __all__ = [
     "get_tenant_model",
     "is_valid_identifier",
     "is_valid_schema_name",
+    "iterate_schemas",
     "remove_www",
     "run_in_public_schema",
     "schema_exists",
+    "SchemaClass",
 ]

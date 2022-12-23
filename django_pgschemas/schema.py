@@ -5,6 +5,16 @@ from .signals import schema_activate
 _active = Local()
 
 
+def __getattr__(name):
+    from warnings import warn
+
+    if name == "SchemaDescriptor":
+        warn("'SchemaDescriptor' is deprecated, use 'Schema' instead", DeprecationWarning)
+        return globals()["Schema"]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 def get_default_schema() -> "Schema":
     return Schema.create("public")
 

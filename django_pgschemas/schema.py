@@ -1,3 +1,5 @@
+from typing import Optional
+
 from asgiref.local import Local
 
 from .signals import schema_activate
@@ -51,7 +53,7 @@ class Schema:
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name: str, domain_url: str | None = None, folder: str | None = None):
+    def create(schema_name: str, domain_url: Optional[str] = None, folder: Optional[str] = None):
         schema = Schema()
         schema.schema_name = schema_name
         schema.domain_url = domain_url

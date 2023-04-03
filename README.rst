@@ -82,6 +82,11 @@ https://django-pgschemas.readthedocs.io/
 Breaking changes
 ----------------
 
+v0.13.0
++++++++
+- Dropped support for Django < 4.2
+
+
 v0.11.0
 +++++++
 

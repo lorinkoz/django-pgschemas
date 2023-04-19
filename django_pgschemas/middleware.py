@@ -10,6 +10,13 @@ from .urlresolvers import get_urlconf_from_schema
 from .utils import get_domain_model, remove_www
 
 
+def strip_tenant_from_path_factory(prefix):
+    def strip_tenant_from_path(path):
+        return re.sub(r"^/{}/".format(prefix), "/", path)
+
+    return strip_tenant_from_path
+
+
 class TenantMiddleware:
     """
     This middleware should be placed at the very top of the middleware stack.
@@ -54,7 +61,7 @@ class TenantMiddleware:
                 request.strip_tenant_from_path = lambda x: x
                 if prefix and domain.folder == prefix:
                     tenant.folder = prefix
-                    request.strip_tenant_from_path = lambda x: re.sub(r"^/{}/".format(prefix), "/", x)
+                    request.strip_tenant_from_path = strip_tenant_from_path_factory(prefix)
                     clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
                 if domain.redirect_to_primary:
                     primary_domain = tenant.domains.get(is_primary=True)

@@ -21,6 +21,10 @@ TenantData = apps.get_model("app_tenants.TenantData")
 User = apps.get_model("shared_common.User")
 
 
+class ControlledException(Exception):
+    pass
+
+
 class TenantAutomaticTestCase(TestCase):
     """
     Tests tenant automatic operations.
@@ -54,12 +58,12 @@ class TenantAutomaticTestCase(TestCase):
         "Tests recovery on automatic creation for new tenant's save"
 
         def signal_receiver(*args, **kwargs):
-            raise Exception
+            raise ControlledException
 
         self.assertFalse(schema_exists("tenant1"))
         tenant = TenantModel(schema_name="tenant1")
         dynamic_tenant_post_sync.connect(signal_receiver)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ControlledException):
             tenant.save(verbosity=0)
         self.assertFalse(schema_exists("tenant1"))
         self.assertEqual(0, TenantModel.objects.count())
@@ -69,7 +73,7 @@ class TenantAutomaticTestCase(TestCase):
         "Tests recovery on automatic creation for new tenant's save"
 
         def signal_receiver(*args, **kwargs):
-            raise Exception
+            raise ControlledException
 
         self.assertFalse(schema_exists("tenant1"))
         tenant = TenantModel(schema_name="tenant1")
@@ -77,7 +81,7 @@ class TenantAutomaticTestCase(TestCase):
         tenant.save(verbosity=0)
         tenant.auto_create_schema = True
         dynamic_tenant_post_sync.connect(signal_receiver)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ControlledException):
             tenant.save(verbosity=0)
         self.assertFalse(schema_exists("tenant1"))
         self.assertEqual(1, TenantModel.objects.count())

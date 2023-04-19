@@ -8,7 +8,6 @@ import django_pgschemas.utils
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []

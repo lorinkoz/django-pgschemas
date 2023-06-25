@@ -26,7 +26,6 @@ black = "^23.3.0"
 channels = "^2.1"
 coverage = {extras = ["toml"], version = "^6.3"}
 doc8 = "^0.8.0"
-isort = "^5.12.0"
 ruff = "^0.0.275"
 sphinx = "^1.8"
 sphinx_rtd_theme = "^0.4.2"
@@ -38,11 +37,8 @@ line-length = 120
 [tool.ruff]
 line-length = 120
 
-[tool.isort]
-atomic = true
-combine_as_imports = true
-line_length = 120
-profile = "black"
+[tool.ruff.isort]
+known-first-party = ["django_pgschemas"]
 
 [tool.coverage.run]
 source = ["django_pgschemas"]

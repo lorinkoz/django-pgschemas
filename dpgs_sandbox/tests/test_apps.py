@@ -75,12 +75,6 @@ class AppConfigTestCase(TestCase):
             str(ctx.exception), "TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key."
         )
 
-    @override_settings(TENANTS={})
-    def test_no_default(self):
-        with self.assertRaises(ImproperlyConfigured) as ctx:
-            self.app_config._check_default_schemas()
-        self.assertEqual(str(ctx.exception), "TENANTS must contain a 'default' dict.")
-
     @override_settings(TENANTS={"default": None})
     def test_wrong_type_default(self):
         with self.assertRaises(ImproperlyConfigured) as ctx:

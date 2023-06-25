@@ -10,13 +10,17 @@ from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transactio
 from django.db.models import Model
 
 
-def get_tenant_model(require_ready: bool = True) -> Model:
+def get_tenant_model(require_ready: bool = True) -> Optional[Model]:
     "Returns the tenant model."
+    if "default" not in settings.TENANTS:
+        return None
     return apps.get_model(settings.TENANTS["default"]["TENANT_MODEL"], require_ready=require_ready)
 
 
-def get_domain_model(require_ready: bool = True) -> Model:
+def get_domain_model(require_ready: bool = True) -> Optional[Model]:
     "Returns the domain model."
+    if "default" not in settings.TENANTS:
+        return None
     return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
 
 
@@ -29,6 +33,8 @@ def get_limit_set_calls() -> bool:
 
 
 def get_clone_reference() -> Optional[str]:
+    if "default" not in settings.TENANTS:
+        return None
     return settings.TENANTS["default"].get("CLONE_REFERENCE", None)
 
 
@@ -115,8 +121,14 @@ def dynamic_models_exist() -> bool:
     WHERE  table_schema = 'public'
     AND    table_name in ('%s', '%s');
     """
+    TenantModel = get_tenant_model()
+    DomainModel = get_domain_model()
+
+    if TenantModel is None or DomainModel is None:
+        return False
+
     cursor = connection.cursor()
-    cursor.execute(sql % (get_tenant_model()._meta.db_table, get_domain_model()._meta.db_table))
+    cursor.execute(sql % (TenantModel._meta.db_table, DomainModel._meta.db_table))
     value = cursor.fetchone() == (2,)
     cursor.close()
     return value

@@ -78,7 +78,7 @@ limit the number of calls for setting the search path.
 ``PGSCHEMAS_ORIGINAL_BACKEND``
 ------------------------------
 
-Default: ``"django.db.backends.postgresql_psycopg2"``
+Default: ``"django.db.backends.postgresql"``
 
 The base backend to inherit from. If you have a customized backend of
 PostgreSQL, you can specify it here.

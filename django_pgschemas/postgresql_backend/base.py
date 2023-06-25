@@ -1,4 +1,4 @@
-import psycopg2
+from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
 from ..schema import get_current_schema, get_default_schema
@@ -6,7 +6,15 @@ from ..utils import check_schema_name, get_limit_set_calls
 from .introspection import DatabaseSchemaIntrospection
 from .settings import EXTRA_SEARCH_PATHS, original_backend
 
-IntegrityError = psycopg2.IntegrityError
+try:
+    try:
+        import psycopg as _psycopg
+    except ImportError:
+        import psycopg2 as _psycopg
+except ImportError:
+    raise ImproperlyConfigured("Error loading psycopg2 or psycopg module")
+
+IntegrityError = _psycopg.IntegrityError
 
 
 def get_search_path(schema=None):
@@ -64,7 +72,7 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
             # we do not have to worry that it's not the good one
             try:
                 cursor_for_search_path.execute(f"SET search_path = {search_path_for_current_schema}")
-            except (DatabaseError, psycopg2.InternalError):
+            except (DatabaseError, _psycopg.InternalError):
                 self._search_path = None
             else:
                 self._search_path = search_path_for_current_schema

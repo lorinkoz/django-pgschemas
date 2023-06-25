@@ -19,11 +19,6 @@ repos:
         entry: bash -c 'poetry run black $0 $@'
         language: system
         types: [python]
-      - id: isort
-        name: isort
-        entry: bash -c 'poetry run isort $0 $@'
-        language: system
-        types: [python]
       - id: ruff
         name: ruff
         entry: bash -c 'poetry run ruff --fix $0 $@'

@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.db.utils import InternalError
+from django.db.utils import DatabaseError
 from django.test import TestCase, override_settings
 
 from django_pgschemas import schema, utils
@@ -106,7 +106,7 @@ class UtilsTestCase(TestCase):
         self.assertFalse(utils.schema_exists("sample2"))  # Schema won't exist, dry run
         utils.clone_schema("sample", "sample2")  # Real run, schema was cloned
         self.assertTrue(utils.schema_exists("sample2"))  # Schema exists
-        with self.assertRaises(InternalError):
+        with self.assertRaises(DatabaseError):
             utils.clone_schema("sample", "sample2")  # Schema already exists, error
         self.assertTrue(utils.schema_exists("sample2"))  # Schema still exists
 

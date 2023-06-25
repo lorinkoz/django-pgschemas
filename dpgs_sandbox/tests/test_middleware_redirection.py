@@ -14,7 +14,6 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-
         cls.factory = RequestFactory()
         tenant1 = TenantModel(schema_name="tenant1")
         tenant2 = TenantModel(schema_name="tenant2")

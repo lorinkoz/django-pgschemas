@@ -27,7 +27,10 @@ class DjangoPGSchemasConfig(AppConfig):
             raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
 
     def _check_default_schemas(self):
-        if not isinstance(settings.TENANTS.get("default"), dict):
+        if "default" not in settings.TENANTS:
+            return  # Escape hatch for static only configs
+
+        if not isinstance(settings.TENANTS["default"], dict):
             raise ImproperlyConfigured("TENANTS must contain a 'default' dict.")
         if "TENANT_MODEL" not in settings.TENANTS["default"]:
             raise ImproperlyConfigured("TENANTS['default'] must contain a 'TENANT_MODEL' key.")
@@ -68,6 +71,9 @@ class DjangoPGSchemasConfig(AppConfig):
     def _check_extra_search_paths(self):
         if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
             TenantModel = get_tenant_model()
+            if TenantModel is None:
+                return
+
             cursor = connection.cursor()
             cursor.execute(
                 "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",

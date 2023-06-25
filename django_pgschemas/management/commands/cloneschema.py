@@ -114,7 +114,10 @@ class Command(BaseCommand):
         dry_run = options.get("dry_run")
         if options.get("interactive", True):
             TenantModel = get_tenant_model()
-            if TenantModel.objects.filter(schema_name=options["source"]).exists():
+            if (
+                TenantModel is not None
+                and TenantModel.objects.filter(schema_name=options["source"]).exists()
+            ):
                 tenant, domain = self.get_dynamic_tenant(**options)
         try:
             clone_schema(options["source"], options["destination"], dry_run)

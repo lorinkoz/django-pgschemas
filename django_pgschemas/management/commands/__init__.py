@@ -171,7 +171,7 @@ class WrappedSchemaOption:
         )
         dynamic_schemas = (
             TenantModel.objects.values_list("schema_name", flat=True)
-            if dynamic_ready and allow_dynamic
+            if TenantModel is not None and dynamic_ready and allow_dynamic
             else []
         )
         if clone_reference and allow_static:
@@ -204,7 +204,8 @@ class WrappedSchemaOption:
             elif reference == clone_reference:
                 return reference
             elif (
-                dynamic_ready
+                TenantModel is not None
+                and dynamic_ready
                 and TenantModel.objects.filter(schema_name=reference).exists()
                 and allow_dynamic
             ):
@@ -218,7 +219,7 @@ class WrappedSchemaOption:
                         if schema_name not in ["public", "default"]
                         and any(x for x in data["DOMAINS"] if x.startswith(reference))
                     ]
-                if dynamic_ready and allow_dynamic:
+                if TenantModel is not None and dynamic_ready and allow_dynamic:
                     local += (
                         TenantModel.objects.annotate(
                             route=Concat(

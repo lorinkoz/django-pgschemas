@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
@@ -9,22 +11,28 @@ from django.utils.module_loading import import_module
 from .utils import get_clone_reference, get_domain_model, get_tenant_model
 
 
-def get_tenant_app():
-    return get_tenant_model(require_ready=False)._meta.app_config.name
+def get_tenant_app() -> Optional[str]:
+    TenantModel = get_tenant_model(require_ready=False)
+    if TenantModel is None:
+        return None
+    return TenantModel._meta.app_config.name
 
 
-def get_domain_app():
-    return get_domain_model(require_ready=False)._meta.app_config.name
+def get_domain_app() -> Optional[str]:
+    DomainModel = get_domain_model(require_ready=False)
+    if DomainModel is None:
+        return None
+    return DomainModel._meta.app_config.name
 
 
-def get_user_app():
+def get_user_app() -> Optional[str]:
     try:
         return get_user_model()._meta.app_config.name
     except ImproperlyConfigured:
         return None
 
 
-def get_session_app():
+def get_session_app() -> Optional[str]:
     engine = import_module(settings.SESSION_ENGINE)
     store = engine.SessionStore
     if hasattr(store, "get_model_class"):
@@ -35,10 +43,14 @@ def get_session_app():
 
 
 @checks.register()
-def check_principal_apps(app_configs, **kwargs):
+def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
     errors = []
     tenant_app = get_tenant_app()
     domain_app = get_domain_app()
+
+    if tenant_app is None or domain_app is None:
+        return
+
     if tenant_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
             checks.Error(
@@ -53,6 +65,7 @@ def check_principal_apps(app_configs, **kwargs):
                 id="pgschemas.W001",
             )
         )
+
     for schema in settings.TENANTS:
         schema_apps = settings.TENANTS[schema].get("APPS", [])
         if schema == "public":
@@ -73,14 +86,16 @@ def check_principal_apps(app_configs, **kwargs):
                     id="pgschemas.W001",
                 )
             )
+
     return errors
 
 
 @checks.register()
-def check_other_apps(app_configs, **kwargs):
+def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
     errors = []
     user_app = get_user_app()
     session_app = get_session_app()
+
     if "django.contrib.contenttypes" in settings.TENANTS["default"].get("APPS", []):
         errors.append(
             checks.Warning(
@@ -88,6 +103,7 @@ def check_other_apps(app_configs, **kwargs):
                 id="pgschemas.W002",
             )
         )
+
     for schema in settings.TENANTS:
         schema_apps = settings.TENANTS[schema].get("APPS", [])
         if schema not in ["public", "default"]:
@@ -120,23 +136,31 @@ def check_other_apps(app_configs, **kwargs):
                         id="pgschemas.W003",
                     )
                 )
+
     return errors
 
 
 @checks.register(checks.Tags.database)
-def check_schema_names(app_configs, **kwargs):
+def check_schema_names(app_configs: Any, **kwargs: Any) -> None:
     errors = []
     static_names = set(settings.TENANTS.keys())
     clone_reference = get_clone_reference()
+    TenantModel = get_tenant_model()
+
+    if TenantModel is None:
+        return
+
     if clone_reference:
         static_names.add(clone_reference)
     try:
-        dynamic_names = set(get_tenant_model().objects.values_list("schema_name", flat=True))
+        dynamic_names = set(TenantModel.objects.values_list("schema_name", flat=True))
     except ProgrammingError:
         # This happens on the first run of migrate, with empty database.
         # It can also happen when the tenant model contains unapplied migrations that break.
         dynamic_names = set()
+
     intersection = static_names & dynamic_names
+
     if intersection:
         errors.append(
             checks.Critical(
@@ -144,4 +168,5 @@ def check_schema_names(app_configs, **kwargs):
                 id="pgschemas.W004",
             )
         )
+
     return errors

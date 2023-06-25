@@ -3,7 +3,7 @@ import multiprocessing
 
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand, OutputWrapper
+from django.core.management.base import BaseCommand, CommandError, OutputWrapper
 from django.db import connection, connections, transaction
 
 from ...schema import SchemaDescriptor, activate
@@ -68,9 +68,10 @@ def run_on_schema(
         )
     elif schema_name == get_clone_reference():
         schema = SchemaDescriptor.create(schema_name=schema_name)
-    else:
-        TenantModel = get_tenant_model()
+    elif (TenantModel := get_tenant_model()) is not None:
         schema = TenantModel.objects.get(schema_name=schema_name)
+    else:
+        raise CommandError(f"Unable to find schema {schema_name}!")
 
     activate(schema)
 

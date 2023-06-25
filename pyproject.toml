@@ -40,6 +40,29 @@ line-length = 120
 [tool.ruff.isort]
 known-first-party = ["django_pgschemas"]
 
+[tool.mypy]
+strict_optional = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "channels.*",
+    "psycopg.*",
+    "psycopg2.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "docs.*",
+    "django_pgschemas.contrib.*",
+    "django_pgschemas.postgresql_backend.*",
+    "dpgs_sandbox.*",
+]
+ignore_errors = true
+
 [tool.coverage.run]
 source = ["django_pgschemas"]
 omit = ["django_pgschemas/contrib/channels*"]

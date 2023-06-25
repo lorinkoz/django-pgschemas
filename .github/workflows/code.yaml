@@ -28,23 +28,22 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
       - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade poetry
-          python -m poetry install
+        run: poetry install
       - name: Install Django specific version ${{ matrix.django-version }}
         run: |
-          python -m poetry run pip install "Django${{ matrix.django-version }}"
+          poetry run pip install "Django${{ matrix.django-version }}"
       - name: Run Tests
         run: |
-          python -m poetry run coverage run dpgs_sandbox/manage.py test tests -r
-          python -m poetry run coverage lcov -o ./coverage/lcov.info
+          poetry run coverage run dpgs_sandbox/manage.py test tests -r
+          poetry run coverage lcov -o ./coverage/lcov.info
       - name: Upload coverage to Coveralls in parallel
         uses: coverallsapp/github-action@master
         with:

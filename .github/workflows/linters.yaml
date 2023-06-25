@@ -5,15 +5,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
           cache: "poetry"
       - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade poetry
-          python -m poetry install
+        run: poetry install
       - name: Run linters
         uses: pre-commit/action@v2.0.0

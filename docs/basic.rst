@@ -5,15 +5,13 @@ This app requires:
 
 * Python (3.8.1+)
 * Django (4.0+)
+* Any version of psycopg
 
-You can install ``django-pgschemas`` via ``pip``, ``poetry`` or any other
-installer.
+You can install ``django-pgschemas`` via ``pip`` or any other installer.
 
 .. code-block:: bash
 
     pip install django-pgschemas
-    # or
-    poetry add django-pgschemas
 
 Basic Configuration
 ===================

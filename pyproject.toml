@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-pgschemas"
-version = "0.13.1"
+version = "0.14.0"
 description = "Multi-tenancy on Django using PostgreSQL schemas."
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
@@ -19,7 +19,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8.1"
 django = "^4.0"
-
 
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"

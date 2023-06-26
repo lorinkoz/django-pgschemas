@@ -1,4 +1,5 @@
 import sys
+import unittest
 from importlib import import_module
 
 from django.test import RequestFactory, TestCase
@@ -20,6 +21,9 @@ class URLResolversTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+
         def reverser_func(self, name, domain, path="/"):
             """
             Reverses `name` in the urlconf returned by processing `domain` at `path`.
@@ -105,6 +109,8 @@ class URLConfFactoryTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         schema_name = "tenant1"
         tenant = TenantModel(schema_name=schema_name)
         tenant.save(verbosity=0)

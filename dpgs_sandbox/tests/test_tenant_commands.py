@@ -1,3 +1,4 @@
+import unittest
 from unittest.mock import patch
 
 from django.core import management
@@ -19,6 +20,8 @@ class TenantCommandsTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant1, domain="tenant1.localhost", is_primary=True)

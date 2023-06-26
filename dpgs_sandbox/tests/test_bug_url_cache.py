@@ -1,3 +1,5 @@
+import unittest
+
 from django.apps import apps
 from django.test import TestCase, tag
 
@@ -18,6 +20,8 @@ class CachedTenantSubfolderBugTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         tenant2 = TenantModel(schema_name="tenant2")

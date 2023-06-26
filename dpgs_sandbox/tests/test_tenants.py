@@ -17,8 +17,8 @@ DomainModel = get_domain_model()
 BlogEntry = apps.get_model("app_blog.BlogEntry")
 Catalog = apps.get_model("shared_public.Catalog")
 MainData = apps.get_model("app_main.MainData")
-TenantData = apps.get_model("app_tenants.TenantData")
 User = apps.get_model("shared_common.User")
+TenantData = apps.get_model("app_tenants.TenantData") if "default" in settings.TENANTS else None
 
 
 class ControlledException(Exception):
@@ -29,6 +29,10 @@ class TenantAutomaticTestCase(TestCase):
     """
     Tests tenant automatic operations.
     """
+
+    def setUp(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
 
     def test_new_creation_deletion(self):
         "Tests automatic creation/deletion for new tenant's save/delete"
@@ -98,8 +102,9 @@ class TenantTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        tenant = TenantModel(schema_name="tenant")
-        tenant.save(verbosity=0)
+        if TenantModel is not None:
+            tenant = TenantModel(schema_name="tenant")
+            tenant.save(verbosity=0)
         catalog = Catalog.objects.create()
         Catalog.objects.create()
         with SchemaDescriptor.create(schema_name="www"):
@@ -112,11 +117,12 @@ class TenantTestCase(TestCase):
             user.set_password("weakpassword")
             user.save()
             BlogEntry.objects.create(user=user)
-        with TenantModel.objects.first():
-            user = User.objects.create(email="tenant@localhost", display_name="Tenant User")
-            user.set_password("weakpassword")
-            user.save()
-            TenantData.objects.create(user=user, catalog=catalog)
+        if TenantModel is not None:
+            with TenantModel.objects.first():
+                user = User.objects.create(email="tenant@localhost", display_name="Tenant User")
+                user.set_password("weakpassword")
+                user.save()
+                TenantData.objects.create(user=user, catalog=catalog)
         activate_public()
         super().setUpClass()
 
@@ -127,7 +133,8 @@ class TenantTestCase(TestCase):
             if key == "default":
                 continue
             drop_schema(key)
-        drop_schema("tenant")
+        if TenantModel is not None:
+            drop_schema("tenant")
         call_command("migrateschema", verbosity=0)
 
     @contextmanager
@@ -151,8 +158,9 @@ class TenantTestCase(TestCase):
             list(MainData.objects.all())
         with self.assertRaises(ProgrammingError):
             list(BlogEntry.objects.all())
-        with self.assertRaises(ProgrammingError):
-            list(TenantData.objects.all())
+        if TenantData is not None:
+            with self.assertRaises(ProgrammingError):
+                list(TenantData.objects.all())
 
     def test_synced_main_apps(self):
         with SchemaDescriptor.create(schema_name="www"):
@@ -163,8 +171,9 @@ class TenantTestCase(TestCase):
             # Not expected synced apps
             with self.assertRaises(ProgrammingError):
                 list(BlogEntry.objects.all())
-            with self.assertRaises(ProgrammingError):
-                list(TenantData.objects.all())
+            if TenantData is not None:
+                with self.assertRaises(ProgrammingError):
+                    list(TenantData.objects.all())
 
     def test_synced_blog_apps(self):
         with SchemaDescriptor.create(schema_name="blog"):
@@ -178,10 +187,13 @@ class TenantTestCase(TestCase):
             # Not expected synced apps
             with self.assertRaises(ProgrammingError):
                 list(MainData.objects.all())
-            with self.assertRaises(ProgrammingError):
-                list(TenantData.objects.all())
+            if TenantData is not None:
+                with self.assertRaises(ProgrammingError):
+                    list(TenantData.objects.all())
 
     def test_synced_tenant_apps(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
         with TenantModel.objects.first():
             # Expected synced apps
             self.assertEqual(2, Catalog.objects.count())
@@ -211,10 +223,17 @@ class TenantTestCase(TestCase):
             self.assertTrue(authenticate(email="blog@localhost", password="weakpassword"))  # good
             self.assertFalse(authenticate(email="main@localhost", password="weakpassword"))  # bad
             self.assertFalse(authenticate(email="tenant@localhost", password="weakpassword"))  # bad
-        with TenantModel.objects.first():
-            self.assertTrue(authenticate(email="tenant@localhost", password="weakpassword"))  # good
-            self.assertFalse(authenticate(email="main@localhost", password="weakpassword"))  # bad
-            self.assertFalse(authenticate(email="blog@localhost", password="weakpassword"))  # bad
+        if TenantModel is not None:
+            with TenantModel.objects.first():
+                self.assertTrue(
+                    authenticate(email="tenant@localhost", password="weakpassword")
+                )  # good
+                self.assertFalse(
+                    authenticate(email="main@localhost", password="weakpassword")
+                )  # bad
+                self.assertFalse(
+                    authenticate(email="blog@localhost", password="weakpassword")
+                )  # bad
         # Switching to public schema
         activate_public()
         with self.assertRaises(ProgrammingError):
@@ -225,6 +244,10 @@ class DomainTestCase(TestCase):
     """
     Tests domain operations.
     """
+
+    def setUp(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
 
     def test_primary_domain(self):
         tenant1 = TenantModel(schema_name="tenant1")

@@ -1,3 +1,4 @@
+import unittest
 from io import StringIO
 from unittest.mock import patch
 
@@ -15,6 +16,10 @@ class SchemaCreationCommandsTestCase(TestCase):
     """
     Tests that the schema creation commands do what they are expected to do.
     """
+
+    def setUp(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
 
     def test_cloneschema(self):
         "Tests 'cloneschema' command"
@@ -49,6 +54,9 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.localhost", is_primary=True)

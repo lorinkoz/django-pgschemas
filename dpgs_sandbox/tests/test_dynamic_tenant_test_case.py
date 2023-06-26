@@ -1,10 +1,13 @@
+import unittest
+
 from django.apps import apps
+from django.conf import settings
 
 from django_pgschemas.test.cases import DynamicTenantTestCase
 
 Catalog = apps.get_model("shared_public.Catalog")
-TenantData = apps.get_model("app_tenants.TenantData")
 User = apps.get_model("shared_common.User")
+TenantData = apps.get_model("app_tenants.TenantData") if "default" in settings.TENANTS else None
 
 
 class TestDynamicTenantTestCase(DynamicTenantTestCase):
@@ -13,11 +16,19 @@ class TestDynamicTenantTestCase(DynamicTenantTestCase):
     """
 
     @classmethod
+    def setUpClass(cls):
+        if "default" not in settings.TENANTS:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+        super().setUpClass()
+
+    @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create(email="admin@localhost", display_name="Admin")
         cls.catalog = Catalog.objects.create()
 
     def test_random_operation1(self):
+        if TenantData is None:
+            self.skipTest("Dynamic tenants are not being used")
         TenantData.objects.create(user=self.user, catalog=self.catalog)
         self.assertEqual(TenantData.objects.count(), 1)
 

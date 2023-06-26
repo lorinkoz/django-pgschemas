@@ -1,3 +1,4 @@
+import unittest
 from importlib import import_module
 
 from django.http import Http404
@@ -17,6 +18,8 @@ class TenantMiddlewareTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         super().setUpClass()
         cls.factory = RequestFactory()
         tenant1 = TenantModel(schema_name="tenant1")

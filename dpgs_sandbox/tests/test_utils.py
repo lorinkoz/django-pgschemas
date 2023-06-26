@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.utils import DatabaseError
@@ -17,9 +18,13 @@ class UtilsTestCase(TestCase):
     invalid_schema_names = ["pg_a", "pg_"] + invalid_identifiers
 
     def test_get_tenant_model(self):
+        if "default" not in settings.TENANTS:
+            self.skipTest("Dynamic tenants are not being used")
         self.assertEqual(utils.get_tenant_model()._meta.model_name, "tenant")
 
     def test_get_domain_model(self):
+        if "default" not in settings.TENANTS:
+            self.skipTest("Dynamic tenants are not being used")
         self.assertEqual(utils.get_domain_model()._meta.model_name, "domain")
 
     def test_get_tenant_database_alias(self):
@@ -33,8 +38,9 @@ class UtilsTestCase(TestCase):
             self.assertTrue(utils.get_limit_set_calls())
 
     def test_get_clone_reference(self):
-        self.assertEqual(utils.get_clone_reference(), "sample")
-        with override_settings(TENANTS={"public": {}, "default": {}}):
+        if "default" in settings.TENANTS:
+            self.assertEqual(utils.get_clone_reference(), "sample")
+        else:
             self.assertEqual(utils.get_clone_reference(), None)
 
     def test_is_valid_identifier(self):
@@ -81,12 +87,19 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("public"))
         self.assertTrue(utils.schema_exists("www"))
         self.assertTrue(utils.schema_exists("blog"))
-        self.assertTrue(utils.schema_exists("sample"))
         self.assertFalse(utils.schema_exists("default"))
-        self.assertFalse(utils.schema_exists("tenant"))
+        if "default" in settings.TENANTS:
+            self.assertTrue(utils.schema_exists("sample"))
+            self.assertFalse(utils.schema_exists("tenant"))
+        else:
+            self.assertFalse(utils.schema_exists("sample"))
+            self.assertFalse(utils.schema_exists("tenant"))
 
     def test_dynamic_models_exist(self):
-        self.assertTrue(utils.dynamic_models_exist())
+        if "default" in settings.TENANTS:
+            self.assertTrue(utils.dynamic_models_exist())
+        else:
+            self.assertFalse(utils.dynamic_models_exist())
         utils.drop_schema("public")
         self.assertFalse(utils.dynamic_models_exist())
 
@@ -102,6 +115,8 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("public"))  # Schema exists
 
     def test_clone_schema(self):
+        if "default" not in settings.TENANTS:
+            self.skipTest("Dynamic tenants are not being used")
         utils._create_clone_schema_function()
         self.assertFalse(utils.schema_exists("sample2"))  # Schema doesn't exist previously
         utils.clone_schema("sample", "sample2", dry_run=True)  # Dry run
@@ -113,4 +128,6 @@ class UtilsTestCase(TestCase):
         self.assertTrue(utils.schema_exists("sample2"))  # Schema still exists
 
     def test_create_or_clone_schema(self):
+        if "default" not in settings.TENANTS:
+            self.skipTest("Dynamic tenants are not being used")
         self.assertFalse(utils.create_or_clone_schema("sample"))  # Schema existed

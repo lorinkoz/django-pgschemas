@@ -1,3 +1,5 @@
+import unittest
+
 from django.test import TestCase
 
 from django_pgschemas.schema import SchemaDescriptor
@@ -15,6 +17,8 @@ class TenantRequestFactoryTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.localhost", is_primary=True)
@@ -63,6 +67,9 @@ class DynamicTenantClientTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+
         tenant = TenantModel(schema_name="tenant1")
         tenant.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant, domain="tenant1.localhost", is_primary=True)

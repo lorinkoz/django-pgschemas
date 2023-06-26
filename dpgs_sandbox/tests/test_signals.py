@@ -35,6 +35,10 @@ class TenantDeleteCallbackTestCase(TestCase):
     Tests tenant_delete_callback.
     """
 
+    def setUp(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
+
     def test_tenant_delete_callback(self):
         backup_create, backup_drop = TenantModel.auto_create_schema, TenantModel.auto_drop_schema
         TenantModel.auto_create_schema = False

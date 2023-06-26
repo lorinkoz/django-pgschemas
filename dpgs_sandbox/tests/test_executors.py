@@ -1,3 +1,5 @@
+import unittest
+
 from django.core import management
 from django.db import connections
 from django.test import TransactionTestCase
@@ -15,6 +17,8 @@ class ExecutorsTestCase(TransactionTestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         for i in range(10):
             tenant = TenantModel(schema_name=f"tenant{i + 1}")
             tenant.save(verbosity=0)

@@ -115,6 +115,8 @@ class NameClashCheckTestCase(TestCase):
     """
 
     def setUp(self):
+        if TenantModel is None:
+            self.skipTest("Dynamic tenants are not being used")
         self.app_config = apps.get_app_config("django_pgschemas")
 
     def test_name_clash(self):

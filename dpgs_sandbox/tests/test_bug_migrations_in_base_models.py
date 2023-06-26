@@ -1,3 +1,4 @@
+import unittest
 import warnings
 from unittest.mock import patch
 
@@ -46,6 +47,8 @@ class UnappliedMigrationTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
 
@@ -71,6 +74,8 @@ class UnappliedMigrationTestCase(TestCase):
 class MigrateIgnoringExcludedSchemasTestCase(TestCase):
     @classmethod
     def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
 

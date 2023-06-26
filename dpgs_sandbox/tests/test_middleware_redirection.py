@@ -1,3 +1,5 @@
+import unittest
+
 from django.test import RequestFactory, TestCase
 
 from django_pgschemas.middleware import TenantMiddleware
@@ -11,6 +13,12 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
     """
     Tests TenantMiddlewareRedirection.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+        super().setUpClass()
 
     @classmethod
     def setUpTestData(cls):

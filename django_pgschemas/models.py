@@ -104,11 +104,15 @@ class DomainMixin(models.Model):
     All models that store the domains must inherit this class.
     """
 
-    tenant = models.ForeignKey(
-        settings.TENANTS["default"]["TENANT_MODEL"],
-        db_index=True,
-        related_name="domains",
-        on_delete=models.CASCADE,
+    tenant = (
+        models.ForeignKey(
+            settings.TENANTS["default"]["TENANT_MODEL"],
+            db_index=True,
+            related_name="domains",
+            on_delete=models.CASCADE,
+        )
+        if "default" in settings.TENANTS
+        else None
     )
 
     domain = models.CharField(max_length=253, db_index=True)

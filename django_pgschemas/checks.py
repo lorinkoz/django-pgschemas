@@ -49,7 +49,7 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
     domain_app = get_domain_app()
 
     if tenant_app is None or domain_app is None:
-        return
+        return []
 
     if tenant_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
@@ -96,7 +96,7 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
     user_app = get_user_app()
     session_app = get_session_app()
 
-    if "django.contrib.contenttypes" in settings.TENANTS["default"].get("APPS", []):
+    if "django.contrib.contenttypes" in settings.TENANTS.get("default", {}).get("APPS", []):
         errors.append(
             checks.Warning(
                 "'django.contrib.contenttypes' in TENANTS['default']['APPS'] must be on 'public' schema only.",
@@ -148,7 +148,7 @@ def check_schema_names(app_configs: Any, **kwargs: Any) -> None:
     TenantModel = get_tenant_model()
 
     if TenantModel is None:
-        return
+        return []
 
     if clone_reference:
         static_names.add(clone_reference)

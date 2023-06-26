@@ -1,1 +1,2 @@
 sphinx-django-command
+psycopg

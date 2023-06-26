@@ -126,6 +126,50 @@ hand, an incoming request for ``mydomain.com/some/url/`` will fail for all
 static tenants, then fail for all dynamic tenants, and will finally match
 against the fallback domains of the main tenant.
 
+Static-only tenants
+-------------------
+
+It's also possible to have only static tenants. For this, the default key must
+be omitted:
+
+.. code-block:: python
+
+    TENANTS = {
+        "public": {
+            "APPS": [
+                "django.contrib.contenttypes",
+                "django.contrib.staticfiles",
+                # ...
+                "django_pgschemas",
+                "shared_app",
+                # ...
+            ],
+        },
+        "www": {
+            "APPS": [
+                "django.contrib.auth",
+                "django.contrib.sessions",
+                # ...
+                "main_app",
+            ],
+            "DOMAINS": ["mydomain.com"],
+            "URLCONF": "main_app.urls",
+        },
+        "blog": {
+            "APPS": [
+                "django.contrib.auth",
+                "django.contrib.sessions",
+                # ...
+                "blog_app",
+            ],
+            "DOMAINS": ["blog.mydomain.com", "help.mydomain.com"],
+            "URLCONF": "blog_app.urls",
+        }
+    }
+
+In this case, no model is expected to inherit from ``TenantMixin`` and
+``DomainMixin``, and no clone reference schema can be created.
+
 Running management commands
 ---------------------------
 

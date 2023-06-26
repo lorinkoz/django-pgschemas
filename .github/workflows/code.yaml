@@ -49,6 +49,7 @@ jobs:
       - name: Run Tests
         run: |
           poetry run coverage run dpgs_sandbox/manage.py test tests -r
+          poetry run dpgs_sandbox/manage.py test tests --settings settings.static_only -r
           poetry run coverage lcov -o ./coverage/lcov.info
       - name: Upload coverage to Coveralls in parallel
         uses: coverallsapp/github-action@master

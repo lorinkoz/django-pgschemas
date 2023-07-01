@@ -15,3 +15,4 @@ RUN pip install poetry gunicorn uvicorn
 COPY . .
 
 RUN poetry install
+RUN poetry run pip install psycopg

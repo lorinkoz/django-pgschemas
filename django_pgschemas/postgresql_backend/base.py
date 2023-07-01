@@ -33,49 +33,42 @@ def get_search_path(schema=None):
 class DatabaseWrapper(original_backend.DatabaseWrapper):
     def __init__(self, *args, **kwargs):
         self._search_path = None
+        self._setting_search_path = False
         super().__init__(*args, **kwargs)
 
-        # Use a patched version of the DatabaseIntrospection that only returns the table list for the
-        # currently selected schema.
+        # Patched version of DatabaseIntrospection that only returns the table list for the currently selected schema
         self.introspection = DatabaseSchemaIntrospection(self)
 
     def close(self):
         self._search_path = None
+        self._setting_search_path = False
         super().close()
 
-    def _cursor(self, name=None):
-        if name:
-            # Only supported and required by Django 1.11 (server-side cursor)
-            cursor = super()._cursor(name=name)
-        else:
-            cursor = super()._cursor()
-
+    def _handle_search_path(self, cursor=None):
         search_path_for_current_schema = get_search_path(get_current_schema())
 
-        # optionally limit the number of executions - under load, the execution
-        # of `set search_path` can be quite time consuming
-        if (not get_limit_set_calls()) or (self._search_path != search_path_for_current_schema):
-            # Actual search_path modification for the cursor. Database will
-            # search schemas from left to right when looking for the object
-            # (table, index, sequence, etc.).
+        skip = self._setting_search_path or self._search_path == search_path_for_current_schema or get_limit_set_calls()
 
-            if name:
-                # Named cursor can only be used once
-                cursor_for_search_path = self.connection.cursor()
-            else:
-                # Reuse
-                cursor_for_search_path = cursor
+        if not skip:
+            self._setting_search_path = True
+            cursor_for_search_path = self.connection.cursor() if cursor is None else cursor
 
-            # In the event that an error already happened in this transaction and we are going
-            # to rollback we should just ignore database error when setting the search_path
-            # if the next instruction is not a rollback it will just fail also, so
-            # we do not have to worry that it's not the good one
             try:
                 cursor_for_search_path.execute(f"SET search_path = {search_path_for_current_schema}")
             except (DatabaseError, _psycopg.InternalError):
                 self._search_path = None
             else:
                 self._search_path = search_path_for_current_schema
-            if name:
+            finally:
+                self._setting_search_path = False
+
+            if cursor is None:
                 cursor_for_search_path.close()
+
+    def _cursor(self, name=None):
+        cursor = super()._cursor(name=name)
+
+        cursor_for_search_path = cursor if name is None else None  # Named cursors cannot be reused
+        self._handle_search_path(cursor_for_search_path)
+
         return cursor

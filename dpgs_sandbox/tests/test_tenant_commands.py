@@ -4,6 +4,7 @@ from django.core import management
 from django.core.management.base import CommandError
 from django.test import TestCase
 
+from django_pgschemas.management.commands import CommandScope
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
 from django_pgschemas.utils import get_domain_model, get_tenant_model
 
@@ -40,11 +41,6 @@ class TenantCommandsTestCase(TestCase):
 
     def test_no_all_schemas_allowed(self):
         command = WhoWillCommand()
-        command.scope = "unknown-scope"
-        with self.assertRaises(CommandError) as ctx:
-            management.call_command(command, all_schemas=True, verbosity=0)
-        self.assertEqual(str(ctx.exception), "Including all schemas is NOT allowed")
-        command = WhoWillCommand()
         command.allow_wildcards = False
         with self.assertRaises(CommandError) as ctx:
             management.call_command(command, all_schemas=True, verbosity=0)
@@ -52,7 +48,7 @@ class TenantCommandsTestCase(TestCase):
 
     def test_no_static_schemas_allowed(self):
         command = WhoWillCommand()
-        command.scope = "dynamic"
+        command.scope = CommandScope.DYNAMIC
         with self.assertRaises(CommandError) as ctx:
             management.call_command(command, static_schemas=True, verbosity=0)
         self.assertEqual(str(ctx.exception), "Including static schemas is NOT allowed")
@@ -64,7 +60,7 @@ class TenantCommandsTestCase(TestCase):
 
     def test_no_dynamic_schemas_allowed(self):
         command = WhoWillCommand()
-        command.scope = "static"
+        command.scope = CommandScope.STATIC
         with self.assertRaises(CommandError) as ctx:
             management.call_command(command, dynamic_schemas=True, verbosity=0)
         self.assertEqual(str(ctx.exception), "Including dynamic schemas is NOT allowed")
@@ -76,7 +72,7 @@ class TenantCommandsTestCase(TestCase):
 
     def test_no_tenant_like_schemas_allowed(self):
         command = WhoWillCommand()
-        command.scope = "static"
+        command.scope = CommandScope.STATIC
         with self.assertRaises(CommandError) as ctx:
             management.call_command(command, tenant_schemas=True, verbosity=0)
         self.assertEqual(str(ctx.exception), "Including tenant-like schemas is NOT allowed")

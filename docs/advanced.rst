@@ -44,11 +44,6 @@ reference schema instead of actually creating and synchronizing the schema.
 Most importantly, by default, migrations will include the reference schema, so
 that it is kept up to date for future tenant creation.
 
-.. attention::
-
-    The database function for cloning schemas requires PostgreSQL 10 or higher,
-    due to a change in the way sequence information is stored.
-
 
 .. tip::
 

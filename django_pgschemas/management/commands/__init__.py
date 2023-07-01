@@ -52,40 +52,43 @@ class WrappedSchemaOption:
             "-s", "--schema", nargs="+", dest="schemas", help="Schema(s) to execute the current command"
         )
         parser.add_argument(
-            "-as",
-            "--include-all-schemas",
-            action="store_true",
-            dest="all_schemas",
-            help="Include all schemas when executing the current command",
-        )
-        parser.add_argument(
-            "-ss",
-            "--include-static-schemas",
-            action="store_true",
-            dest="static_schemas",
-            help="Include all static schemas when executing the current command",
-        )
-        parser.add_argument(
-            "-ds",
-            "--include-dynamic-schemas",
-            action="store_true",
-            dest="dynamic_schemas",
-            help="Include all dynamic schemas when executing the current command",
-        )
-        parser.add_argument(
-            "-ts",
-            "--include-tenant-schemas",
-            action="store_true",
-            dest="tenant_schemas",
-            help="Include all tenant-like schemas when executing the current command",
-        )
-        parser.add_argument(
             "-x",
             "--exclude-schema",
             nargs="+",
             dest="excluded_schemas",
             help="Schema(s) to exclude when executing the current command",
         )
+
+        if self.allow_wildcards:
+            parser.add_argument(
+                "-as",
+                "--include-all-schemas",
+                action="store_true",
+                dest="all_schemas",
+                help="Include all schemas when executing the current command",
+            )
+            parser.add_argument(
+                "-ss",
+                "--include-static-schemas",
+                action="store_true",
+                dest="static_schemas",
+                help="Include all static schemas when executing the current command",
+            )
+            parser.add_argument(
+                "-ds",
+                "--include-dynamic-schemas",
+                action="store_true",
+                dest="dynamic_schemas",
+                help="Include all dynamic schemas when executing the current command",
+            )
+            parser.add_argument(
+                "-ts",
+                "--include-tenant-schemas",
+                action="store_true",
+                dest="tenant_schemas",
+                help="Include all tenant-like schemas when executing the current command",
+            )
+
         parser.add_argument(
             "--parallel",
             dest="parallel",
@@ -169,19 +172,19 @@ class WrappedSchemaOption:
         schemas_to_return = set()
 
         if include_all_schemas:
-            if not self.allow_wildcards or (not allow_static and not allow_dynamic):
+            if not allow_static and not allow_dynamic:
                 raise CommandError("Including all schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(static_schemas + list(dynamic_schemas))
         if include_static_schemas:
-            if not self.allow_wildcards or not allow_static:
+            if not allow_static:
                 raise CommandError("Including static schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(static_schemas)
         if include_dynamic_schemas:
-            if not self.allow_wildcards or not allow_dynamic:
+            if not allow_dynamic:
                 raise CommandError("Including dynamic schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(dynamic_schemas)
         if include_tenant_schemas:
-            if not self.allow_wildcards or not allow_dynamic:
+            if not allow_dynamic:
                 raise CommandError("Including tenant-like schemas is NOT allowed")
             schemas_to_return = schemas_to_return.union(dynamic_schemas)
             if clone_reference:

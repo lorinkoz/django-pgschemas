@@ -79,41 +79,6 @@ Documentation
 
 https://django-pgschemas.readthedocs.io/
 
-Breaking changes
-----------------
-
-v0.13.0
-+++++++
-- Dropped support for Django < 4.0
-
-
-v0.11.0
-+++++++
-
-- [INTERNAL] Now storing active schema in ``asgiref.local`` instead of the connection object.
-
-v0.9.0
-++++++
-
-- Dropped support for Python < 3.8, Django < 3.1.
-
-v0.7.0
-++++++
-
-- Changed public API for getting/setting active schema. Public API is now
-  ``get_current_schema``, ``activate(schema)``, ``activate_public()``. Any
-  schema descriptor can still be used as context manager.
-- Changed location of tenant model and domain model in settings.
-  ``TENANT_MODEL`` and ``DOMAIN_MODEL`` keys are now under ``TENANTS["default"]``
-  instead of ``TENANTS["public"]``. This is required for future
-  static-tenant-only configurations.
-- Module ``cache`` renamed to ``contrib.cache``.
-- Module ``contrib.channels`` renamed to ``contrib.channels2``.
-- Added module ``contrib.channels3``.
-- Management command option ``--executor {sequential, parallel}`` renamed to
-  ``--parallel``.
-- All signals renamed. Added ``schema_activate`` signal.
-
 Contributing
 ------------
 

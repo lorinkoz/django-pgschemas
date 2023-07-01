@@ -45,9 +45,13 @@ class TenantFileSystemStorageTestCase(TestCase):
         del TenantModel.schema_pathname
 
     def test_path_identifier_function_in_settings(self):
-        with override_settings(PGSCHEMAS_PATHNAME_FUNCTION=lambda tenant: tenant.schema_name + "-custom-pathname"):
+        with override_settings(
+            PGSCHEMAS_PATHNAME_FUNCTION=lambda tenant: tenant.schema_name + "-custom-pathname"
+        ):
             with TenantModel(schema_name="tenant"):
-                self.assertEquals(self.storage.get_schema_path_identifier(), "tenant-custom-pathname")
+                self.assertEquals(
+                    self.storage.get_schema_path_identifier(), "tenant-custom-pathname"
+                )
 
     def test_base_location(self):
         with SchemaDescriptor.create(schema_name=""):
@@ -74,7 +78,9 @@ class TenantFileSystemStorageTestCase(TestCase):
         with SchemaDescriptor.create(schema_name="tenant1"):
             f = ContentFile("random content")
             f_name = self.storage.save("test.file", f)
-            self.assertEqual(os.path.join(self.temp_dir, "tenant1", f_name), self.storage.path(f_name))
+            self.assertEqual(
+                os.path.join(self.temp_dir, "tenant1", f_name), self.storage.path(f_name)
+            )
             self.storage.delete(f_name)
         self.assertFalse(self.storage.exists("test.file"))
 
@@ -85,7 +91,9 @@ class TenantFileSystemStorageTestCase(TestCase):
             self.assertTrue(self.storage.exists("path/to"))
             with self.storage.open("path/to/test.file") as f:
                 self.assertEqual(f.read(), b"file saved with path")
-            self.assertTrue(os.path.exists(os.path.join(self.temp_dir, "tenant1", "path", "to", "test.file")))
+            self.assertTrue(
+                os.path.exists(os.path.join(self.temp_dir, "tenant1", "path", "to", "test.file"))
+            )
             self.storage.delete("path/to/test.file")
             self.assertFalse(self.storage.exists("test.file"))
 

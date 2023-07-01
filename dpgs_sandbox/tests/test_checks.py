@@ -2,7 +2,12 @@ from django.apps import apps
 from django.core import checks
 from django.test import TestCase, override_settings
 
-from django_pgschemas.checks import check_other_apps, check_principal_apps, check_schema_names, get_user_app
+from django_pgschemas.checks import (
+    check_other_apps,
+    check_principal_apps,
+    check_schema_names,
+    get_user_app,
+)
 from django_pgschemas.utils import get_tenant_model
 
 TenantModel = get_tenant_model()
@@ -21,12 +26,21 @@ class AppChecksTestCase(TestCase):
         with override_settings(TENANTS={"public": {"APPS": []}, "default": BASE_DEFAULT}):
             errors = check_principal_apps(self.app_config)
             expected_errors = [
-                checks.Error("Your tenant app 'shared_public' must be on the 'public' schema.", id="pgschemas.W001"),
-                checks.Error("Your domain app 'shared_public' must be on the 'public' schema.", id="pgschemas.W001"),
+                checks.Error(
+                    "Your tenant app 'shared_public' must be on the 'public' schema.",
+                    id="pgschemas.W001",
+                ),
+                checks.Error(
+                    "Your domain app 'shared_public' must be on the 'public' schema.",
+                    id="pgschemas.W001",
+                ),
             ]
             self.assertEqual(errors, expected_errors)
         with override_settings(
-            TENANTS={"public": {"APPS": ["shared_public"]}, "default": {**BASE_DEFAULT, "APPS": ["shared_public"]}}
+            TENANTS={
+                "public": {"APPS": ["shared_public"]},
+                "default": {**BASE_DEFAULT, "APPS": ["shared_public"]},
+            }
         ):
             errors = check_principal_apps(self.app_config)
             expected_errors = [
@@ -53,7 +67,9 @@ class AppChecksTestCase(TestCase):
                 )
             ]
             self.assertEqual(errors, expected_errors)
-        with override_settings(TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}):
+        with override_settings(
+            TENANTS={"default": {}, "www": {"APPS": ["django.contrib.contenttypes"]}}
+        ):
             errors = check_other_apps(self.app_config)
             expected_errors = [
                 checks.Warning(
@@ -108,7 +124,10 @@ class NameClashCheckTestCase(TestCase):
         TenantModel.objects.create(schema_name="public")
         errors = check_schema_names(self.app_config)
         expected_errors = [
-            checks.Critical("Name clash found between static and dynamic tenants: {'public'}", id="pgschemas.W004"),
+            checks.Critical(
+                "Name clash found between static and dynamic tenants: {'public'}",
+                id="pgschemas.W004",
+            ),
         ]
         self.assertEqual(errors, expected_errors)
         TenantModel.objects.all().delete()
@@ -116,7 +135,9 @@ class NameClashCheckTestCase(TestCase):
         TenantModel.objects.create(schema_name="www")
         errors = check_schema_names(self.app_config)
         expected_errors = [
-            checks.Critical("Name clash found between static and dynamic tenants: {'www'}", id="pgschemas.W004"),
+            checks.Critical(
+                "Name clash found between static and dynamic tenants: {'www'}", id="pgschemas.W004"
+            ),
         ]
         self.assertEqual(errors, expected_errors)
         TenantModel.objects.all().delete()
@@ -124,7 +145,10 @@ class NameClashCheckTestCase(TestCase):
         TenantModel.objects.create(schema_name="sample")
         errors = check_schema_names(self.app_config)
         expected_errors = [
-            checks.Critical("Name clash found between static and dynamic tenants: {'sample'}", id="pgschemas.W004"),
+            checks.Critical(
+                "Name clash found between static and dynamic tenants: {'sample'}",
+                id="pgschemas.W004",
+            ),
         ]
         self.assertEqual(errors, expected_errors)
         TenantModel.objects.all().delete()

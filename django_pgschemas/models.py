@@ -105,7 +105,10 @@ class DomainMixin(models.Model):
     """
 
     tenant = models.ForeignKey(
-        settings.TENANTS["default"]["TENANT_MODEL"], db_index=True, related_name="domains", on_delete=models.CASCADE
+        settings.TENANTS["default"]["TENANT_MODEL"],
+        db_index=True,
+        related_name="domains",
+        on_delete=models.CASCADE,
     )
 
     domain = models.CharField(max_length=253, db_index=True)

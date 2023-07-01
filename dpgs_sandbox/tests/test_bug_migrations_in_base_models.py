@@ -82,10 +82,14 @@ class MigrateIgnoringExcludedSchemasTestCase(TestCase):
     def test_migrate_with_exclusions(self):
         # We first unapply a migration with fake so we can reapply it without fake
         # This should work without errors
-        management.call_command("migrate", "app_tenants", "0001_initial", fake=True, schemas=["tenant1"], verbosity=0)
+        management.call_command(
+            "migrate", "app_tenants", "0001_initial", fake=True, schemas=["tenant1"], verbosity=0
+        )
         # We then migrate on all schemas except for tenant1, THIS IS THE CASE WE WANT TO TEST
         # This should work without errors
-        management.call_command("migrate", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)
+        management.call_command(
+            "migrate", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0
+        )
         # If we try to global migrate now, we should get a ProgrammingError
         with self.assertRaises(ProgrammingError):
             management.call_command("migrate", all_schemas=True, verbosity=0)

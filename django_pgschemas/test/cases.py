@@ -39,7 +39,8 @@ class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
             cls.schema_name in settings.TENANTS
         ), f"{cls.__name__}.schema_name must be defined to a valid static tenant"
         assert (
-            cls.schema_name not in ["public", "default"] and cls.schema_name != get_clone_reference()
+            cls.schema_name not in ["public", "default"]
+            and cls.schema_name != get_clone_reference()
         ), f"{cls.__name__}.schema_name must be defined to a valid static tenant"
         super(TestCase, cls).setUpClass()
         cls.sync_public()

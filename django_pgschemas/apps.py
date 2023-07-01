@@ -38,12 +38,16 @@ class DjangoPGSchemasConfig(AppConfig):
         if "DOMAINS" in settings.TENANTS["default"]:
             raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
         if "FALLBACK_DOMAINS" in settings.TENANTS["default"]:
-            raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key.")
+            raise ImproperlyConfigured(
+                "TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key."
+            )
         if (
             "CLONE_REFERENCE" in settings.TENANTS["default"]
             and settings.TENANTS["default"]["CLONE_REFERENCE"] in settings.TENANTS
         ):
-            raise ImproperlyConfigured("TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name.")
+            raise ImproperlyConfigured(
+                "TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name."
+            )
 
     def _check_overall_schemas(self):
         for schema in settings.TENANTS:
@@ -51,31 +55,39 @@ class DjangoPGSchemasConfig(AppConfig):
                 if not is_valid_schema_name(schema):
                     raise ImproperlyConfigured("'%s' is not a valid schema name." % schema)
                 if not isinstance(settings.TENANTS[schema].get("DOMAINS"), list):
-                    raise ImproperlyConfigured("TENANTS['%s'] must contain a 'DOMAINS' list." % schema)
+                    raise ImproperlyConfigured(
+                        "TENANTS['%s'] must contain a 'DOMAINS' list." % schema
+                    )
 
     def _check_complementary_settings(self):
         if "django_pgschemas.routers.SyncRouter" not in settings.DATABASE_ROUTERS:
-            raise ImproperlyConfigured("DATABASE_ROUTERS setting must contain 'django_pgschemas.routers.SyncRouter'.")
+            raise ImproperlyConfigured(
+                "DATABASE_ROUTERS setting must contain 'django_pgschemas.routers.SyncRouter'."
+            )
 
     def _check_extra_search_paths(self):
         if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
             TenantModel = get_tenant_model()
             cursor = connection.cursor()
             cursor.execute(
-                "SELECT 1 FROM information_schema.tables WHERE table_name = %s;", [TenantModel._meta.db_table]
+                "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
+                [TenantModel._meta.db_table],
             )
             dynamic_tenants = []
             if "CLONE_REFERENCE" in settings.TENANTS["default"]:
                 dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
             if cursor.fetchone():
-                dynamic_tenants += list(TenantModel.objects.all().values_list("schema_name", flat=True))
+                dynamic_tenants += list(
+                    TenantModel.objects.all().values_list("schema_name", flat=True)
+                )
             cursor.close()
             invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
                 set(settings.TENANTS.keys()).union(dynamic_tenants)
             )
             if invalid_schemas:
                 raise ImproperlyConfigured(
-                    "Do not include '%s' on PGSCHEMAS_EXTRA_SEARCH_PATHS." % ", ".join(invalid_schemas)
+                    "Do not include '%s' on PGSCHEMAS_EXTRA_SEARCH_PATHS."
+                    % ", ".join(invalid_schemas)
                 )
 
     def ready(self):

@@ -16,7 +16,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Domain",
             fields=[
-                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("domain", models.CharField(db_index=True, max_length=253)),
                 ("folder", models.SlugField(blank=True, max_length=253)),
                 ("is_primary", models.BooleanField(default=True)),
@@ -25,15 +30,31 @@ class Migration(migrations.Migration):
         ),
         migrations.CreateModel(
             name="Catalog",
-            fields=[("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"))],
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                )
+            ],
         ),
         migrations.CreateModel(
             name="Tenant",
             fields=[
-                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 (
                     "schema_name",
-                    models.CharField(max_length=63, unique=True, validators=[django_pgschemas.utils.check_schema_name]),
+                    models.CharField(
+                        max_length=63,
+                        unique=True,
+                        validators=[django_pgschemas.utils.check_schema_name],
+                    ),
                 ),
             ],
             options={"abstract": False},
@@ -43,7 +64,9 @@ class Migration(migrations.Migration):
             model_name="domain",
             name="tenant",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, related_name="domains", to="shared_public.Tenant"
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="domains",
+                to="shared_public.Tenant",
             ),
         ),
         migrations.AlterUniqueTogether(name="domain", unique_together={("domain", "folder")}),

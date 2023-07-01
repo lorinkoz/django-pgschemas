@@ -189,9 +189,13 @@ class TenantTestCase(TestCase):
             self.assertEqual(1, User.objects.count())
             # Direct and reverse relations
             self.assertEqual(User.objects.first(), TenantData.objects.first().user)
-            self.assertEqual(User.objects.first().tenant_objects.first(), TenantData.objects.first())
+            self.assertEqual(
+                User.objects.first().tenant_objects.first(), TenantData.objects.first()
+            )
             self.assertEqual(Catalog.objects.first(), TenantData.objects.first().catalog)
-            self.assertEqual(Catalog.objects.first().tenant_objects.first(), TenantData.objects.first())
+            self.assertEqual(
+                Catalog.objects.first().tenant_objects.first(), TenantData.objects.first()
+            )
             # Not expected synced apps
             with self.assertRaises(ProgrammingError):
                 list(MainData.objects.all())
@@ -228,7 +232,9 @@ class DomainTestCase(TestCase):
         tenant1.save(verbosity=0)
         tenant2.save(verbosity=0)
         domain1 = DomainModel.objects.create(domain="tenant1.localhost", tenant=tenant1)
-        DomainModel.objects.create(domain="tenant1-other.localhost", tenant=tenant1, is_primary=False)
+        DomainModel.objects.create(
+            domain="tenant1-other.localhost", tenant=tenant1, is_primary=False
+        )
         self.assertEqual(tenant1.get_primary_domain(), domain1)
         self.assertEqual(tenant2.get_primary_domain(), None)
         for tenant in TenantModel.objects.all():
@@ -238,7 +244,9 @@ class DomainTestCase(TestCase):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
         domain1 = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant)
-        domain2 = DomainModel.objects.create(domain="everyone.localhost", folder="tenant", tenant=tenant)
+        domain2 = DomainModel.objects.create(
+            domain="everyone.localhost", folder="tenant", tenant=tenant
+        )
         self.assertEqual(str(domain1), "tenant.localhost")
         self.assertEqual(str(domain2), "everyone.localhost/tenant")
         tenant.delete(force_drop=True)
@@ -247,19 +255,27 @@ class DomainTestCase(TestCase):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
         subdomain = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant)
-        subfolder = DomainModel.objects.create(domain="everyone.localhost", folder="tenant", tenant=tenant)
+        subfolder = DomainModel.objects.create(
+            domain="everyone.localhost", folder="tenant", tenant=tenant
+        )
         self.assertEqual(subdomain.absolute_url(""), "//tenant.localhost/")
         self.assertEqual(subdomain.absolute_url("/some/path/"), "//tenant.localhost/some/path/")
         self.assertEqual(subdomain.absolute_url("some/path"), "//tenant.localhost/some/path")
         self.assertEqual(subfolder.absolute_url(""), "//everyone.localhost/tenant/")
-        self.assertEqual(subfolder.absolute_url("/some/path/"), "//everyone.localhost/tenant/some/path/")
-        self.assertEqual(subfolder.absolute_url("some/path"), "//everyone.localhost/tenant/some/path")
+        self.assertEqual(
+            subfolder.absolute_url("/some/path/"), "//everyone.localhost/tenant/some/path/"
+        )
+        self.assertEqual(
+            subfolder.absolute_url("some/path"), "//everyone.localhost/tenant/some/path"
+        )
         tenant.delete(force_drop=True)
 
     def test_domain_redirect_save(self):
         tenant = TenantModel(schema_name="tenant")
         tenant.save(verbosity=0)
-        domain = DomainModel.objects.create(domain="tenant.localhost", tenant=tenant, redirect_to_primary=True)
+        domain = DomainModel.objects.create(
+            domain="tenant.localhost", tenant=tenant, redirect_to_primary=True
+        )
         self.assertTrue(domain.is_primary)
         self.assertFalse(domain.redirect_to_primary)
         tenant.delete(force_drop=True)

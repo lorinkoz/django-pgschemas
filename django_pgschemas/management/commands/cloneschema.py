@@ -16,8 +16,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
-        parser.add_argument("source", help="The name of the schema you want to clone")
-        parser.add_argument("destination", help="The name of the schema you want to create as clone")
+        parser.add_argument(
+            "source",
+            help="The name of the schema you want to clone",
+        )
+        parser.add_argument(
+            "destination",
+            help="The name of the schema you want to create as clone",
+        )
         parser.add_argument(
             "--noinput",
             "--no-input",
@@ -61,10 +67,16 @@ class Command(BaseCommand):
         )
 
     def _get_constructed_instance(self, model_class, data):
-        fields = [field for field in model_class._meta.fields if self._check_required_field(field, data.keys())]
+        fields = [
+            field
+            for field in model_class._meta.fields
+            if self._check_required_field(field, data.keys())
+        ]
         instance = model_class(**data)
         if fields:
-            self.stdout.write(self.style.WARNING(f"We need some data for model '{model_class._meta.model_name}':"))
+            self.stdout.write(
+                self.style.WARNING(f"We need some data for model '{model_class._meta.model_name}':")
+            )
             for field in fields:
                 while field.name not in data:
                     raw_value = input(f"Value for field '{field.name}': ")
@@ -88,7 +100,9 @@ class Command(BaseCommand):
         if self._ask(
             "You are cloning a schema for a dynamic tenant. Would you like to create a database entry for it?"
         ):
-            tenant = self._get_constructed_instance(get_tenant_model(), {"schema_name": options["destination"]})
+            tenant = self._get_constructed_instance(
+                get_tenant_model(), {"schema_name": options["destination"]}
+            )
             domain = self._get_constructed_instance(get_domain_model(), {"is_primary": True})
             if options["verbosity"] >= 1:
                 self.stdout.write(self.style.WARNING("Looks good! Let's get to it!"))

@@ -2,8 +2,7 @@ import enum
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q
-from django.db.models import Value as V
+from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
@@ -49,7 +48,11 @@ class WrappedSchemaOption:
                 help="Tells Django to NOT prompt the user for input of any kind.",
             )
         parser.add_argument(
-            "-s", "--schema", nargs="+", dest="schemas", help="Schema(s) to execute the current command"
+            "-s",
+            "--schema",
+            nargs="+",
+            dest="schemas",
+            help="Schema(s) to execute the current command",
         )
         parser.add_argument(
             "-x",
@@ -151,7 +154,8 @@ class WrappedSchemaOption:
                 include_all_schemas = True
             elif options.get("interactive", True):
                 schema = input(
-                    "Enter schema to run command (leave blank for running on '%s' schemas): " % self.get_scope_display()
+                    "Enter schema to run command (leave blank for running on '%s' schemas): "
+                    % self.get_scope_display()
                 ).strip()
 
                 if schema:
@@ -162,9 +166,13 @@ class WrappedSchemaOption:
                 raise CommandError("No schema provided")
 
         TenantModel = get_tenant_model()
-        static_schemas = [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
+        static_schemas = (
+            [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
+        )
         dynamic_schemas = (
-            TenantModel.objects.values_list("schema_name", flat=True) if dynamic_ready and allow_dynamic else []
+            TenantModel.objects.values_list("schema_name", flat=True)
+            if dynamic_ready and allow_dynamic
+            else []
         )
         if clone_reference and allow_static:
             static_schemas.append(clone_reference)
@@ -195,7 +203,11 @@ class WrappedSchemaOption:
                 return reference
             elif reference == clone_reference:
                 return reference
-            elif dynamic_ready and TenantModel.objects.filter(schema_name=reference).exists() and allow_dynamic:
+            elif (
+                dynamic_ready
+                and TenantModel.objects.filter(schema_name=reference).exists()
+                and allow_dynamic
+            ):
                 return reference
             else:
                 local = []
@@ -209,16 +221,27 @@ class WrappedSchemaOption:
                 if dynamic_ready and allow_dynamic:
                     local += (
                         TenantModel.objects.annotate(
-                            route=Concat("domains__domain", V("/"), "domains__folder", output_field=CharField())
+                            route=Concat(
+                                "domains__domain",
+                                V("/"),
+                                "domains__folder",
+                                output_field=CharField(),
+                            )
                         )
                         .filter(
-                            Q(schema_name=reference) | Q(domains__domain__istartswith=reference) | Q(route=reference)
+                            Q(schema_name=reference)
+                            | Q(domains__domain__istartswith=reference)
+                            | Q(route=reference)
                         )
                         .distinct()
                         .values_list("schema_name", flat=True)
                     )
                 if not local:
-                    message = "No schema found for '%s' (excluded)" if as_excluded else "No schema found for '%s'"
+                    message = (
+                        "No schema found for '%s' (excluded)"
+                        if as_excluded
+                        else "No schema found for '%s'"
+                    )
                     raise CommandError(message % reference)
                 if len(local) > 1:
                     message = (

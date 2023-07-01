@@ -14,7 +14,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
-        parser.add_argument("--recreate", action="store_true", dest="recreate", help="Recreate reference schema.")
+        parser.add_argument(
+            "--recreate",
+            action="store_true",
+            dest="recreate",
+            help="Recreate reference schema.",
+        )
 
     def handle(self, *args, **options):
         clone_reference = get_clone_reference()
@@ -24,7 +29,9 @@ class Command(BaseCommand):
             drop_schema(clone_reference, check_if_exists=True, verbosity=options["verbosity"])
             if options["verbosity"] >= 1:
                 self.stdout.write("Destroyed existing reference schema.")
-        created = create_schema(clone_reference, check_if_exists=True, verbosity=options["verbosity"])
+        created = create_schema(
+            clone_reference, check_if_exists=True, verbosity=options["verbosity"]
+        )
         if options["verbosity"] >= 1:
             if created:
                 self.stdout.write("Reference schema successfully created!")

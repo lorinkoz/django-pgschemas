@@ -23,7 +23,10 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
 
         DomainModel(domain="tenant1.localhost", tenant=tenant1).save()
         DomainModel(
-            domain="tenant1redirect.localhost", tenant=tenant1, is_primary=False, redirect_to_primary=True
+            domain="tenant1redirect.localhost",
+            tenant=tenant1,
+            is_primary=False,
+            redirect_to_primary=True,
         ).save()
         DomainModel(
             domain="everyone.localhost",
@@ -35,7 +38,10 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
 
         DomainModel(domain="everyone.localhost", folder="tenant2", tenant=tenant2).save()
         DomainModel(
-            domain="tenant2redirect.localhost", tenant=tenant2, is_primary=False, redirect_to_primary=True
+            domain="tenant2redirect.localhost",
+            tenant=tenant2,
+            is_primary=False,
+            redirect_to_primary=True,
         ).save()
         DomainModel(
             domain="everyone.localhost",
@@ -59,7 +65,9 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
         self.assertEqual(response["Location"], "//tenant1.localhost/some/random/url/")
 
     def test_folder_redirect_to_primary_domain(self):
-        request = self.factory.get("/tenant1redirect/some/random/url/", HTTP_HOST="everyone.localhost")
+        request = self.factory.get(
+            "/tenant1redirect/some/random/url/", HTTP_HOST="everyone.localhost"
+        )
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//tenant1.localhost/some/random/url/")
@@ -73,7 +81,9 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
         self.assertEqual(response["Location"], "//everyone.localhost/tenant2/some/random/url/")
 
     def test_folder_redirect_to_primary_folder(self):
-        request = self.factory.get("/tenant2redirect/some/random/url/", HTTP_HOST="everyone.localhost")
+        request = self.factory.get(
+            "/tenant2redirect/some/random/url/", HTTP_HOST="everyone.localhost"
+        )
         response = self.middleware(request)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//everyone.localhost/tenant2/some/random/url/")

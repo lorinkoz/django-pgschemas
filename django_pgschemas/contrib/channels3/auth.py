@@ -13,7 +13,9 @@ def get_user(scope):
     If no user is retrieved, return an instance of `AnonymousUser`.
     """
     if "session" not in scope:
-        raise ValueError("Cannot find session in scope. You should wrap your consumer in SessionMiddleware.")
+        raise ValueError(
+            "Cannot find session in scope. You should wrap your consumer in SessionMiddleware."
+        )
     user = None
     session = scope["session"]
     with scope["tenant"]:

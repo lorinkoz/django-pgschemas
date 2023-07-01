@@ -1,6 +1,9 @@
+import enum
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q, Value as V
+from django.db.models import CharField, Q
+from django.db.models import Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
@@ -8,11 +11,29 @@ from ...schema import get_current_schema
 from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
 from ._executors import parallel, sequential
 
-EXECUTORS = {"sequential": sequential, "parallel": parallel}
+
+class CommandScope(enum.Enum):
+    ALL = "all"
+    DYNAMIC = "dynamic"
+    STATIC = "static"
+
+    @classmethod
+    def allow_static(cls):
+        return [cls.ALL, cls.STATIC]
+
+    @classmethod
+    def allow_dynamic(cls):
+        return [cls.ALL, cls.DYNAMIC]
+
+
+EXECUTORS = {
+    "sequential": sequential,
+    "parallel": parallel,
+}
 
 
 class WrappedSchemaOption:
-    scope = "all"
+    scope = CommandScope.ALL
     specific_schemas = None
 
     allow_interactive = True
@@ -102,7 +123,7 @@ class WrappedSchemaOption:
         return EXECUTORS["parallel"] if options.get("parallel") else EXECUTORS["sequential"]
 
     def get_scope_display(self):
-        return "|".join(self.specific_schemas or []) or self.scope
+        return "|".join(self.specific_schemas or []) or self.scope.value
 
     def _get_schemas_from_options(self, **options):
         schemas = options.get("schemas") or []
@@ -112,8 +133,8 @@ class WrappedSchemaOption:
         include_dynamic_schemas = options.get("dynamic_schemas") or False
         include_tenant_schemas = options.get("tenant_schemas") or False
         dynamic_ready = dynamic_models_exist()
-        allow_static = self.scope in ["all", "static"]
-        allow_dynamic = self.scope in ["all", "dynamic"]
+        allow_static = self.scope in CommandScope.allow_static()
+        allow_dynamic = self.scope in CommandScope.allow_dynamic()
         clone_reference = get_clone_reference()
 
         if (
@@ -236,8 +257,8 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
 
 
 class StaticTenantCommand(TenantCommand):
-    scope = "static"
+    scope = CommandScope.STATIC
 
 
 class DynamicTenantCommand(TenantCommand):
-    scope = "dynamic"
+    scope = CommandScope.DYNAMIC

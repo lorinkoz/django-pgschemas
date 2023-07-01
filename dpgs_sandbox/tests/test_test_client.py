@@ -108,7 +108,7 @@ class StaticTenantClientTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        tenant = SchemaDescriptor.create(schema_name="tenant1", domain_url="everyone.localhost")
+        tenant = SchemaDescriptor.create(schema_name="blog", domain_url="blog.localhost")
         cls.tenant_client = TenantClient(tenant)
 
     @classmethod
@@ -116,21 +116,21 @@ class StaticTenantClientTestCase(TestCase):
         pass
 
     def test_get(self):
-        response = self.tenant_client.get("/ping/")
+        response = self.tenant_client.get("/entries/")
         self.assertEqual(response.status_code, 200)
 
     def test_post(self):
-        response = self.tenant_client.post("/ping/")
+        response = self.tenant_client.post("/entries/")
         self.assertEqual(response.status_code, 200)
 
     def test_put(self):
-        response = self.tenant_client.put("/ping/")
+        response = self.tenant_client.put("/entries/")
         self.assertEqual(response.status_code, 200)
 
     def test_patch(self):
-        response = self.tenant_client.patch("/ping/")
+        response = self.tenant_client.patch("/entries/")
         self.assertEqual(response.status_code, 200)
 
     def test_delete(self):
-        response = self.tenant_client.delete("/ping/")
+        response = self.tenant_client.delete("/entries/")
         self.assertEqual(response.status_code, 200)

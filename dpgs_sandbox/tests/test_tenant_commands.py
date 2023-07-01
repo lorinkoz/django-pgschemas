@@ -22,11 +22,15 @@ class TenantCommandsTestCase(TestCase):
         tenant1 = TenantModel(schema_name="tenant1")
         tenant1.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant1, domain="tenant1.localhost", is_primary=True)
-        DomainModel.objects.create(tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=False)
+        DomainModel.objects.create(
+            tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=False
+        )
         tenant2 = TenantModel(schema_name="tenant2")
         tenant2.save(verbosity=0)
         DomainModel.objects.create(tenant=tenant2, domain="tenant2.localhost", is_primary=True)
-        DomainModel.objects.create(tenant=tenant2, domain="everyone.localhost", folder="tenant2", is_primary=False)
+        DomainModel.objects.create(
+            tenant=tenant2, domain="everyone.localhost", folder="tenant2", is_primary=False
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -100,19 +104,25 @@ class TenantCommandsTestCase(TestCase):
 
     def test_nonexisting_schema_excluded(self):
         with self.assertRaises(CommandError) as ctx:
-            management.call_command("whowill", all_schemas=True, excluded_schemas=["unknown"], verbosity=0)
+            management.call_command(
+                "whowill", all_schemas=True, excluded_schemas=["unknown"], verbosity=0
+            )
         self.assertEqual(str(ctx.exception), "No schema found for 'unknown' (excluded)")
 
     def test_ambiguous_schema_excluded(self):
         with self.assertRaises(CommandError) as ctx:
-            management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant"], verbosity=0)
+            management.call_command(
+                "whowill", all_schemas=True, excluded_schemas=["tenant"], verbosity=0
+            )
         self.assertEqual(
             str(ctx.exception),
             "More than one tenant found for schema 'tenant' by domain (excluded), please, narrow down the filter",
         )
 
     def test_existing_schema_excluded_ok(self):
-        management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)
+        management.call_command(
+            "whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0
+        )
 
     def test_interactive_ok(self):
         def patched_input(*args, **kwargs):
@@ -145,10 +155,17 @@ class TenantCommandsTestCase(TestCase):
             schemas=["public", "sample"],
             verbosity=0,
         )
-        management.call_command("whowill", all_schemas=True, excluded_schemas=["public", "sample"], verbosity=0)
+        management.call_command(
+            "whowill", all_schemas=True, excluded_schemas=["public", "sample"], verbosity=0
+        )
         management.call_command("whowill", schemas=["everyone.localhost/tenant1"], verbosity=0)
         management.call_command("whowill", schemas=["tenant1"], verbosity=0)
         management.call_command(
-            "whowill", all_schemas=True, excluded_schemas=["everyone.localhost/tenant1"], verbosity=0
+            "whowill",
+            all_schemas=True,
+            excluded_schemas=["everyone.localhost/tenant1"],
+            verbosity=0,
         )
-        management.call_command("whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0)
+        management.call_command(
+            "whowill", all_schemas=True, excluded_schemas=["tenant1"], verbosity=0
+        )

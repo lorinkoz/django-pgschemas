@@ -91,7 +91,9 @@ class UtilsTestCase(TestCase):
         self.assertFalse(utils.dynamic_models_exist())
 
     def test_create_drop_schema(self):
-        self.assertFalse(utils.create_schema("public", check_if_exists=True))  # Schema existed already
+        self.assertFalse(
+            utils.create_schema("public", check_if_exists=True)
+        )  # Schema existed already
         self.assertTrue(utils.schema_exists("public"))  # Schema exists
         self.assertTrue(utils.drop_schema("public"))  # Schema was dropped
         self.assertFalse(utils.drop_schema("public"))  # Schema no longer exists

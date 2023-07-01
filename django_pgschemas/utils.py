@@ -192,7 +192,9 @@ def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = Fa
 
     # check if the clone_schema function already exists in the db
     try:
-        cursor.execute("SELECT 'public.clone_schema(text, text, public.cloneparms[])'::regprocedure")
+        cursor.execute(
+            "SELECT 'public.clone_schema(text, text, public.cloneparms[])'::regprocedure"
+        )
     except ProgrammingError:  # pragma: no cover
         _create_clone_schema_function()
         transaction.commit()
@@ -217,7 +219,9 @@ def create_or_clone_schema(schema_name: str, sync_schema: bool = True, verbosity
     if schema_exists(schema_name):
         return False
     clone_reference = get_clone_reference()
-    if clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode():  # pragma: no cover
+    if (
+        clone_reference and schema_exists(clone_reference) and not django_is_in_test_mode()
+    ):  # pragma: no cover
         clone_schema(clone_reference, schema_name)
         return True
     return create_schema(schema_name, sync_schema=sync_schema, verbosity=verbosity)

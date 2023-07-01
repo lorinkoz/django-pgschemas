@@ -59,16 +59,24 @@ class TenantProtocolRouter:
             DomainModel = get_domain_model()
             prefix = scope["path"].split("/")[1]
             try:
-                domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder=prefix)
+                domain = DomainModel.objects.select_related("tenant").get(
+                    domain=hostname, folder=prefix
+                )
             except DomainModel.DoesNotExist:
                 try:
-                    domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder="")
+                    domain = DomainModel.objects.select_related("tenant").get(
+                        domain=hostname, folder=""
+                    )
                 except DomainModel.DoesNotExist:
                     return None, "", []
             tenant = domain.tenant
             tenant.domain_url = hostname
             ws_urlconf = settings.TENANTS["default"]["WS_URLCONF"]
-            return tenant, prefix if prefix == domain.folder else "", import_string(ws_urlconf + ".urlpatterns")
+            return (
+                tenant,
+                prefix if prefix == domain.folder else "",
+                import_string(ws_urlconf + ".urlpatterns"),
+            )
 
     def get_protocol_type_router(self, tenant_prefix, ws_urlconf):
         """

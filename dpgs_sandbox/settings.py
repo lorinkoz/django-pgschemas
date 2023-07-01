@@ -29,7 +29,12 @@ ALLOWED_HOSTS = [".localhost"]
 
 TENANTS = {
     "public": {
-        "APPS": ["shared_public", "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.staticfiles"],
+        "APPS": [
+            "shared_public",
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.staticfiles",
+        ],
     },
     "www": {
         "APPS": ["shared_common", "app_main", "django.contrib.sessions"],

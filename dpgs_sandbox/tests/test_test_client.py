@@ -27,23 +27,33 @@ class TenantRequestFactoryTestCase(TestCase):
 
     def test_get(self):
         request = self.request.get("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/")
+        self.assertEqual(
+            request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/"
+        )
 
     def test_post(self):
         request = self.request.post("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/")
+        self.assertEqual(
+            request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/"
+        )
 
     def test_put(self):
         request = self.request.put("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/")
+        self.assertEqual(
+            request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/"
+        )
 
     def test_patch(self):
         request = self.request.patch("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/")
+        self.assertEqual(
+            request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/"
+        )
 
     def test_delete(self):
         request = self.request.delete("/not/important/")
-        self.assertEqual(request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/")
+        self.assertEqual(
+            request.build_absolute_uri("/whatever/"), "http://tenant1.localhost/whatever/"
+        )
 
 
 class DynamicTenantClientTestCase(TestCase):

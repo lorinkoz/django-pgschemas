@@ -41,11 +41,17 @@ def check_principal_apps(app_configs, **kwargs):
     domain_app = get_domain_app()
     if tenant_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
-            checks.Error("Your tenant app '%s' must be on the 'public' schema." % tenant_app, id="pgschemas.W001")
+            checks.Error(
+                "Your tenant app '%s' must be on the 'public' schema." % tenant_app,
+                id="pgschemas.W001",
+            )
         )
     if domain_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
-            checks.Error("Your domain app '%s' must be on the 'public' schema." % domain_app, id="pgschemas.W001")
+            checks.Error(
+                "Your domain app '%s' must be on the 'public' schema." % domain_app,
+                id="pgschemas.W001",
+            )
         )
     for schema in settings.TENANTS:
         schema_apps = settings.TENANTS[schema].get("APPS", [])
@@ -97,14 +103,20 @@ def check_other_apps(app_configs, **kwargs):
             if session_app in schema_apps and user_app not in schema_apps:
                 errors.append(
                     checks.Warning(
-                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']." % (user_app, session_app, schema),
+                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
+                        % (user_app, session_app, schema),
                         id="pgschemas.W003",
                     )
                 )
-            elif user_app in schema_apps and session_app not in schema_apps and session_app in settings.INSTALLED_APPS:
+            elif (
+                user_app in schema_apps
+                and session_app not in schema_apps
+                and session_app in settings.INSTALLED_APPS
+            ):
                 errors.append(
                     checks.Warning(
-                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']." % (session_app, user_app, schema),
+                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
+                        % (session_app, user_app, schema),
                         id="pgschemas.W003",
                     )
                 )

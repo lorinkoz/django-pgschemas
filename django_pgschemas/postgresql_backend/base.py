@@ -47,14 +47,20 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
     def _handle_search_path(self, cursor=None):
         search_path_for_current_schema = get_search_path(get_current_schema())
 
-        skip = self._setting_search_path or self._search_path == search_path_for_current_schema or get_limit_set_calls()
+        skip = (
+            self._setting_search_path
+            or self._search_path == search_path_for_current_schema
+            or get_limit_set_calls()
+        )
 
         if not skip:
             self._setting_search_path = True
             cursor_for_search_path = self.connection.cursor() if cursor is None else cursor
 
             try:
-                cursor_for_search_path.execute(f"SET search_path = {search_path_for_current_schema}")
+                cursor_for_search_path.execute(
+                    f"SET search_path = {search_path_for_current_schema}"
+                )
             except (DatabaseError, _psycopg.InternalError):
                 self._search_path = None
             else:

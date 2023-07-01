@@ -74,5 +74,12 @@ class InteractiveCloneSchemaTestCase(TransactionTestCase):
         with patch("builtins.input", patched_input):
             with StringIO() as stdout:
                 with StringIO() as stderr:
-                    call_command("cloneschema", "tenant1", "tenant2", verbosity=1, stdout=stdout, stderr=stderr)
+                    call_command(
+                        "cloneschema",
+                        "tenant1",
+                        "tenant2",
+                        verbosity=1,
+                        stdout=stdout,
+                        stderr=stderr,
+                    )
         self.assertTrue(utils.schema_exists("tenant2"))

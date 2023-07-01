@@ -42,10 +42,14 @@ def TenantMiddleware(get_response):
             DomainModel = get_domain_model()
             prefix = request.path.split("/")[1]
             try:
-                domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder=prefix)
+                domain = DomainModel.objects.select_related("tenant").get(
+                    domain=hostname, folder=prefix
+                )
             except DomainModel.DoesNotExist:
                 try:
-                    domain = DomainModel.objects.select_related("tenant").get(domain=hostname, folder="")
+                    domain = DomainModel.objects.select_related("tenant").get(
+                        domain=hostname, folder=""
+                    )
                 except DomainModel.DoesNotExist:
                     domain = None
             if domain:

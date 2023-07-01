@@ -63,7 +63,9 @@ def run_on_schema(
 
     if schema_name in settings.TENANTS:
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
-        schema = SchemaDescriptor.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+        schema = SchemaDescriptor.create(
+            schema_name=schema_name, domain_url=domains[0] if domains else None
+        )
     elif schema_name == get_clone_reference():
         schema = SchemaDescriptor.create(schema_name=schema_name)
     else:
@@ -89,7 +91,9 @@ def run_on_schema(
     return schema_name
 
 
-def sequential(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
+def sequential(
+    schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False
+):
     runner = functools.partial(
         run_on_schema,
         executor_codename="sequential",

@@ -21,14 +21,13 @@ python = "^3.8.1"
 django = "^4.0"
 
 [tool.poetry.dev-dependencies]
-black = "^23.3.0"
-channels = "^2.1"
-coverage = { extras = ["toml"], version = "^6.3" }
-doc8 = "^0.8.0"
-ruff = "^0.0.275"
-sphinx = "^1.8"
-sphinx_rtd_theme = "^0.4.2"
-sphinx-django-command = "^0.1.3"
+black = "*"
+coverage = { extras = ["toml"], version = "*" }
+doc8 = "*"
+ruff = "*"
+sphinx = "*"
+sphinx_rtd_theme = "*"
+sphinx-django-command = "*"
 
 [tool.black]
 line-length = 100

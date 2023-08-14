@@ -48,26 +48,248 @@
 -- 2022-12-07  MJV FIX: Fixed Issue#99  Tables and indexes should mimic the same tablespace used in the source schema.  Only indexes where doing this. Fixed now so both use the same source tablespace.
 -- 2022-12-22  MJV FIX: Fixed Issue#100 Fixed case for user-defined type in public schema not handled: citext. See #82 issue that missed this one.
 -- 2022-12-22  MJV FIX: Fixed Issue#101 Enhancement: More debugging info, exceptions print out version.
+-- 2023-01-10  MJV FIX: Fixed Issue#102 Add alternative to export/import for UDTs, use "text" as an intermediate cast.
+--                                      ex: INSERT INTO clone1.address2 (id2, id3, addr) SELECT id2::text::clone1.udt_myint, id3::text::clone1.udt_myint, addr FROM sample.address;
+-- 2023-05-17  MJV FIX: Fixed Issue#103 2 problems: handling multiple partitioned tables and not creating FKEYS on partitioned tables since the FKEY created on the parent already propagated down to the partitions.
+--                                      The first problem is fixed by modifying the query to work with the current table only.  The 2nd one??????
+-- 2023-07-07  EVK FIX: Merged          Fixed problems with the parameters to FUNCTION clone_schema being (text, text, cloneparms[]) instead of (text, text, boolean, boolean)
+--                                      which resulted in the example grant and the drop not working correctly. Also removed some trailing whitespace. Cheers, Ellert van Koperen.
+-- 2023-08-04  MJV FIX: Fixed Issue#105 Use the extension's schema not the table's schema.  Don't assume public schema.
 
 do $$
 <<first_block>>
 DECLARE
     cnt int;
 BEGIN
-  SELECT count(*) into cnt
-  FROM pg_catalog.pg_type t LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid))
-  AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
-  AND n.nspname <> 'pg_catalog' AND n.nspname <> 'information_schema' AND pg_catalog.pg_type_is_visible(t.oid)
-  AND pg_catalog.format_type(t.oid, NULL) in ('cloneparms');
-  IF cnt = 0 THEN
-    RAISE NOTICE 'Creating custom types.';
-    CREATE TYPE public.cloneparms AS ENUM ('DATA', 'NODATA','DDLONLY','NOOWNER','NOACL','VERBOSE','DEBUG');
-  END IF;
+  DROP TYPE IF EXISTS public.cloneparms CASCADE;
+  CREATE TYPE public.cloneparms AS ENUM ('DATA', 'NODATA','DDLONLY','NOOWNER','NOACL','VERBOSE','DEBUG','FILECOPY');
+  -- END IF;
 end first_block $$;
 
 
--- SELECT * FROM public.get_table_ddl('sample', 'address', True);
+-- select * from public.get_insert_stmt_ddl('clone1','sample','address');
+CREATE OR REPLACE FUNCTION public.get_insert_stmt_ddl(
+  source_schema text,
+  target_schema text,
+  atable text,
+  bTextCast boolean default False
+)
+RETURNS text
+LANGUAGE plpgsql VOLATILE
+AS
+$$
+  DECLARE
+    -- the ddl we're building
+    v_insert_ddl text := '';
+    v_cols       text := '';
+    v_cols_sel   text := '';
+    v_cnt        int  := 0;
+    v_colrec     record;
+    v_schema     text;
+  BEGIN
+    FOR v_colrec IN
+      SELECT c.column_name, c.data_type, c.udt_name, c.udt_schema, c.character_maximum_length, c.is_nullable, c.column_default, c.numeric_precision, c.numeric_scale, c.is_identity, c.identity_generation, c.is_generated
+      FROM information_schema.columns c WHERE (table_schema, table_name) = (source_schema, atable) ORDER BY ordinal_position
+    LOOP
+      IF v_colrec.udt_schema = 'public' THEN
+        v_schema = 'public';
+      ELSE
+        v_schema = target_schema;
+      END IF;
 
+      v_cnt = v_cnt + 1;
+      IF v_colrec.is_identity = 'YES' OR v_colrec.is_generated = 'ALWAYS' THEN
+        -- skip
+        continue;
+      END IF;
+
+      IF v_colrec.data_type = 'USER-DEFINED' THEN
+        IF v_cols = '' THEN
+          v_cols     = v_colrec.column_name;
+          IF bTextCast THEN
+            -- v_cols_sel = v_colrec.column_name || '::text::' || v_schema || '.' || v_colrec.udt_name;
+            IF v_schema = 'public' THEN
+              v_cols_sel = v_colrec.column_name || '::' || v_schema || '.' || v_colrec.udt_name;
+            ELSE
+              v_cols_sel = v_colrec.column_name || '::text::' || v_colrec.udt_name;
+            END IF;
+          ELSE
+            v_cols_sel = v_colrec.column_name || '::' || v_schema || '.' || v_colrec.udt_name;
+          END IF;
+        ELSE
+          v_cols     = v_cols     || ', ' || v_colrec.column_name;
+          IF bTextCast THEN
+            -- v_cols_sel = v_cols_sel || ', ' || v_colrec.column_name || '::text::' || v_schema || '.' || v_colrec.udt_name;
+            IF v_schema = 'public' THEN
+              v_cols_sel = v_cols_sel || ', ' || v_colrec.column_name || '::' || v_schema || '.' || v_colrec.udt_name;
+            ELSE
+              v_cols_sel = v_cols_sel || ', ' || v_colrec.column_name || '::text::' || v_colrec.udt_name;
+            END IF;
+          ELSE
+            v_cols_sel = v_cols_sel || ', ' || v_colrec.column_name || '::' || v_schema || '.' || v_colrec.udt_name;
+          END IF;
+        END IF;
+      ELSE
+        IF v_cols = '' THEN
+          v_cols     = v_colrec.column_name;
+          v_cols_sel = v_colrec.column_name;
+        ELSE
+          v_cols     = v_cols     || ', ' || v_colrec.column_name;
+          v_cols_sel = v_cols_sel || ', ' || v_colrec.column_name;
+        END IF;
+      END IF;
+    END LOOP;
+
+    -- put it all together and return the insert statement
+    -- INSERT INTO clone1.address2 (id2, id3, addr) SELECT id2::text::clone1.udt_myint, id3::text::clone1.udt_myint, addr FROM sample.address;
+    v_insert_ddl = 'INSERT INTO ' || target_schema || '.' || atable || ' (' || v_cols || ') ' || 'SELECT ' || v_cols_sel || ' FROM ' || source_schema || '.' || atable || ';';
+    RETURN v_insert_ddl;
+  END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.get_table_ddl_complex(
+  src_schema text,
+  dst_schema text,
+  in_table   text,
+  sq_server_version_num integer
+)
+RETURNS text
+LANGUAGE plpgsql VOLATILE
+AS
+$$
+  DECLARE
+  v_table_ddl   text;
+  v_buffer1     text;
+  v_buffer2     text;
+
+  BEGIN
+      IF sq_server_version_num < 110000 THEN
+      SELECT 'CREATE TABLE '
+        || quote_ident(dst_schema)
+        || '.'
+        || pc.relname
+        || E'(\n'
+        || string_agg(
+          pa.attname
+            || ' '
+            || pg_catalog.format_type(pa.atttypid, pa.atttypmod)
+            || coalesce(
+              ' DEFAULT '
+                || (
+                  SELECT pg_catalog.pg_get_expr(d.adbin, d.adrelid)
+                  FROM pg_catalog.pg_attrdef d
+                  WHERE d.adrelid = pa.attrelid
+                    AND d.adnum = pa.attnum
+                    AND pa.atthasdef
+                ),
+              ''
+            )
+            || ' '
+            || CASE pa.attnotnull
+              WHEN TRUE THEN 'NOT NULL'
+              ELSE 'NULL'
+              END,
+          E',\n'
+        )
+        || coalesce(
+          (
+            SELECT
+              E',\n'
+              || string_agg(
+                'CONSTRAINT '
+                  || pc1.conname
+                  || ' '
+                  || pg_get_constraintdef(pc1.oid),
+                E',\n'
+                ORDER BY pc1.conindid
+              )
+            FROM pg_constraint pc1
+            --Issue#103: do not return FKEYS for partitions since we assume it is implied by the one done on the parent table, otherwise error for trying to define it again.
+            WHERE pc1.conrelid = pa.attrelid
+          ),
+          ''
+        )
+      INTO v_buffer1
+      FROM pg_catalog.pg_attribute pa
+        JOIN pg_catalog.pg_class pc ON pc.oid = pa.attrelid
+          AND pc.relname = quote_ident(in_table)
+        JOIN pg_catalog.pg_namespace pn ON pn.oid = pc.relnamespace
+          AND pn.nspname = quote_ident(src_schema)
+      WHERE pa.attnum > 0
+        AND NOT pa.attisdropped
+      GROUP BY pn.nspname, pc.relname, pa.attrelid;
+
+      ELSE
+      SELECT 'CREATE TABLE '
+        || quote_ident(dst_schema)
+        || '.'
+        || pc.relname
+        || E'(\n'
+        || string_agg(
+          pa.attname
+            || ' '
+            || pg_catalog.format_type(pa.atttypid, pa.atttypmod)
+            || coalesce(
+              ' DEFAULT '
+                || (
+                  SELECT pg_catalog.pg_get_expr(d.adbin, d.adrelid)
+                  FROM pg_catalog.pg_attrdef d
+                  WHERE d.adrelid = pa.attrelid
+                    AND d.adnum = pa.attnum
+                    AND pa.atthasdef
+                ),
+              ''
+            )
+            || ' '
+            || CASE pa.attnotnull
+              WHEN TRUE THEN 'NOT NULL'
+              ELSE 'NULL'
+              END,
+          E',\n'
+        )
+        || coalesce(
+          (
+            SELECT
+              E',\n'
+              || string_agg(
+                'CONSTRAINT '
+                  || pc1.conname
+                  || ' '
+                  || pg_get_constraintdef(pc1.oid),
+                E',\n'
+                ORDER BY pc1.conindid
+              )
+            FROM pg_constraint pc1
+            --Issue#103: do not return FKEYS for partitions since we assume it is implied by the one done on the parent table, otherwise error for trying to define it again.
+            WHERE pc1.conrelid = pa.attrelid AND pc1.conparentid = 0
+          ),
+          ''
+        )
+      INTO v_buffer1
+      FROM pg_catalog.pg_attribute pa
+        JOIN pg_catalog.pg_class pc ON pc.oid = pa.attrelid
+          AND pc.relname = quote_ident(in_table)
+        JOIN pg_catalog.pg_namespace pn ON pn.oid = pc.relnamespace
+          AND pn.nspname = quote_ident(src_schema)
+      WHERE pa.attnum > 0
+        AND NOT pa.attisdropped
+      GROUP BY pn.nspname, pc.relname, pa.attrelid;
+      END IF;
+
+      -- append partition keyword to it
+      SELECT pg_catalog.pg_get_partkeydef(c.oid::pg_catalog.oid) into v_buffer2
+      FROM pg_catalog.pg_class c  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+      WHERE c.relname = quote_ident(in_table) COLLATE pg_catalog.default AND n.nspname = quote_ident(src_schema) COLLATE pg_catalog.default;
+
+      v_table_ddl := v_buffer1 || ') PARTITION BY ' || v_buffer2 || ';';
+
+      RETURN v_table_ddl;
+  END;
+$$;
+
+
+-- SELECT * FROM public.get_table_ddl('sample', 'address', True);
 CREATE OR REPLACE FUNCTION public.get_table_ddl(
   in_schema varchar,
   in_table varchar,
@@ -224,64 +446,115 @@ $$
 
     -- define all of the columns in the table; https://stackoverflow.com/a/8153081/3068233
     FOR v_colrec IN
-      SELECT c.column_name, c.data_type, c.udt_name, c.character_maximum_length, c.is_nullable, c.column_default, c.numeric_precision, c.numeric_scale, c.is_identity, c.identity_generation
+      SELECT c.column_name, c.data_type, c.udt_name, c.udt_schema, c.character_maximum_length, c.is_nullable, c.column_default, c.numeric_precision, c.numeric_scale, c.is_identity, c.identity_generation
       FROM information_schema.columns c
       WHERE (table_schema, table_name) = (in_schema, in_table)
       ORDER BY ordinal_position
     LOOP
       v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
         || v_colrec.column_name || ' '
-        --FIX #82, FIX #100 as well by adding 'citext' to the list
-        -- EXECUTE. 42704. type "<targetschema>.citext" does not exist
-        -- || CASE WHEN v_colrec.data_type = 'USER-DEFINED' THEN in_schema || '.' || v_colrec.udt_name ELSE v_colrec.data_type END
-        -- || CASE WHEN v_colrec.udt_name in ('geometry', 'box2d', 'box2df', 'box3d', 'geography', 'geometry_dump', 'gidx', 'spheroid', 'valid_detail')
-        || CASE WHEN v_colrec.udt_name in ('geometry', 'box2d', 'box2df', 'box3d', 'geography', 'geometry_dump', 'gidx', 'spheroid', 'valid_detail','citext')
-           THEN v_colrec.udt_name WHEN v_colrec.data_type = 'USER-DEFINED' THEN in_schema || '.' || v_colrec.udt_name ELSE v_colrec.data_type END
-        || CASE WHEN v_colrec.is_identity = 'YES' THEN CASE WHEN v_colrec.identity_generation = 'ALWAYS' THEN ' GENERATED ALWAYS AS IDENTITY' ELSE ' GENERATED BY DEFAULT AS IDENTITY' END ELSE '' END
-        || CASE WHEN v_colrec.character_maximum_length IS NOT NULL THEN ('(' || v_colrec.character_maximum_length || ')')
-                WHEN v_colrec.numeric_precision > 0 AND v_colrec.numeric_scale > 0 THEN '(' || v_colrec.numeric_precision || ',' || v_colrec.numeric_scale || ')'
+        -- FIX #82, FIX #100 as well by adding 'citext' to the list
+        -- FIX #105 by overriding the previous fixes (#82, #100), which presumed "public" was always the schema for extensions.  It could be a custom schema.
+        -- so assume udt_schema for all USER-DEFINED datatypes
+        -- || CASE WHEN v_colrec.udt_name in ('geometry', 'box2d', 'box2df', 'box3d', 'geography', 'geometry_dump', 'gidx', 'spheroid', 'valid_detail','citext')
+        --        THEN v_colrec.udt_name
+           || CASE WHEN v_colrec.data_type = 'USER-DEFINED'
+               -- THEN in_schema || '.' || v_colrec.udt_name ELSE v_colrec.data_type END
+               THEN v_colrec.udt_schema || '.' || v_colrec.udt_name ELSE v_colrec.data_type END
+        || CASE WHEN v_colrec.is_identity = 'YES'
+               THEN
+                  CASE WHEN v_colrec.identity_generation = 'ALWAYS'
+                      THEN ' GENERATED ALWAYS AS IDENTITY' ELSE ' GENERATED BY DEFAULT AS IDENTITY' END ELSE '' END
+        || CASE WHEN v_colrec.character_maximum_length IS NOT NULL
+               THEN ('(' || v_colrec.character_maximum_length || ')')
+           WHEN v_colrec.numeric_precision > 0 AND v_colrec.numeric_scale > 0
+               THEN '(' || v_colrec.numeric_precision || ',' || v_colrec.numeric_scale || ')'
            ELSE '' END || ' '
-        || CASE WHEN v_colrec.is_nullable = 'NO' THEN 'NOT NULL' ELSE 'NULL' END
-        || CASE WHEN v_colrec.column_default IS NOT null THEN (' DEFAULT ' || v_colrec.column_default) ELSE '' END
+        || CASE WHEN v_colrec.is_nullable = 'NO'
+               THEN 'NOT NULL' ELSE 'NULL' END
+        || CASE WHEN v_colrec.column_default IS NOT null
+               THEN (' DEFAULT ' || v_colrec.column_default) ELSE '' END
         || ',' || E'\n';
     END LOOP;
     -- define all the constraints in the; https://www.postgresql.org/docs/9.1/catalog-pg-constraint.html && https://dba.stackexchange.com/a/214877/75296
-    FOR v_constraintrec IN
-      SELECT
-        con.conname as constraint_name,
-        con.contype as constraint_type,
-        CASE
-          WHEN con.contype = 'p' THEN 1 -- primary key constraint
-          WHEN con.contype = 'u' THEN 2 -- unique constraint
-          WHEN con.contype = 'f' THEN 3 -- foreign key constraint
-          WHEN con.contype = 'c' THEN 4
-          ELSE 5
-        END as type_rank,
-        pg_get_constraintdef(con.oid) as constraint_definition
-      FROM pg_catalog.pg_constraint con
-          JOIN pg_catalog.pg_class rel ON rel.oid = con.conrelid
-          JOIN pg_catalog.pg_namespace nsp ON nsp.oid = connamespace
-      WHERE nsp.nspname = in_schema
-          AND rel.relname = in_table
-      ORDER BY type_rank
+    -- Issue#103: do not get foreign keys for partitions since they are defined on the parent and this will cause an "already exists" error otherwise
+    --            Also conparentid is not in V10, so bypass since we do not have FKEYS in partitioned tables in V10
+    IF v_pgversion < 110000 THEN
+      FOR v_constraintrec IN
+        SELECT
+          con.conname as constraint_name,
+          con.contype as constraint_type,
+          CASE
+            WHEN con.contype = 'p' THEN 1 -- primary key constraint
+            WHEN con.contype = 'u' THEN 2 -- unique constraint
+            WHEN con.contype = 'f' THEN 3 -- foreign key constraint
+            WHEN con.contype = 'c' THEN 4
+            ELSE 5
+          END as type_rank,
+          pg_get_constraintdef(con.oid) as constraint_definition
+        FROM pg_catalog.pg_constraint con
+            JOIN pg_catalog.pg_class rel ON rel.oid = con.conrelid
+            JOIN pg_catalog.pg_namespace nsp ON nsp.oid = connamespace
+        WHERE nsp.nspname = in_schema
+            AND rel.relname = in_table
+            ORDER BY type_rank
+      LOOP
+        -- Issue#85 fix
+        -- constraintarr := constraintarr || v_constraintrec.constraint_name;
+        constraintarr := constraintarr || v_constraintrec.constraint_name::text;
+        IF v_constraintrec.type_rank = 1 THEN
+            v_primary := True;
+            v_constraint_name := v_constraintrec.constraint_name;
+        END IF;
+        IF NOT bfkeys AND v_constraintrec.constraint_type = 'f' THEN
+            continue;
+        END IF;
+        v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
+          || 'CONSTRAINT' || ' '
+          || v_constraintrec.constraint_name || ' '
+          || v_constraintrec.constraint_definition
+          || ',' || E'\n';
+      END LOOP;
+    ELSE
+      FOR v_constraintrec IN
+        SELECT
+          con.conname as constraint_name,
+          con.contype as constraint_type,
+          CASE
+            WHEN con.contype = 'p' THEN 1 -- primary key constraint
+            WHEN con.contype = 'u' THEN 2 -- unique constraint
+            WHEN con.contype = 'f' THEN 3 -- foreign key constraint
+            WHEN con.contype = 'c' THEN 4
+            ELSE 5
+          END as type_rank,
+          pg_get_constraintdef(con.oid) as constraint_definition
+        FROM pg_catalog.pg_constraint con
+            JOIN pg_catalog.pg_class rel ON rel.oid = con.conrelid
+            JOIN pg_catalog.pg_namespace nsp ON nsp.oid = connamespace
+        WHERE nsp.nspname = in_schema
+            AND rel.relname = in_table
+            -- Issue#103: do not get partitioned tables
+            AND con.conparentid = 0
+        ORDER BY type_rank
+      LOOP
+        -- Issue#85 fix
+        -- constraintarr := constraintarr || v_constraintrec.constraint_name;
+        constraintarr := constraintarr || v_constraintrec.constraint_name::text;
+        IF v_constraintrec.type_rank = 1 THEN
+            v_primary := True;
+            v_constraint_name := v_constraintrec.constraint_name;
+        END IF;
+        IF NOT bfkeys AND v_constraintrec.constraint_type = 'f' THEN
+            continue;
+        END IF;
+        v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
+          || 'CONSTRAINT' || ' '
+          || v_constraintrec.constraint_name || ' '
+          || v_constraintrec.constraint_definition
+          || ',' || E'\n';
+      END LOOP;
+    END IF;
 
-    LOOP
-      -- Issue#85 fix
-      -- constraintarr := constraintarr || v_constraintrec.constraint_name;
-      constraintarr := constraintarr || v_constraintrec.constraint_name::text;
-      IF v_constraintrec.type_rank = 1 THEN
-          v_primary := True;
-          v_constraint_name := v_constraintrec.constraint_name;
-      END IF;
-      IF NOT bfkeys AND v_constraintrec.constraint_type = 'f' THEN
-          continue;
-      END IF;
-      v_table_ddl := v_table_ddl || '  ' -- note: two char spacer to start, to indent the column
-        || 'CONSTRAINT' || ' '
-        || v_constraintrec.constraint_name || ' '
-        || v_constraintrec.constraint_definition
-        || ',' || E'\n';
-    END LOOP;
     -- drop the last comma before ending the create statement
     v_table_ddl = substr(v_table_ddl, 0, length(v_table_ddl) - 1) || E'\n';
     -- end the create table def but add inherits clause if valid
@@ -353,8 +626,9 @@ $$;
 
 -- Function: clone_schema(text, text, boolean, boolean, boolean)
 -- DROP FUNCTION clone_schema(text, text, boolean, boolean, boolean);
+-- DROP FUNCTION IF EXISTS public.clone_schema(text, text, boolean, boolean);
 
-DROP FUNCTION IF EXISTS public.clone_schema(text, text, boolean, boolean);
+DROP FUNCTION IF EXISTS public.clone_schema(text, text, cloneparms[]);
 CREATE OR REPLACE FUNCTION public.clone_schema(
     source_schema text,
     dest_schema text,
@@ -383,6 +657,7 @@ DECLARE
   ix_new_name      text;
   relpersist       text;
   udt_name         text;
+  udt_schema       text;
   bRelispart       bool;
   bChild           bool;
   relknd           text;
@@ -398,6 +673,7 @@ DECLARE
   -- issue#80 initialize arrays properly
   tblarray         text[] := '{}';
   tblarray2        text[] := '{}';
+  tblarray3        text[] := '{}';
   tblelement       text;
   grantor          text;
   grantee          text;
@@ -437,7 +713,8 @@ DECLARE
   v_diag5          text;
   v_diag6          text;
   v_dummy          text;
-
+  spath            text;
+  spath_tmp        text;
   -- issue#86 fix
   isGenerated      text;
 
@@ -470,10 +747,13 @@ DECLARE
   -- issue#99 tablespaces
   tblspace         text;
 
+  -- issue#101
+  bFileCopy        boolean := False;
+
   t                timestamptz := clock_timestamp();
   r                timestamptz;
   s                timestamptz;
-  v_version        text := '1.15  December 22, 2022';
+  v_version        text := '1.18  August 04, 2023';
 
 BEGIN
   -- Make sure NOTICE are shown
@@ -493,9 +773,9 @@ BEGIN
     -- loop thru args
     -- IF 'NO_TRIGGERS' = ANY ($3)
     -- select array_to_string($3, ',', '***') INTO vargs;
-    IF bDebug THEN RAISE NOTICE 'arguments=%', $3; END IF;
+    IF bDebug THEN RAISE NOTICE 'DEBUG: arguments=%', $3; END IF;
     FOREACH avarg IN ARRAY $3 LOOP
-      IF bDebug THEN RAISE NOTICE 'arg=%', avarg; END IF;
+      IF bDebug THEN RAISE NOTICE 'DEBUG: arg=%', avarg; END IF;
       IF avarg = 'DATA' THEN
         bData = True;
       ELSEIF avarg = 'NODATA' THEN
@@ -507,6 +787,9 @@ BEGIN
         bNoACL = True;
       ELSEIF avarg = 'NOOWNER' THEN
         bNoOwner = True;
+      -- issue#101 fix
+      ELSEIF avarg = 'FILECOPY' THEN
+        bFileCopy = True;
       END IF;
     END LOOP;
     IF bData and bDDLOnly THEN
@@ -578,16 +861,16 @@ BEGIN
   -- returned unquoted by some applications, we ensure it remains double quoted.
   -- MJV FIX: #47
   SELECT setting INTO v_dummy FROM pg_settings WHERE name='search_path';
-  IF bDebug THEN RAISE NOTICE 'search_path=%', v_dummy; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: search_path=%', v_dummy; END IF;
 
   SELECT REPLACE(REPLACE(setting, '"$user"', '$user'), '$user', '"$user"') INTO src_path_old
   FROM pg_settings WHERE name = 'search_path';
 
-  IF bDebug THEN RAISE NOTICE 'src_path_old=%', src_path_old; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: src_path_old=%', src_path_old; END IF;
 
   EXECUTE 'SET search_path = ' || quote_ident(source_schema) ;
   SELECT setting INTO src_path_new FROM pg_settings WHERE name='search_path';
-  IF bDebug THEN RAISE NOTICE 'new search_path=%', src_path_new; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: new search_path=%', src_path_new; END IF;
 
   -- Validate required types exist.  If not, create them.
   SELECT a.objtypecnt, b.permtypecnt INTO cnt, cnt2
@@ -932,17 +1215,17 @@ BEGIN
   -- Create tables including partitioned ones (parent/children) and unlogged ones.  Order by is critical since child partition range logic is dependent on it.
   action := 'Tables';
   SELECT setting INTO v_dummy FROM pg_settings WHERE name='search_path';
-  IF bDebug THEN RAISE NOTICE 'search_path=%', v_dummy; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: search_path=%', v_dummy; END IF;
 
   cnt := 0;
   -- Issue#61 FIX: use set_config for empty string
   -- SET search_path = '';
   SELECT set_config('search_path', '', false) into v_dummy;
-  IF bDebug THEN RAISE NOTICE 'setting search_path to empty string:%', v_dummy; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: setting search_path to empty string:%', v_dummy; END IF;
   -- Fix#86 add isgenerated to column list
   -- Fix#91 add tblowner for setting the table ownership to that of the source
   -- Fix#99 added join to pg_tablespace
-  FOR tblname, relpersist, bRelispart, relknd, data_type, udt_name, ocomment, l_child, isGenerated, tblowner, tblspace  IN
+  FOR tblname, relpersist, bRelispart, relknd, data_type, udt_name, udt_schema, ocomment, l_child, isGenerated, tblowner, tblspace  IN
     -- 2021-03-08 MJV #39 fix: change sql to get indicator of user-defined columns to issue warnings
     -- select c.relname, c.relpersistence, c.relispartition, c.relkind
     -- FROM pg_class c, pg_namespace n where n.oid = c.relnamespace and n.nspname = quote_ident(source_schema) and c.relkind in ('r','p') and
@@ -950,15 +1233,17 @@ BEGIN
     --Fix#65 add another left join to distinguish child tables by inheritance
     -- Fix#86 add is_generated to column select
     -- Fix#91 add tblowner to the select
-    SELECT DISTINCT c.relname, c.relpersistence, c.relispartition, c.relkind, co.data_type, co.udt_name, obj_description(c.oid), i.inhrelid, COALESCE(co.is_generated, ''),
-                    pg_catalog.pg_get_userbyid(c.relowner) as "Owner", CASE WHEN reltablespace = 0 THEN 'pg_default' ELSE ts.spcname END as tablespace
+    -- Fix#105 need a different kinda distint to avoid retrieving a table twice in the case of a table with multiple USER-DEFINED datatypes using DISTINCT ON instead of just DISTINCT
+    --SELECT DISTINCT c.relname, c.relpersistence, c.relispartition, c.relkind, co.data_type, co.udt_name, co.udt_schema, obj_description(c.oid), i.inhrelid,
+    --                COALESCE(co.is_generated, ''), pg_catalog.pg_get_userbyid(c.relowner) as "Owner", CASE WHEN reltablespace = 0 THEN 'pg_default' ELSE ts.spcname END as tablespace
+    SELECT DISTINCT ON (c.relname, c.relpersistence, c.relispartition, c.relkind, co.data_type) c.relname, c.relpersistence, c.relispartition, c.relkind, co.data_type, co.udt_name, co.udt_schema, obj_description(c.oid), i.inhrelid,
+                    COALESCE(co.is_generated, ''), pg_catalog.pg_get_userbyid(c.relowner) as "Owner", CASE WHEN reltablespace = 0 THEN 'pg_default' ELSE ts.spcname END as tablespace
     FROM pg_class c
         JOIN pg_namespace n ON (n.oid = c.relnamespace
                 AND n.nspname = quote_ident(source_schema)
                 AND c.relkind IN ('r', 'p'))
         LEFT JOIN information_schema.columns co ON (co.table_schema = n.nspname
                 AND co.table_name = c.relname
-                -- AND co.data_type = 'USER-DEFINED')
                 AND (co.data_type = 'USER-DEFINED' OR co.is_generated = 'ALWAYS'))
         LEFT JOIN pg_inherits i ON (c.oid = i.inhrelid)
         -- issue#99 added join
@@ -971,7 +1256,7 @@ BEGIN
     ELSE
       bChild := True;
     END IF;
-    -- RAISE NOTICE 'table=%  bRelispart=%  relkind=%  bChild=%',tblname, bRelispart, relknd, bChild;
+    IF bDebug THEN RAISE NOTICE 'DEBUG: TABLE START --> table=%  bRelispart=%  relkind=%  bChild=%',tblname, bRelispart, relknd, bChild; END IF;
 
     IF data_type = 'USER-DEFINED' THEN
       -- RAISE NOTICE ' Table (%) has column(s) with user-defined types so using get_table_ddl() instead of CREATE TABLE LIKE construct.',tblname;
@@ -1030,7 +1315,7 @@ BEGIN
           -- SELECT * INTO buffer3 FROM public.pg_get_tabledef(quote_ident(source_schema), tblname);
           SELECT * INTO buffer3 FROM public.get_table_ddl(quote_ident(source_schema), tblname, False);
           buffer3 := REPLACE(buffer3, quote_ident(source_schema) || '.', quote_ident(dest_schema) || '.');
-          IF bDebug THEN RAISE NOTICE 'tabledef01:%', buffer3; END IF;
+          IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef01:%', buffer3; END IF;
           -- #82: Table def should be fully qualified with target schema,
           --      so just make search path = public to handle extension types that should reside in public schema
           v_dummy = 'public';
@@ -1042,11 +1327,10 @@ BEGIN
             buffer3 = 'ALTER TABLE IF EXISTS ' || quote_ident(dest_schema) || '.' || tblname || ' OWNER TO ' || tblowner;
             EXECUTE buffer3;
           END IF;
-
         ELSE
           IF (NOT bChild OR bRelispart) THEN
             buffer3 := 'CREATE ' || buffer2 || 'TABLE ' || buffer || ' (LIKE ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' INCLUDING ALL)';
-            IF bDebug THEN RAISE NOTICE 'tabledef02:%', buffer3; END IF;
+            IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef02:%', buffer3; END IF;
             EXECUTE buffer3;
             -- issue#91 fix
             -- issue#95
@@ -1072,7 +1356,7 @@ BEGIN
             -- set client_min_messages higher to avoid messages like this:
             -- NOTICE:  merging column "city_id" with inherited definition
             set client_min_messages = 'WARNING';
-            IF bDebug THEN RAISE NOTICE 'tabledef03:%', buffer3; END IF;
+            IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef03:%', buffer3; END IF;
             EXECUTE buffer3;
             -- issue#91 fix
             -- issue#95
@@ -1092,66 +1376,14 @@ BEGIN
       END IF;
     ELSIF relknd = 'p' THEN
       -- define parent table and assume child tables have already been created based on top level sort order.
-      SELECT 'CREATE TABLE '
-        || quote_ident(dest_schema)
-        || '.'
-        || pc.relname
-        || E'(\n'
-        || string_agg(
-          pa.attname
-            || ' '
-            || pg_catalog.format_type(pa.atttypid, pa.atttypmod)
-            || coalesce(
-              ' DEFAULT '
-                || (
-                  SELECT pg_catalog.pg_get_expr(d.adbin, d.adrelid)
-                  FROM pg_catalog.pg_attrdef d
-                  WHERE d.adrelid = pa.attrelid
-                    AND d.adnum = pa.attnum
-                    AND pa.atthasdef
-                ),
-              ''
-            )
-            || ' '
-            || CASE pa.attnotnull
-              WHEN TRUE THEN 'NOT NULL'
-              ELSE 'NULL'
-              END,
-          E',\n'
-        )
-        || coalesce(
-          (
-            SELECT
-              E',\n'
-              || string_agg(
-                'CONSTRAINT '
-                  || pc1.conname
-                  || ' '
-                  || pg_get_constraintdef(pc1.oid),
-                E',\n'
-                ORDER BY pc1.conindid
-              )
-            FROM pg_constraint pc1
-            WHERE pc1.conrelid = pa.attrelid
-          ),
-          ''
-        )
-      INTO buffer
-      FROM pg_catalog.pg_attribute pa
-        JOIN pg_catalog.pg_class pc ON pc.oid = pa.attrelid
-          AND pc.relname = quote_ident(tblname)
-        JOIN pg_catalog.pg_namespace pn ON pn.oid = pc.relnamespace
-          AND pn.nspname = quote_ident(source_schema)
-      WHERE pa.attnum > 0
-        AND NOT pa.attisdropped
-      GROUP BY pn.nspname, pc.relname, pa.attrelid;
+      -- Issue #103 Put the complex query into its own function, get_table_ddl_complex()
+      SELECT * INTO qry FROM public.get_table_ddl_complex(source_schema, dest_schema, tblname, sq_server_version_num);
+      IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef04 - %', buffer; END IF;
 
-      -- append partition keyword to it
-      SELECT pg_catalog.pg_get_partkeydef(c.oid::pg_catalog.oid) into buffer2
-      FROM pg_catalog.pg_class c  LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-      WHERE c.relname = quote_ident(tblname) COLLATE pg_catalog.default AND n.nspname = quote_ident(source_schema) COLLATE pg_catalog.default;
+      -- consider replacing complicated query above with this simple call to get_table_ddl()...
+      -- SELECT * INTO qry FROM public.get_table_ddl(quote_ident(source_schema), tblname, False);
+      -- qry := REPLACE(qry, quote_ident(source_schema) || '.', quote_ident(dest_schema) || '.');
 
-      qry := buffer || ') PARTITION BY ' || buffer2 || ';';
       IF bDDLOnly THEN
         RAISE INFO '%', qry;
         -- issue#95
@@ -1159,8 +1391,27 @@ BEGIN
             RAISE INFO 'ALTER TABLE IF EXISTS % OWNER TO %;', quote_ident(dest_schema) || '.' || quote_ident(tblname), tblowner;
         END IF;
       ELSE
-        IF bDebug THEN RAISE NOTICE 'tabledef04:%', buffer3; END IF;
+        -- Issue#103: we need to always set search_path priority to target schema when we execute DDL
+        IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef04 context: old search path=%  new search path=% current search path=%', src_path_old, src_path_new, v_dummy; END IF;
+        SELECT setting INTO spath_tmp FROM pg_settings WHERE name = 'search_path';
+        IF spath_tmp <> dest_schema THEN
+          -- change it to target schema and don't forget to change it back after we execute the DDL
+          spath = 'SET search_path = "' || dest_schema || '"';
+          IF bDebug THEN RAISE NOTICE 'DEBUG: changing search_path --> %', spath; END IF;
+          EXECUTE spath;
+          SELECT setting INTO v_dummy FROM pg_settings WHERE name = 'search_path';
+          IF bDebug THEN RAISE NOTICE 'DEBUG: search_path changed to %', v_dummy; END IF;
+        END IF;
+        IF bDebug THEN RAISE NOTICE 'DEBUG: tabledef04:%', qry; END IF;
         EXECUTE qry;
+
+        -- Issue#103
+        -- Set search path back to what it was
+        spath = 'SET search_path = "' || spath_tmp || '"';
+        EXECUTE spath;
+        SELECT setting INTO v_dummy FROM pg_settings WHERE name = 'search_path';
+        IF bDebug THEN RAISE NOTICE 'DEBUG: search_path changed back to %', v_dummy; END IF;
+
         -- issue#91 fix
         -- issue#95
         IF NOT bNoOwner THEN
@@ -1170,14 +1421,18 @@ BEGIN
 
       END IF;
       -- loop for child tables and alter them to attach to parent for specific partition method.
+      -- Issue#103 fix: only loop for the table we are currently processing, tblname!
       FOR aname, part_range, object IN
         SELECT quote_ident(dest_schema) || '.' || c1.relname as tablename, pg_catalog.pg_get_expr(c1.relpartbound, c1.oid) as partrange, quote_ident(dest_schema) || '.' || c2.relname as object
         FROM pg_catalog.pg_class c1, pg_namespace n, pg_catalog.pg_inherits i, pg_class c2
-        WHERE n.nspname = quote_ident(source_schema) AND c1.relnamespace = n.oid AND c1.relkind = 'r' AND
+        WHERE n.nspname = quote_ident(source_schema) AND c1.relnamespace = n.oid AND c1.relkind = 'r'
+        -- Issue#103: added this condition to only work on current partitioned table.  The problem was regression testing previously only worked on one partition table clone case
+        AND c2.relname = tblname AND
         c1.relispartition AND c1.oid=i.inhrelid AND i.inhparent = c2.oid AND c2.relnamespace = n.oid ORDER BY pg_catalog.pg_get_expr(c1.relpartbound, c1.oid) = 'DEFAULT',
         c1.oid::pg_catalog.regclass::pg_catalog.text
       LOOP
         qry := 'ALTER TABLE ONLY ' || object || ' ATTACH PARTITION ' || aname || ' ' || part_range || ';';
+        IF bDebug THEN RAISE NOTICE 'DEBUG: %',qry; END IF;
         -- issue#91, not sure if we need to do this for child tables
         -- issue#95 we dont set ownership here
         IF bDDLOnly THEN
@@ -1251,38 +1506,51 @@ BEGIN
 
       -- Issue#86 fix:
       -- IF data_type = 'USER-DEFINED' THEN
-      IF bDebug THEN RAISE NOTICE 'includerecs branch  table=%  data_type=%  isgenerated=%', tblname, data_type, isGenerated; END IF;
+      IF bDebug THEN RAISE NOTICE 'DEBUG: includerecs branch  table=%  data_type=%  isgenerated=%', tblname, data_type, isGenerated; END IF;
       IF data_type = 'USER-DEFINED' OR isGenerated = 'ALWAYS' THEN
 
         -- RAISE WARNING 'Bypassing copying rows for table (%) with user-defined data types.  You must copy them manually.', tblname;
-        -- wont work --> INSERT INTO sample_clone1.address (id2, id3, addr) SELECT cast(id2 as sample_clone1.udt_myint), cast(id3 as sample_clone1.udt_myint), addr FROM sample.address;
+        -- wont work --> INSERT INTO clone1.address (id2, id3, addr) SELECT cast(id2 as clone1.udt_myint), cast(id3 as clone1.udt_myint), addr FROM sample.address;
+        -- Issue#101 --> INSERT INTO clone1.address2 (id2, id3, addr) SELECT id2::text::clone1.udt_myint, id3::text::clone1.udt_myint, addr FROM sample.address;
 
         -- Issue#79 implementation follows
         -- COPY sample.statuses(id, s) TO '/tmp/statuses.txt' WITH DELIMITER AS ',';
         -- COPY sample_clone1.statuses FROM '/tmp/statuses.txt' (DELIMITER ',', NULL '');
-        IF bWindows THEN
-            buffer2   := 'COPY ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' TO  ''C:\WINDOWS\TEMP\cloneschema.tmp'' WITH DELIMITER AS '','';';
-            tblarray2 := tblarray2 || buffer2;
-            -- Issue #81 reformat COPY command for upload
-            -- buffer2:= 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM  ''C:\WINDOWS\TEMP\cloneschema.tmp'' (DELIMITER '','', NULL '''');';
-            buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM  ''C:\WINDOWS\TEMP\cloneschema.tmp'' (DELIMITER '','', NULL ''\N'', FORMAT CSV);';
-            tblarray2 := tblarray2 || buffer2;
+        -- Issue#101 fix: use text cast to get around the problem.
+        IF bFileCopy THEN
+          IF bWindows THEN
+              buffer2   := 'COPY ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' TO  ''C:\WINDOWS\TEMP\cloneschema.tmp'' WITH DELIMITER AS '','';';
+              tblarray2 := tblarray2 || buffer2;
+              -- Issue #81 reformat COPY command for upload
+              -- buffer2:= 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM  ''C:\WINDOWS\TEMP\cloneschema.tmp'' (DELIMITER '','', NULL '''');';
+              buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM  ''C:\WINDOWS\TEMP\cloneschema.tmp'' (DELIMITER '','', NULL ''\N'', FORMAT CSV);';
+              tblarray2 := tblarray2 || buffer2;
+          ELSE
+              buffer2   := 'COPY ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' TO ''/tmp/cloneschema.tmp'' WITH DELIMITER AS '','';';
+              tblarray2 := tblarray2 || buffer2;
+              -- Issue #81 reformat COPY command for upload
+              -- buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM ''/tmp/cloneschema.tmp'' (DELIMITER '','', NULL '''');';
+              -- works--> COPY sample.timestamptbl2  FROM '/tmp/cloneschema.tmp' WITH (DELIMITER ',', NULL '\N', FORMAT CSV) ;
+              buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM ''/tmp/cloneschema.tmp'' (DELIMITER '','', NULL ''\N'', FORMAT CSV);';
+              tblarray2 := tblarray2 || buffer2;
+          END IF;
         ELSE
-            buffer2   := 'COPY ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ' TO ''/tmp/cloneschema.tmp'' WITH DELIMITER AS '','';';
-            tblarray2 := tblarray2 || buffer2;
-            -- Issue #81 reformat COPY command for upload
-            -- buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM ''/tmp/cloneschema.tmp'' (DELIMITER '','', NULL '''');';
-            -- works--> COPY sample.timestamptbl2  FROM '/tmp/cloneschema.tmp' WITH (DELIMITER ',', NULL '\N', FORMAT CSV) ;
-            buffer2   := 'COPY ' || quote_ident(dest_schema) || '.' || quote_ident(tblname) || '  FROM ''/tmp/cloneschema.tmp'' (DELIMITER '','', NULL ''\N'', FORMAT CSV);';
-            tblarray2 := tblarray2 || buffer2;
+          -- Issue#101: assume direct copy with text cast, add to separate array
+          SELECT * INTO buffer3 FROM public.get_insert_stmt_ddl(quote_ident(source_schema), quote_ident(dest_schema), quote_ident(tblname), True);
+          tblarray3 := tblarray3 || buffer3;
         END IF;
       ELSE
         -- bypass child tables since we populate them when we populate the parents
         -- RAISE NOTICE 'tblname=%  bRelispart=%  relknd=%  l_child=%  bChild=%', tblname, bRelispart, relknd, l_child, bChild;
         IF NOT bRelispart AND NOT bChild THEN
           -- Issue#75: Must defer population of tables until child tables have been added to parents
+          -- Issue#101 Offer alternative of copy to/from file. Although originally intended for tables with UDTs, it is now expanded to handle all cases for performance improvement perhaps for large tables.
           buffer2 := 'INSERT INTO ' || buffer || buffer3 || ' SELECT * FROM ' || quote_ident(source_schema) || '.' || quote_ident(tblname) || ';';
-          tblarray := tblarray || buffer2;
+          IF bFileCopy THEN
+            tblarray2:= tblarray2 || buffer2;
+          ELSE
+            tblarray := tblarray || buffer2;
+          END IF;
         END IF;
       END IF;
     END IF;
@@ -1314,7 +1582,7 @@ BEGIN
   RAISE NOTICE '      TABLES cloned: %', LPAD(cnt::text, 5, ' ');
 
   SELECT setting INTO v_dummy FROM pg_settings WHERE name = 'search_path';
-  IF bDebug THEN RAISE NOTICE 'search_path=%', v_dummy; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: search_path=%', v_dummy; END IF;
 
   -- Assigning sequences to table columns.
   action := 'Sequences assigning';
@@ -1400,7 +1668,6 @@ BEGIN
   --  add FK constraint
   -- action := 'FK Constraints';
 
-
   -- Issue#62: Add comments on indexes, and then removed them from here and reworked later below.
 
   -- Issue 90: moved functions to here, before views or MVs that might use them
@@ -1437,7 +1704,7 @@ BEGIN
             END IF;
           END IF;
         ELSE
-          IF bDebug THEN RAISE NOTICE '%', dest_qry; END IF;
+          IF bDebug THEN RAISE NOTICE 'DEBUG: %', dest_qry; END IF;
           EXECUTE dest_qry;
 
           -- Issue#91 Fix
@@ -1859,7 +2126,7 @@ BEGIN
 
     -- Issue#98 For MVs we create comments when we create the MVs
     IF substring(qry,1,28) = 'COMMENT ON MATERIALIZED VIEW' THEN
-      IF bDebug THEN RAISE NOTICE 'deferring comments on MVs'; END IF;
+      IF bDebug THEN RAISE NOTICE 'DEBUG: deferring comments on MVs'; END IF;
       cnt = cnt - 1;
       continue;
     END IF;
@@ -2366,6 +2633,7 @@ BEGIN
     FOREACH tblelement IN ARRAY tblarray
     LOOP
        s = clock_timestamp();
+       IF bDebug THEN RAISE NOTICE 'DEBUG1: no UDTs %', tblelement; END IF;
        EXECUTE tblelement;
        GET DIAGNOSTICS cnt = ROW_COUNT;
        buffer = substring(tblelement, 13);
@@ -2383,10 +2651,11 @@ BEGIN
     END LOOP;
 
     -- Issue#79 implementation
-    -- Do same for tables with user-defined elements
+    -- Do same for tables with user-defined elements using copy to file method
     FOREACH tblelement IN ARRAY tblarray2
     LOOP
        s = clock_timestamp();
+       IF bDebug THEN RAISE NOTICE 'DEBUG2: UDTs %', tblelement; END IF;
        EXECUTE tblelement;
        GET DIAGNOSTICS cnt = ROW_COUNT;
        cnt2 = POSITION(' FROM ' IN tblelement::text);
@@ -2399,6 +2668,26 @@ BEGIN
            tblscopied := tblscopied + 1;
        END IF;
     END LOOP;
+
+    -- Issue#101
+    -- Do same for tables with user-defined elements using direct method with text cast
+    FOREACH tblelement IN ARRAY tblarray3
+    LOOP
+       s = clock_timestamp();
+       IF bDebug THEN RAISE NOTICE 'DEBUG3: UDTs %', tblelement; END IF;
+       EXECUTE tblelement;
+       GET DIAGNOSTICS cnt = ROW_COUNT;
+       cnt2 = POSITION(' (' IN tblelement::text);
+       IF cnt2 > 0 THEN
+           buffer = substring(tblelement, 1, cnt2);
+           buffer = substring(buffer, 6);
+           SELECT RPAD(buffer, 35, ' ') INTO buffer;
+           cnt2 := cast(extract(epoch from (clock_timestamp() - s)) as numeric(18,3));
+           IF bVerbose THEN RAISE NOTICE ' Populated cloned table, %   Rows Copied: %    seconds: %', buffer, LPAD(cnt::text, 10, ' '), LPAD(cnt2::text, 5, ' '); END IF;
+           tblscopied := tblscopied + 1;
+       END IF;
+    END LOOP;
+
 
     -- Issue#98 MVs deferred until now
     FOREACH tblelement IN ARRAY mvarray
@@ -2440,14 +2729,19 @@ BEGIN
                           || quote_ident(dest_schema) || '.') || ';'
     FROM pg_constraint ct
     JOIN pg_class rn ON rn.oid = ct.conrelid
+    -- Issue#103 needed to addd this left join
+    LEFT JOIN pg_inherits i ON (rn.oid = i.inhrelid)
     WHERE connamespace = src_oid
         AND rn.relkind = 'r'
         AND ct.contype = 'f'
+        -- Issue#103 fix: needed to also add this null check
+        AND i.inhrelid is null
   LOOP
     cnt := cnt + 1;
     IF bDDLOnly THEN
       RAISE INFO '%', qry;
     ELSE
+      IF bDebug THEN RAISE NOTICE 'DEBUG: adding FKEY constraint: %', qry; END IF;
       EXECUTE qry;
     END IF;
   END LOOP;
@@ -2463,7 +2757,7 @@ BEGIN
     EXECUTE 'SET search_path = ' || src_path_old;
   END IF;
   SELECT setting INTO v_dummy FROM pg_settings WHERE name = 'search_path';
-  IF bDebug THEN RAISE NOTICE 'setting search_path back to what it was: %', v_dummy; END IF;
+  IF bDebug THEN RAISE NOTICE 'DEBUG: setting search_path back to what it was: %', v_dummy; END IF;
   cnt := cast(extract(epoch from (clock_timestamp() - t)) as numeric(18,3));
   IF bVerbose THEN RAISE NOTICE 'clone_schema duration: % seconds',cnt; END IF;
 
@@ -2471,10 +2765,16 @@ BEGIN
      WHEN others THEN
      BEGIN
          GET STACKED DIAGNOSTICS v_diag1 = MESSAGE_TEXT, v_diag2 = PG_EXCEPTION_DETAIL, v_diag3 = PG_EXCEPTION_HINT, v_diag4 = RETURNED_SQLSTATE, v_diag5 = PG_CONTEXT, v_diag6 = PG_EXCEPTION_CONTEXT;
-         -- v_ret := 'line=' || v_diag6 || '. '|| v_diag4 || '. ' || v_diag1 || ' .' || v_diag2 || ' .' || v_diag3;
          v_ret := 'line=' || v_diag6 || '. '|| v_diag4 || '. ' || v_diag1;
          -- Issue#101: added version to exception output
-         RAISE EXCEPTION 'Version: %  Action: %  Diagnostics: %',v_version, action, v_ret;
+         -- RAISE NOTICE 'v_diag1=%  v_diag2=%  v_diag3=%  v_diag4=%  v_diag5=%  v_diag6=%', v_diag1, v_diag2, v_diag3, v_diag4, v_diag5, v_diag6;
+         buffer2 = '';
+         IF action = 'Copy Rows' AND v_diag4 = '42704' THEN
+             -- Issue#105 Help user to fix the problem.
+             buffer2 = 'It appears you have a USER-DEFINED column type mismatch.  Try running clone_schema with the FILECOPY option. ';
+         END IF;
+         buffer = v_ret || E'\n'|| buffer2;
+         RAISE EXCEPTION 'Version: %  Action: %  Diagnostics: %',v_version, action, buffer;
 
          IF src_path_old = '' THEN
            -- RAISE NOTICE 'setting old search_path to empty string';
@@ -2492,4 +2792,6 @@ END;
 
 $BODY$
   LANGUAGE plpgsql VOLATILE  COST 100;
--- ALTER FUNCTION public.clone_schema(text, text, boolean, boolean, boolean) OWNER TO postgres;
+
+-- ALTER FUNCTION public.clone_schema(text, text, cloneparms[]) OWNER TO postgres;
+-- REVOKE ALL PRIVILEGES ON FUNCTION clone_schema(text, text, cloneparms[]) FROM public;

@@ -111,7 +111,7 @@ class DomainMixin(models.Model):
             related_name="domains",
             on_delete=models.CASCADE,
         )
-        if "default" in settings.TENANTS
+        if hasattr(settings, "TENANTS") and "default" in settings.TENANTS
         else None
     )
 

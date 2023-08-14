@@ -61,7 +61,10 @@ ignore_errors = true
 
 [tool.coverage.run]
 source = ["django_pgschemas"]
-omit = ["django_pgschemas/contrib/channels*"]
+omit = [
+    "django_pgschemas/contrib/channels2/*",
+    "django_pgschemas/contrib/channels3/*",
+]
 
 [build-system]
 requires = ["poetry>=0.12"]

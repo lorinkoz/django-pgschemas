@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-pgschemas"
-version = "0.15.0"
+version = "1.0.0a0"
 description = "Multi-tenancy on Django using PostgreSQL schemas."
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
@@ -9,7 +9,7 @@ repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
 keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgresql"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
     "Framework :: Django :: 4.0",
     "Framework :: Django :: 4.1",
@@ -23,7 +23,7 @@ django = "^4.0"
 [tool.poetry.dev-dependencies]
 black = "^23.3.0"
 channels = "^2.1"
-coverage = {extras = ["toml"], version = "^6.3"}
+coverage = { extras = ["toml"], version = "^6.3" }
 doc8 = "^0.8.0"
 ruff = "^0.0.275"
 sphinx = "^1.8"
@@ -48,11 +48,7 @@ check_untyped_defs = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = [
-    "channels.*",
-    "psycopg.*",
-    "psycopg2.*",
-]
+module = ["channels.*", "psycopg.*", "psycopg2.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

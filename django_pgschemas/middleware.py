@@ -104,7 +104,7 @@ def TenantMiddleware(get_response):
 
             return await get_response(request)
     else:
-        def middleware(request):  # type: ignore
+        def middleware(request):
             if response := logic(request):
                 return response
 

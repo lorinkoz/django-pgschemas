@@ -99,11 +99,15 @@ def TenantMiddleware(get_response):
         async_logic = sync_to_async(logic)
 
         async def middleware(request):
-            await async_logic(request)
+            if response := await async_logic(request):
+                return response
+
             return await get_response(request)
     else:
         def middleware(request):  # type: ignore
-            logic(request)
+            if response := logic(request):
+                return response
+
             return get_response(request)
 
     return middleware

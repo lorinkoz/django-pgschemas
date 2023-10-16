@@ -1,9 +1,13 @@
 import re
+import asyncio
+
+from asgiref.sync import sync_to_async, iscoroutinefunction
 
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
+from django.utils.decorators import sync_and_async_middleware
 
 from .schema import SchemaDescriptor, activate, activate_public
 from .urlresolvers import get_urlconf_from_schema
@@ -17,13 +21,14 @@ def strip_tenant_from_path_factory(prefix):
     return strip_tenant_from_path
 
 
+@sync_and_async_middleware
 def TenantMiddleware(get_response):
     """
     This middleware should be placed at the very top of the middleware stack.
     Selects the proper static/dynamic tenant using the request host.
     """
 
-    def middleware(request):
+    def logic(request):
         hostname = remove_www(request.get_host().split(":")[0])
 
         activate_public()
@@ -89,6 +94,16 @@ def TenantMiddleware(get_response):
         set_urlconf(urlconf)
 
         activate(tenant)
-        return get_response(request)
+
+    if iscoroutinefunction(get_response):
+        async_logic = sync_to_async(logic)
+
+        async def middleware(request):
+            await async_logic(request)
+            return await get_response(request)
+    else:
+        def middleware(request):  # type: ignore
+            logic(request)
+            return get_response(request)
 
     return middleware

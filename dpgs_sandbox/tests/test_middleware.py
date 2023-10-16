@@ -134,3 +134,72 @@ class TenantMiddlewareTestCase(TestCase):
         self.assertEqual(modified_request.tenant.domain_url, "everyone.localhost")
         self.assertEqual(modified_request.tenant.folder, None)
         self.assertEqual(modified_request.urlconf, "app_main.urls")
+
+
+class TenantMiddlewareAsyncTestCase(TestCase):
+    """
+    Tests TenantMiddleware in async context.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+        super().setUpClass()
+        cls.factory = RequestFactory()
+        tenant1 = TenantModel(schema_name="tenant1")
+        tenant1.auto_create_schema = False
+        tenant1.save()
+        DomainModel(domain="tenant1.localhost", tenant=tenant1).save()
+        DomainModel(domain="everyone.localhost", folder="tenant1", tenant=tenant1).save()
+
+    def async_middleware(self, request):
+        async def fake_get_response(request):
+            return request
+
+        return TenantMiddleware(fake_get_response)(request)
+
+    async def test_dynamic_tenants_tenant1_domain(self):
+        request = self.factory.get("/tenant2/", HTTP_HOST="tenant1.localhost")
+        modified_request = await self.async_middleware(request)
+        self.assertTrue(modified_request.tenant)
+        self.assertEqual(modified_request.tenant.schema_name, "tenant1")
+        self.assertEqual(modified_request.tenant.domain_url, "tenant1.localhost")
+        self.assertEqual(modified_request.tenant.folder, None)
+        self.assertEqual(modified_request.urlconf, "app_tenants.urls")
+
+    async def test_dynamic_tenants_tenant1_folder(self):
+        request = self.factory.get("/tenant1/some/random/url/", HTTP_HOST="everyone.localhost")
+        modified_request = await self.async_middleware(request)
+        self.assertTrue(modified_request.tenant)
+        self.assertEqual(modified_request.tenant.schema_name, "tenant1")
+        self.assertEqual(modified_request.tenant.domain_url, "everyone.localhost")
+        self.assertEqual(modified_request.tenant.folder, "tenant1")
+        self.assertEqual(modified_request.urlconf, "app_tenants.urls_dynamically_tenant_prefixed")
+
+    async def test_dynamic_tenants_tenant1_folder_short(self):
+        request = self.factory.get("/tenant1/", HTTP_HOST="everyone.localhost")
+        modified_request = await self.async_middleware(request)
+        self.assertTrue(modified_request.tenant)
+        self.assertEqual(modified_request.tenant.schema_name, "tenant1")
+        self.assertEqual(modified_request.tenant.domain_url, "everyone.localhost")
+        self.assertEqual(modified_request.tenant.folder, "tenant1")
+        self.assertEqual(modified_request.urlconf, "app_tenants.urls_dynamically_tenant_prefixed")
+
+    async def test_fallback_domain_root(self):
+        request = self.factory.get("/", HTTP_HOST="everyone.localhost")
+        modified_request = await self.async_middleware(request)
+        self.assertTrue(modified_request.tenant)
+        self.assertEqual(modified_request.tenant.schema_name, "www")
+        self.assertEqual(modified_request.tenant.domain_url, "everyone.localhost")
+        self.assertEqual(modified_request.tenant.folder, None)
+        self.assertEqual(modified_request.urlconf, "app_main.urls")
+
+    async def test_fallback_domain_folder(self):
+        request = self.factory.get("/some/random/url/", HTTP_HOST="everyone.localhost")
+        modified_request = await self.async_middleware(request)
+        self.assertTrue(modified_request.tenant)
+        self.assertEqual(modified_request.tenant.schema_name, "www")
+        self.assertEqual(modified_request.tenant.domain_url, "everyone.localhost")
+        self.assertEqual(modified_request.tenant.folder, None)
+        self.assertEqual(modified_request.urlconf, "app_main.urls")

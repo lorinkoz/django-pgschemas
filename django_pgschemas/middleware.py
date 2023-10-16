@@ -1,8 +1,6 @@
 import re
-import asyncio
 
-from asgiref.sync import sync_to_async, iscoroutinefunction
-
+from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
@@ -103,7 +101,9 @@ def TenantMiddleware(get_response):
                 return response
 
             return await get_response(request)
+
     else:
+
         def middleware(request):
             if response := logic(request):
                 return response

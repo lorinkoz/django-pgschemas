@@ -1,6 +1,6 @@
 import re
 
-from asgiref.sync import iscoroutinefunction
+from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
@@ -94,9 +94,10 @@ def TenantMiddleware(get_response):
         activate(tenant)
 
     if iscoroutinefunction(get_response):
+        async_base_middleware = sync_to_async(base_middleware)
 
         async def middleware(request):
-            if response := base_middleware(request):
+            if response := await async_base_middleware(request):
                 return response
 
             return await get_response(request)

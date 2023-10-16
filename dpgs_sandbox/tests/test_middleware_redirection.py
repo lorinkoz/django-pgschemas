@@ -96,3 +96,43 @@ class TenantMiddlewareRedirectionTestCase(TestCase):
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response.url, "//everyone.localhost/tenant2/some/random/url/")
         self.assertEqual(response["Location"], "//everyone.localhost/tenant2/some/random/url/")
+
+
+class TenantMiddlewareRedirectionAsyncTestCase(TestCase):
+    """
+    Tests TenantMiddlewareRedirection in async context.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if TenantModel is None:
+            raise unittest.SkipTest("Dynamic tenants are not being used")
+        super().setUpClass()
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = RequestFactory()
+        tenant1 = TenantModel(schema_name="tenant1")
+        tenant1.auto_create_schema = False
+        tenant1.save()
+
+        DomainModel(domain="tenant1.localhost", tenant=tenant1).save()
+        DomainModel(
+            domain="tenant1redirect.localhost",
+            tenant=tenant1,
+            is_primary=False,
+            redirect_to_primary=True,
+        ).save()
+
+    def async_middleware(self, request):
+        async def fake_get_response(request):
+            return request
+
+        return TenantMiddleware(fake_get_response)(request)
+
+    async def test_domain_redirect_to_primary_domain(self):
+        request = self.factory.get("/some/random/url/", HTTP_HOST="tenant1redirect.localhost")
+        response = await self.async_middleware(request)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response.url, "//tenant1.localhost/some/random/url/")
+        self.assertEqual(response["Location"], "//tenant1.localhost/some/random/url/")

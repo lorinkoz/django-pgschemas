@@ -292,13 +292,13 @@ toml = ["tomli"]
 
 [[package]]
 name = "django"
-version = "5.0a1"
+version = "5.0b1"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "Django-5.0a1-py3-none-any.whl", hash = "sha256:4b7ee536e8b2bf1e68f6c9bda192300ec94844e32e730076c2e520bc63dac64e"},
-    {file = "Django-5.0a1.tar.gz", hash = "sha256:3a52052fbc5e01f2202c020a8241aa40dc030b16c8fb49dc480cc46ab8735158"},
+    {file = "Django-5.0b1-py3-none-any.whl", hash = "sha256:fc0fb85721c984d7c7bcbfc59cbd5eb7bcc5dd678f394b3b2b311f0c43cfb943"},
+    {file = "Django-5.0b1.tar.gz", hash = "sha256:c88635e733f0a0ef46c219635e21c8f5978eb2a14c3918224654541bc5d57030"},
 ]
 
 [package.dependencies]

@@ -16,7 +16,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10.0"
-django = "^5.0a1"
+django = "^5.0b1"
 
 [tool.poetry.dev-dependencies]
 black = "*"

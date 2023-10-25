@@ -19,9 +19,9 @@ repos:
         entry: bash -c 'poetry run ruff check --fix $0 $@'
         language: system
         types: [python]
-      - id: black
-        name: black
-        entry: bash -c 'poetry run black $0 $@'
+      - id: ruff-format
+        name: ruff-format
+        entry: bash -c 'poetry run ruff format $0 $@'
         language: system
         types: [python]
   - repo: https://github.com/adamchainz/django-upgrade

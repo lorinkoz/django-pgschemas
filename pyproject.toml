@@ -19,7 +19,6 @@ python = "^3.10.0"
 django = "^5.0b1"
 
 [tool.poetry.dev-dependencies]
-black = "*"
 coverage = { extras = ["toml"], version = "*" }
 doc8 = "*"
 ruff = "*"
@@ -27,12 +26,14 @@ sphinx = "*"
 sphinx_rtd_theme = "*"
 sphinx-django-command = "*"
 
-[tool.black]
-line-length = 100
 
 [tool.ruff]
 select = ["I", "E", "F"]
-line-length = 120
+line-length = 100
+ignore = [
+    "E501", # line-too-long
+    "W191", # tab-indentation
+]
 
 [tool.ruff.isort]
 combine-as-imports = true

@@ -5,10 +5,6 @@ django-pgschemas
     :alt: Packaging: poetry
     :target: https://github.com/sdispater/poetry
 
-.. image:: https://img.shields.io/badge/code%20style-black-black.svg
-    :alt: Code style: black
-    :target: https://github.com/ambv/black
-
 .. image:: https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg
     :alt: Build status
     :target: https://github.com/lorinkoz/django-pgschemas/actions

@@ -27,6 +27,9 @@ def TenantMiddleware(get_response):
     """
 
     def logic(request):
+        if hasattr(request, "tenant"):
+            return
+
         hostname = remove_www(request.get_host().split(":")[0])
 
         activate_public()

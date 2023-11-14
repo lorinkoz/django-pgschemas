@@ -6,9 +6,14 @@ from django.db.models import CharField, Q, Value as V
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
-from ...schema import get_current_schema
-from ...utils import create_schema, dynamic_models_exist, get_clone_reference, get_tenant_model
-from ._executors import parallel, sequential
+from django_pgschemas.management.commands._executors import parallel, sequential
+from django_pgschemas.schema import get_current_schema
+from django_pgschemas.utils import (
+    create_schema,
+    dynamic_models_exist,
+    get_clone_reference,
+    get_tenant_model,
+)
 
 
 class CommandScope(enum.Enum):

@@ -3,8 +3,6 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 
-from .utils import get_tenant_model, is_valid_schema_name
-
 
 class DjangoPgSchemasConfig(AppConfig):
     name = "django_pgschemas"
@@ -52,6 +50,8 @@ class DjangoPgSchemasConfig(AppConfig):
             )
 
     def _check_overall_schemas(self):
+        from django_pgschemas.utils import is_valid_schema_name
+
         for schema in settings.TENANTS:
             if schema not in ["public", "default"]:
                 if not is_valid_schema_name(schema):
@@ -68,6 +68,8 @@ class DjangoPgSchemasConfig(AppConfig):
             )
 
     def _check_extra_search_paths(self):
+        from django_pgschemas.utils import get_tenant_model
+
         if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
             TenantModel = get_tenant_model()
             if TenantModel is None:
@@ -96,7 +98,7 @@ class DjangoPgSchemasConfig(AppConfig):
                 )
 
     def ready(self):
-        from . import checks  # noqa
+        from django_pgschemas import checks  # noqa
 
         self._check_tenant_dict()
         self._check_public_schema()

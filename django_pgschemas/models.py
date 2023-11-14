@@ -1,9 +1,18 @@
 from django.db import models
 
-from .postgresql.base import check_schema_name
-from .schema import Schema
-from .signals import dynamic_tenant_needs_sync, dynamic_tenant_post_sync, dynamic_tenant_pre_drop
-from .utils import create_or_clone_schema, drop_schema, get_domain_model, schema_exists
+from django_pgschemas.postgresql.base import check_schema_name
+from django_pgschemas.schema import Schema
+from django_pgschemas.signals import (
+    dynamic_tenant_needs_sync,
+    dynamic_tenant_post_sync,
+    dynamic_tenant_pre_drop,
+)
+from django_pgschemas.utils import (
+    create_or_clone_schema,
+    drop_schema,
+    get_domain_model,
+    schema_exists,
+)
 
 
 class TenantMixin(Schema, models.Model):

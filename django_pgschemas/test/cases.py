@@ -2,8 +2,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from ..schema import Schema, activate, activate_public
-from ..utils import get_clone_reference, get_domain_model, get_tenant_model
+from django_pgschemas.schema import Schema, activate, activate_public
+from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
 
 ALLOWED_TEST_DOMAIN = ".localhost"
 

@@ -1,8 +1,8 @@
 from django.apps import apps
 from django.conf import settings
 
-from .schema import get_current_schema
-from .utils import get_tenant_database_alias
+from django_pgschemas.schema import get_current_schema
+from django_pgschemas.utils import get_tenant_database_alias
 
 
 class SyncRouter:

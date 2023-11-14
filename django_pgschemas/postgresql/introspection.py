@@ -1,7 +1,8 @@
 from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.utils.encoding import force_str
 
-from ..schema import get_current_schema
+from django_pgschemas.schema import get_current_schema
+
 from . import _constraints
 from .settings import base_backend, original_backend
 

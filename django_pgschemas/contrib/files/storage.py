@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
-from ...schema import get_current_schema
+from django_pgschemas.schema import get_current_schema
 
 
 class TenantFileSystemStorage(FileSystemStorage):

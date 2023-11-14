@@ -5,9 +5,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 
-from ...schema import Schema
-from ...utils import get_domain_model, remove_www
-from .auth import TenantAuthMiddlewareStack
+from django_pgschemas.contrib.channels3.auth import TenantAuthMiddlewareStack
+from django_pgschemas.schema import Schema
+from django_pgschemas.utils import get_domain_model, remove_www
 
 
 class TenantAwareProtocolTypeRouter(ProtocolTypeRouter):

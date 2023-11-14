@@ -6,8 +6,8 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
 from django.db import connection, connections, transaction
 
-from ...schema import Schema, activate
-from ...utils import get_clone_reference, get_tenant_model
+from django_pgschemas.schema import Schema, activate
+from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
 
 def run_on_schema(

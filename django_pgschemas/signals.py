@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_delete
 from django.dispatch import Signal, receiver
 
-from .utils import get_tenant_model, schema_exists
+from django_pgschemas.utils import get_tenant_model, schema_exists
 
 schema_activate = Signal()
 schema_activate.__doc__ = "Sent after a schema has been activated"

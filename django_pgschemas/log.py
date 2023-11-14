@@ -1,6 +1,6 @@
 import logging
 
-from .schema import get_current_schema
+from django_pgschemas.schema import get_current_schema
 
 
 class SchemaContextFilter(logging.Filter):

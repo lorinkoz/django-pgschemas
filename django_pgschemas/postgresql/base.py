@@ -1,8 +1,9 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 
-from ..schema import get_current_schema, get_default_schema
-from ..utils import check_schema_name, get_limit_set_calls
+from django_pgschemas.schema import get_current_schema, get_default_schema
+from django_pgschemas.utils import check_schema_name, get_limit_set_calls
+
 from .introspection import DatabaseSchemaIntrospection
 from .settings import EXTRA_SEARCH_PATHS, original_backend
 

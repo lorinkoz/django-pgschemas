@@ -72,7 +72,7 @@ def run_in_public_schema(func):
     "Decorator that makes decorated function to be run in the public schema."
 
     def wrapper(*args, **kwargs):
-        from .schema import Schema
+        from django_pgschemas.schema import Schema
 
         with Schema.create(schema_name="public"):
             return func(*args, **kwargs)

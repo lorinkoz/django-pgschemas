@@ -8,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
-from .utils import get_clone_reference, get_domain_model, get_tenant_model
+from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
 
 
 def get_tenant_app() -> str | None:

@@ -1,4 +1,4 @@
-from ..schema import get_current_schema
+from django_pgschemas.schema import get_current_schema
 
 
 def make_key(key, key_prefix, version):

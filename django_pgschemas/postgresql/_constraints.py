@@ -1,6 +1,6 @@
 from django.db.models.indexes import Index
 
-from ..schema import get_current_schema
+from django_pgschemas.schema import get_current_schema
 
 
 def get_constraints(self, cursor, table_name):

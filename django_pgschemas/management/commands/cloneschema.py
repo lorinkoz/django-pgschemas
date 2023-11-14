@@ -3,7 +3,7 @@ from distutils.util import strtobool
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
-from ...utils import clone_schema, get_domain_model, get_tenant_model
+from django_pgschemas.utils import clone_schema, get_domain_model, get_tenant_model
 
 
 class Command(BaseCommand):

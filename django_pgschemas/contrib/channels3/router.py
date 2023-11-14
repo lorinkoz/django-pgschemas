@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 
 from django_pgschemas.contrib.channels3.auth import TenantAuthMiddlewareStack
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema
 from django_pgschemas.utils import get_domain_model, remove_www
 
@@ -49,7 +50,10 @@ class TenantProtocolRouter:
             if schema in ["public", "default"]:
                 continue
             if hostname in data["DOMAINS"]:
-                tenant = Schema.create(schema_name=schema, domain_url=hostname)
+                tenant = Schema.create(
+                    schema_name=schema,
+                    routing=DomainInfo(domain=hostname, folder=None),
+                )
                 if "WS_URLCONF" in data:
                     ws_urlconf = data["WS_URLCONF"]
                 return tenant, "", import_string(ws_urlconf + ".urlpatterns")

@@ -6,6 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
 from django.db import connection, connections, transaction
 
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema, activate
 from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
@@ -63,7 +64,10 @@ def run_on_schema(
 
     if schema_name in settings.TENANTS:
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
-        schema = Schema.create(schema_name=schema_name, domain_url=domains[0] if domains else None)
+        schema = Schema.create(
+            schema_name=schema_name,
+            routing=DomainInfo(domain=domains[0] if domains else None, folder=None),
+        )
     elif schema_name == get_clone_reference():
         schema = Schema.create(schema_name=schema_name)
     elif (TenantModel := get_tenant_model()) is not None:

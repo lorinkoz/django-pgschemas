@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema, activate, activate_public
 from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
 
@@ -50,7 +51,9 @@ class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
             if settings.TENANTS[cls.schema_name]["DOMAINS"]
             else cls.schema_name + ALLOWED_TEST_DOMAIN
         )
-        cls.tenant = Schema.create(schema_name=cls.schema_name, domain_url=domain)
+        cls.tenant = Schema.create(
+            schema_name=cls.schema_name, routing=DomainInfo(domain=domain, folder=None)
+        )
         activate(cls.tenant)
         cls.cls_atomics = cls._enter_atomics()
         try:

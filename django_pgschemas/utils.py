@@ -1,6 +1,5 @@
 import os
 import re
-from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -10,14 +9,14 @@ from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transactio
 from django.db.models import Model
 
 
-def get_tenant_model(require_ready: bool = True) -> Optional[Model]:
+def get_tenant_model(require_ready: bool = True) -> Model | None:
     "Returns the tenant model."
     if "default" not in settings.TENANTS:
         return None
     return apps.get_model(settings.TENANTS["default"]["TENANT_MODEL"], require_ready=require_ready)
 
 
-def get_domain_model(require_ready: bool = True) -> Optional[Model]:
+def get_domain_model(require_ready: bool = True) -> Model | None:
     "Returns the domain model."
     if "default" not in settings.TENANTS:
         return None
@@ -32,7 +31,7 @@ def get_limit_set_calls() -> bool:
     return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
 
 
-def get_clone_reference() -> Optional[str]:
+def get_clone_reference() -> str | None:
     if "default" not in settings.TENANTS:
         return None
     return settings.TENANTS["default"].get("CLONE_REFERENCE", None)

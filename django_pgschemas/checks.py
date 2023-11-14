@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -11,28 +11,28 @@ from django.utils.module_loading import import_module
 from .utils import get_clone_reference, get_domain_model, get_tenant_model
 
 
-def get_tenant_app() -> Optional[str]:
+def get_tenant_app() -> str | None:
     TenantModel = get_tenant_model(require_ready=False)
     if TenantModel is None:
         return None
     return TenantModel._meta.app_config.name
 
 
-def get_domain_app() -> Optional[str]:
+def get_domain_app() -> str | None:
     DomainModel = get_domain_model(require_ready=False)
     if DomainModel is None:
         return None
     return DomainModel._meta.app_config.name
 
 
-def get_user_app() -> Optional[str]:
+def get_user_app() -> str | None:
     try:
         return get_user_model()._meta.app_config.name
     except ImproperlyConfigured:
         return None
 
 
-def get_session_app() -> Optional[str]:
+def get_session_app() -> str | None:
     engine = import_module(settings.SESSION_ENGINE)
     store = engine.SessionStore
     if hasattr(store, "get_model_class"):

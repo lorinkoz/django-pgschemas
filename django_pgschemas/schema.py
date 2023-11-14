@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, Iterator, Optional
+from typing import Any, Iterator
 
 from asgiref.sync import sync_to_async
 
@@ -15,7 +15,7 @@ class Schema:
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name: str, domain_url: Optional[str] = None, folder: Optional[str] = None):
+    def create(schema_name: str, domain_url: str | None = None, folder: str | None = None):
         schema = Schema()
         schema.schema_name = schema_name
         schema.domain_url = domain_url

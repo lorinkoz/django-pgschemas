@@ -47,22 +47,18 @@ check_untyped_defs = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["channels.*", "psycopg.*", "psycopg2.*"]
+module = ["channels.*", "psycopg.*", "psycopg2.*", "django.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = [
-    "docs.*",
-    "django_pgschemas.contrib.*",
-    "django_pgschemas.postgresql.*",
-    "sandbox.*",
-]
+module = ["docs.*", "sandbox.*"]
 ignore_errors = true
+
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "sandbox.settings"
 django_find_project = false
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

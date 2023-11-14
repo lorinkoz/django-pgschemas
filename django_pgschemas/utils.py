@@ -90,14 +90,14 @@ def schema_exists(schema_name: str) -> bool:
         WHERE LOWER(nspname) = LOWER(%s)
     )
     """
-    cursor = connection.cursor()
-    cursor.execute(sql, (schema_name,))
-    row = cursor.fetchone()
-    if row:
-        exists = row[0]
-    else:  # pragma: no cover
-        exists = False
-    cursor.close()
+    with connection.cursor() as cursor:
+        cursor.execute(sql, (schema_name,))
+        row = cursor.fetchone()
+        if row:
+            exists = row[0]
+        else:  # pragma: no cover
+            exists = False
+
     return exists
 
 
@@ -127,7 +127,9 @@ def dynamic_models_exist() -> bool:
 
     with connection.cursor() as cursor:
         cursor.execute(sql % template)
-        return cursor.fetchone() == (len(models_to_check),)
+        value = cursor.fetchone() == (len(models_to_check),)
+
+    return value
 
 
 @run_in_public_schema
@@ -143,13 +145,16 @@ def create_schema(
     ``False`` otherwise.
     """
     check_schema_name(schema_name)
+
     if check_if_exists and schema_exists(schema_name):
         return False
-    cursor = connection.cursor()
-    cursor.execute("CREATE SCHEMA %s" % schema_name)
-    cursor.close()
+
+    with connection.cursor() as cursor:
+        cursor.execute("CREATE SCHEMA %s" % schema_name)
+
     if sync_schema:
         call_command("migrateschema", schemas=[schema_name], verbosity=verbosity)
+
     return True
 
 
@@ -161,9 +166,10 @@ def drop_schema(schema_name: str, check_if_exists: bool = True, verbosity: int =
     """
     if check_if_exists and not schema_exists(schema_name):
         return False
-    cursor = connection.cursor()
-    cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
-    cursor.close()
+
+    with connection.cursor() as cursor:
+        cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
+
     return True
 
 
@@ -184,9 +190,8 @@ def _create_clone_schema_function() -> None:
             .replace("RAISE NOTICE ' dest schema", "RAISE EXCEPTION ' dest schema")
         )
 
-    cursor = connection.cursor()
-    cursor.execute(CLONE_SCHEMA_FUNCTION)
-    cursor.close()
+    with connection.cursor() as cursor:
+        cursor.execute(CLONE_SCHEMA_FUNCTION)
 
 
 @run_in_public_schema

@@ -113,17 +113,16 @@ def ensure_extra_search_paths() -> None:
     if TenantModel is None:
         return
 
+    dynamic_tenants = []
+
+    if "CLONE_REFERENCE" in settings.TENANTS["default"]:
+        dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
+
     with connection.cursor() as cursor:
         cursor.execute(
             "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
             [TenantModel._meta.db_table],
         )
-
-        dynamic_tenants = []
-
-        if "CLONE_REFERENCE" in settings.TENANTS["default"]:
-            dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
-
         if cursor.fetchone():
             dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
 

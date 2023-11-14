@@ -3,19 +3,17 @@ from typing import Callable, TypeAlias, cast
 
 from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
+from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
 from django.utils.decorators import sync_and_async_middleware
 
-from django_pgschemas.routing.info import DomainInfo
-from django_pgschemas.routing.urlresolvers import (
-    get_urlconf_from_schema,
-)
+from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
+from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 from django_pgschemas.schema import Schema, activate, activate_public
-from django_pgschemas.utils import (
-    get_domain_model,
-)
+from django_pgschemas.settings import get_tenant_header, get_tenant_session_key
+from django_pgschemas.utils import get_domain_model, get_tenant_model
 
 
 def remove_www(path: str) -> str:
@@ -113,10 +111,33 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
 
 def route_session(request: HttpRequest) -> HttpResponse | None:
+    tenant_session_key = get_tenant_session_key()
+
+    if hasattr(request, "session"):
+        tenant_ref = request.session.get(tenant_session_key)
+
+        if tenant_ref is not None:
+            TenantModel = get_tenant_model()
+            tenant = TenantModel._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
+            tenant.routing = SessionInfo(reference=tenant_ref)
+            request.tenant = tenant
+            activate(tenant)
+
     return None
 
 
 def route_headers(request: HttpRequest) -> HttpResponse | None:
+    tenant_header = get_tenant_header()
+
+    tenant_ref = request.headers.get(tenant_header)
+
+    if tenant_ref is not None:
+        TenantModel = get_tenant_model()
+        tenant = TenantModel._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
+        tenant.routing = HeadersInfo(reference=tenant_ref)
+        request.tenant = tenant
+        activate(tenant)
+
     return None
 
 

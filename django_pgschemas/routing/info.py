@@ -10,12 +10,12 @@ class DomainInfo:
 
 @dataclass(frozen=True)
 class SessionInfo:
-    pass
+    reference: str
 
 
 @dataclass(frozen=True)
 class HeadersInfo:
-    pass
+    reference: str
 
 
 RoutingInfo: TypeAlias = DomainInfo | SessionInfo | HeadersInfo | None

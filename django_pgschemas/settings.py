@@ -24,6 +24,14 @@ def get_extra_search_paths() -> list[str]:
     return getattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS", [])
 
 
+def get_tenant_session_key() -> str:
+    return getattr(settings, "PGSCHEMAS_TENANT_SESSION_KEY", "tenant")
+
+
+def get_tenant_header() -> str:
+    return getattr(settings, "PGSCHEMAS_TENANT_HEADER", "tenant")
+
+
 def get_pathname_function() -> Callable | None:
     return getattr(settings, "PGSCHEMAS_PATHNAME_FUNCTION", None)
 

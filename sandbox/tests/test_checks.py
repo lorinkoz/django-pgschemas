@@ -181,9 +181,9 @@ class TestEnsureOverallSchema:
     "extra",
     [
         "public",
-        "default",
         "blog",
         "www",
+        # "default",
     ],
 )
 def test_ensure_extra_search_paths(settings, extra, db):

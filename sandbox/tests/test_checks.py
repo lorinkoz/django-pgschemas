@@ -3,9 +3,14 @@ from django.core.exceptions import ImproperlyConfigured
 
 from django_pgschemas.checks import (
     ensure_default_schemas,
+    ensure_extra_search_paths,
     ensure_overall_schemas,
     ensure_public_schema,
     ensure_tenant_dict,
+    get_domain_app,
+    get_session_app,
+    get_tenant_app,
+    get_user_app,
 )
 
 
@@ -19,6 +24,34 @@ def tenants(settings):
 
     settings.TENANTS.clear()
     settings.TENANTS.update(current)
+
+
+def test_get_tenant_app(tenants):
+    assert get_tenant_app() == "sandbox.shared_public"
+
+    del tenants["default"]
+
+    assert get_tenant_app() is None
+
+
+def test_get_domain_app(tenants):
+    assert get_domain_app() == "sandbox.shared_public"
+
+    del tenants["default"]["DOMAIN_MODEL"]
+
+    assert get_domain_app() is None
+
+
+def test_get_user_app(settings):
+    assert get_user_app() == "sandbox.shared_common"
+
+    del settings.AUTH_USER_MODEL
+
+    assert get_user_app() is None
+
+
+def test_get_session_app(settings):
+    assert get_session_app() == "django.contrib.sessions"
 
 
 def test_ensure_tenant_dict(settings):
@@ -141,3 +174,22 @@ class Test_ensure_overall_schemas:
             ensure_overall_schemas()
 
         assert str(ctx.value) == f"'{name}' is not a valid schema name."
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        "public",
+        "default",
+        "blog",
+        "www",
+    ],
+)
+def test_ensure_extra_search_paths(settings, extra, db):
+    settings.PGSCHEMAS_EXTRA_SEARCH_PATHS = [extra]
+
+    with pytest.raises(ImproperlyConfigured) as ctx:
+        ensure_extra_search_paths()
+
+    invalid = ", ".join([extra])
+    assert str(ctx.value) == f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS."

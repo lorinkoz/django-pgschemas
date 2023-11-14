@@ -9,21 +9,31 @@ from django.db import connection
 from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
-from django_pgschemas.utils import get_clone_reference, get_tenant_model
+from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
 
 
 def get_tenant_app() -> str | None:
-    return settings.TENANTS["default"].get("TENANT_MODEL")
+    model = get_tenant_model()
+
+    if model is None:
+        return None
+
+    return model._meta.app_config.name
 
 
 def get_domain_app() -> str | None:
-    return settings.TENANTS["default"].get("DOMAIN_MODEL")
+    model = get_domain_model()
+
+    if model is None:
+        return None
+
+    return model._meta.app_config.name
 
 
 def get_user_app() -> str | None:
     try:
         return get_user_model()._meta.app_config.name
-    except ImproperlyConfigured:
+    except (AttributeError, ImproperlyConfigured):
         return None
 
 
@@ -107,7 +117,7 @@ def ensure_extra_search_paths():
         if "CLONE_REFERENCE" in settings.TENANTS["default"]:
             dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
         if cursor.fetchone():
-            dynamic_tenants += list(TenantModel.objects.all().values_list("schema_name", flat=True))
+            dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
         cursor.close()
         invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
             set(settings.TENANTS.keys()).union(dynamic_tenants)

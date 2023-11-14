@@ -43,7 +43,7 @@ TENANTS = {
             "django.contrib.sessions",
         ],
         "URLCONF": "sandbox.app_main.urls",
-        "WS_URLCONF": "app_main.ws_urls",
+        "WS_URLCONF": "sandbox.app_main.ws_urls",
         "DOMAINS": ["localhost"],
         "FALLBACK_DOMAINS": ["everyone.localhost"],
     },
@@ -65,7 +65,7 @@ TENANTS = {
             "django.contrib.sessions",
         ],
         "URLCONF": "sandbox.app_tenants.urls",
-        "WS_URLCONF": "app_tenants.ws_urls",
+        "WS_URLCONF": "sandbox.app_tenants.ws_urls",
         "CLONE_REFERENCE": "sample",
     },
 }

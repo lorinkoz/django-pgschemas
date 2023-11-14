@@ -18,7 +18,7 @@ def get_tenant_model(require_ready: bool = True) -> Model | None:
 
 def get_domain_model(require_ready: bool = True) -> Model | None:
     "Returns the domain model."
-    if "default" not in settings.TENANTS:
+    if "default" not in settings.TENANTS or "DOMAIN_MODEL" not in settings.TENANTS["default"]:
         return None
     return apps.get_model(settings.TENANTS["default"]["DOMAIN_MODEL"], require_ready=require_ready)
 

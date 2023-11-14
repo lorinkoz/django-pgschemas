@@ -124,7 +124,9 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
         tenant_ref = request.session.get(tenant_session_key)
 
         if tenant_ref is not None:
-            tenant = TenantModel._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
+            tenant = TenantModel._default_manager.get(
+                Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
+            )
             tenant.routing = SessionInfo(reference=tenant_ref)
             request.tenant = tenant
             activate(tenant)
@@ -142,8 +144,9 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
     tenant_ref = request.headers.get(tenant_header)
 
     if tenant_ref is not None:
-        TenantModel = get_tenant_model()
-        tenant = TenantModelBase._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
+        tenant = TenantModel._default_manager.get(
+            Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
+        )
         tenant.routing = HeadersInfo(reference=tenant_ref)
         request.tenant = tenant
         activate(tenant)

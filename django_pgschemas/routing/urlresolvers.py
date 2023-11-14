@@ -19,7 +19,7 @@ class TenantPrefixPattern:
         return (
             f"{current_schema.routing.folder}/"
             if isinstance(current_schema.routing, DomainInfo) and current_schema.routing.folder
-            else "/"
+            else ""
         )
 
     @property

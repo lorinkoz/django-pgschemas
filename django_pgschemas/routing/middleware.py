@@ -8,6 +8,7 @@ from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
 from django.utils.decorators import sync_and_async_middleware
 
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.routing.urlresolvers import (
     get_urlconf_from_schema,
 )
@@ -44,37 +45,42 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
         if schema in ["public", "default"]:
             continue
         if hostname in data["DOMAINS"]:
-            tenant = Schema.create(schema_name=schema, domain_url=hostname)
+            tenant = Schema.create(
+                schema_name=schema,
+                routing=DomainInfo(domain=hostname, folder=None),
+            )
             break
 
     # Checking for dynamic tenants
     else:
-        DomainModel = get_domain_model()
+        ActualDomainModel = get_domain_model()
+
         prefix = request.path.split("/")[1]
         domain = None
 
-        if DomainModel is not None:
+        if ActualDomainModel is not None:
             try:
-                domain = DomainModel.objects.select_related("tenant").get(
+                domain = ActualDomainModel.objects.select_related("tenant").get(
                     domain=hostname, folder=prefix
                 )
-            except DomainModel.DoesNotExist:
+            except ActualDomainModel.DoesNotExist:
                 try:
-                    domain = DomainModel.objects.select_related("tenant").get(
+                    domain = ActualDomainModel.objects.select_related("tenant").get(
                         domain=hostname, folder=""
                     )
-                except DomainModel.DoesNotExist:
+                except ActualDomainModel.DoesNotExist:
                     pass
 
         if domain is not None:
             tenant = domain.tenant
-            tenant.domain_url = hostname
-            tenant.folder = None
+            tenant.routing = DomainInfo(domain=hostname, folder=None)
             request.strip_tenant_from_path = lambda x: x
+
             if prefix and domain.folder == prefix:
-                tenant.folder = prefix
+                tenant.routing = DomainInfo(domain=hostname, folder=prefix)
                 request.strip_tenant_from_path = strip_tenant_from_path_factory(prefix)
                 clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
+
             if domain.redirect_to_primary:
                 primary_domain = tenant.domains.get(is_primary=True)
                 path = request.strip_tenant_from_path(request.path)
@@ -86,15 +92,19 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
             if schema in ["public", "default"]:
                 continue
             if hostname in data.get("FALLBACK_DOMAINS", []):
-                tenant = Schema.create(schema_name=schema, domain_url=hostname)
+                tenant = Schema.create(
+                    schema_name=schema,
+                    routing=DomainInfo(domain=hostname, folder=None),
+                )
                 break
 
     # No tenant found from domain / folder
     if not tenant:
         raise Http404("No tenant for hostname '%s'" % hostname)
 
-    request.tenant = tenant
     urlconf = get_urlconf_from_schema(tenant)
+
+    request.tenant = tenant
     request.urlconf = urlconf
     set_urlconf(urlconf)
 

@@ -1,5 +1,6 @@
 import logging
 
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import get_current_schema
 
 
@@ -11,5 +12,11 @@ class SchemaContextFilter(logging.Filter):
     def filter(self, record):
         current_schema = get_current_schema()
         record.schema_name = current_schema.schema_name
-        record.domain_url = current_schema.domain_url
+
+        match current_schema.routing:
+            case DomainInfo(domain, folder):
+                record.domain = domain
+                record.folder = folder
+            case _:
+                pass
         return True

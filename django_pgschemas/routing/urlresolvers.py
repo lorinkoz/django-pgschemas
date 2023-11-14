@@ -4,6 +4,7 @@ import sys
 from django.conf import settings
 from django.urls import URLResolver
 
+from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema, get_current_schema
 
 
@@ -13,7 +14,11 @@ class TenantPrefixPattern:
     @property
     def tenant_prefix(self):
         current_schema = get_current_schema()
-        return f"{current_schema.folder}/" if current_schema.folder else "/"
+        return (
+            f"{current_schema.routing.folder}/"
+            if isinstance(current_schema.routing, DomainInfo) and current_schema.folder
+            else "/"
+        )
 
     @property
     def regex(self):
@@ -62,15 +67,14 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path):
     return LazyURLConfModule(dynamic_path)
 
 
-def get_urlconf_from_schema(schema):
+def get_urlconf_from_schema(schema: Schema) -> str:
     """
     Returns the proper URLConf depending on the schema.
-    The schema must come with ``domain_url`` and ``folder`` members set.
     """
-    if not isinstance(schema, Schema):
-        raise RuntimeError("'get_urlconf_from_schema' must be called with a Schema descendant")
 
-    if not schema.domain_url:
+    domain = schema.routing.domain if isinstance(schema.routing, DomainInfo) else None
+
+    if not domain:
         return None
 
     # Checking for static tenants
@@ -78,9 +82,9 @@ def get_urlconf_from_schema(schema):
         for schema_name, data in settings.TENANTS.items():
             if schema_name in ["public", "default"]:
                 continue
-            if schema.domain_url in data["DOMAINS"]:
+            if domain in data["DOMAINS"]:
                 return data["URLCONF"]
-            if schema.domain_url in data.get("FALLBACK_DOMAINS", []):
+            if domain in data.get("FALLBACK_DOMAINS", []):
                 return data["URLCONF"]
         return None
 

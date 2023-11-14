@@ -82,7 +82,7 @@ AUTH_USER_MODEL = "shared_common.User"
 LOGIN_URL = "login"
 
 MIDDLEWARE = [
-    "django_pgschemas.middleware.TenantMiddleware",
+    "django_pgschemas.routing.middleware.DomainRoutingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

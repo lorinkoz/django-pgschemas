@@ -4,22 +4,21 @@ from typing import Any, Iterator
 
 from asgiref.sync import sync_to_async
 
+from django_pgschemas.routing.info import RoutingInfo
 from django_pgschemas.signals import schema_activate
 
 
 class Schema:
-    schema_name = None
-    domain_url = None
-    folder = None
+    schema_name: str = None
+    routing: RoutingInfo = None
 
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name: str, domain_url: str | None = None, folder: str | None = None):
+    def create(schema_name: str, routing: RoutingInfo | None = None):
         schema = Schema()
         schema.schema_name = schema_name
-        schema.domain_url = domain_url
-        schema.folder = folder
+        schema.routing = routing
         return schema
 
     def __enter__(self) -> None:
@@ -49,9 +48,6 @@ def get_current_schema() -> "Schema":
 
 
 def activate(schema: "Schema") -> None:
-    if not isinstance(schema, Schema):
-        raise RuntimeError("'activate' must be called with a Schema descendant")
-
     active.set(schema)
 
     schema_activate.send(sender=Schema, schema=schema)

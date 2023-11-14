@@ -1,11 +1,12 @@
 from django.http import HttpResponse
 
 RESPONSE_TEMPLATE = """
-Path: {path}
-User: {user}
-Schema: {schema}
-Domain: {domain}
-Folder: {folder}
+<dl>
+    <dt>Path:</dt> <dd>{path}</dd>
+    <dt>User:</dt> <dd>{user}</dd>
+    <dt>Schema:</dt> <dd>{schema}</dd>
+    <dt>Routing:</dt> <dd>{routing}</dd>
+</dl>
 """
 
 
@@ -15,7 +16,6 @@ def generic(request):
             path=request.get_full_path(),
             user=request.user,
             schema=request.tenant.schema_name,
-            domain=request.tenant.domain_url,
-            folder=request.tenant.folder,
+            routing=request.tenant.routing,
         )
     )

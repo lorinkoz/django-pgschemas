@@ -16,14 +16,14 @@ You can install ``django-pgschemas`` via ``pip`` or any other installer.
 Basic Configuration
 ===================
 
-Use ``django_pgschemas.postgresql_backend`` as your database engine. This
-enables the API for setting PostgreSQL search path
+Use ``django_pgschemas.postgresql`` as your database engine. This
+enables the API for setting Postgres search path
 
 .. code-block:: python
 
     DATABASES = {
         "default": {
-            "ENGINE": "django_pgschemas.postgresql_backend",
+            "ENGINE": "django_pgschemas.postgresql",
             # ...
         }
     }
@@ -176,7 +176,7 @@ tenant is created through a ``python manage.py shell`` session.
 
 Now any request made to ``client1.mydomain.com`` or
 ``clients.mydomain.com/client1/`` will automatically set
-PostgreSQL's search path to ``client1`` and ``public``, making shared apps
+Postgres's search path to ``client1`` and ``public``, making shared apps
 available too. Also, at this point, any request to ``blog.mydomain.com`` or
 ``help.mydomain.com`` will set search path to ``blog`` and ``public``.
 

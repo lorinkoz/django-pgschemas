@@ -14,7 +14,7 @@ def get_constraints(self, cursor, table_name):
     # array must return column names in the same order in which they were
     # created.
     # The subquery containing generate_series can be replaced with
-    # "WITH ORDINALITY" when support for PostgreSQL 9.3 is dropped.
+    # "WITH ORDINALITY" when support for Postgres 9.3 is dropped.
     cursor.execute(
         """
         SELECT
@@ -56,7 +56,7 @@ def get_constraints(self, cursor, table_name):
     # Now get indexes
     # The row_number() function for ordering the index fields can be
     # replaced by WITH ORDINALITY in the unnest() functions when support
-    # for PostgreSQL 9.3 is dropped.
+    # for Postgres 9.3 is dropped.
     cursor.execute(
         """
         SELECT

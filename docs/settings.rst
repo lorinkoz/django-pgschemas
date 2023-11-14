@@ -62,7 +62,7 @@ A sample tenant configuration is:
 
 Default: ``[]``
 
-Other schemas to include in PostgreSQL search path. You cannot include the
+Other schemas to include in Postgres search path. You cannot include the
 schema for any static or dynamic tenant. The public schema is included by
 default, so, including it here will raise ``ImproperlyConfigured``.
 
@@ -81,7 +81,7 @@ limit the number of calls for setting the search path.
 Default: ``"django.db.backends.postgresql"``
 
 The base backend to inherit from. If you have a customized backend of
-PostgreSQL, you can specify it here.
+Postgres, you can specify it here.
 
 ``PGSCHEMAS_PARALLEL_MAX_PROCESSES``
 ------------------------------------

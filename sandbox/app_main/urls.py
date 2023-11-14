@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.urls import path
 
-from dpgs_sandbox.views import generic
+from sandbox.views import generic
 
 urlpatterns = [
     path("", generic, name="main-home"),

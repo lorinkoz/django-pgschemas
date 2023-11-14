@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 
-from dpgs_sandbox.views import generic
+from sandbox.views import generic
 
 urlpatterns = [
     path("", generic, name="tenant-home"),

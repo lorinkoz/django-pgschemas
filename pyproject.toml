@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "django-pgschemas"
-version = "1.0a0"
-description = "Multi-tenancy on Django using PostgreSQL schemas."
+version = "0.99.0"
+description = "Multi-tenancy on Django using Postgres schemas."
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
 readme = "README.rst"
 repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
-keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgresql"]
+keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgres"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Framework :: Django",
     "Framework :: Django :: 5.0",
 ]
@@ -19,13 +19,14 @@ python = "^3.10.0"
 django = "^5.0b1"
 
 [tool.poetry.dev-dependencies]
-coverage = { extras = ["toml"], version = "*" }
-doc8 = "*"
+mypy = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-django = "*"
 ruff = "*"
-sphinx = "*"
+sphinx = "<7"
 sphinx_rtd_theme = "*"
 sphinx-django-command = "*"
-
 
 [tool.ruff]
 select = ["I", "E", "F"]
@@ -53,17 +54,14 @@ ignore_missing_imports = true
 module = [
     "docs.*",
     "django_pgschemas.contrib.*",
-    "django_pgschemas.postgresql_backend.*",
-    "dpgs_sandbox.*",
+    "django_pgschemas.postgresql.*",
+    "sandbox.*",
 ]
 ignore_errors = true
 
-[tool.coverage.run]
-source = ["django_pgschemas"]
-omit = [
-    "django_pgschemas/contrib/channels2/*",
-    "django_pgschemas/contrib/channels3/*",
-]
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "sandbox.settings"
+django_find_project = false
 
 [build-system]
 requires = ["poetry>=0.12"]

@@ -2,48 +2,20 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:13-alpine
+    image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: dpgs_sandbox
+      POSTGRES_DB: sandbox
     ports:
       - 5432:5432
     volumes:
-      - ./.postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: 1s
+      interval: 1s
+      retries: 5
 
-  build_image:
-    image: app
-    build: .
-    working_dir: /app/dpgs_sandbox
-    environment:
-      DATABASE_HOST: postgres
-    command: python3 manage.py migrate
-    depends_on:
-      - postgres
-
-  app_wsgi:
-    image: app
-    working_dir: /app/dpgs_sandbox
-    environment:
-      DATABASE_HOST: postgres
-    command: gunicorn wsgi:application --bind 0.0.0.0:8001
-    ports:
-      - 8001:8001
-    depends_on:
-      - build_image
-      - postgres
-
-  app_asgi:
-    image: app
-    working_dir: /app/dpgs_sandbox
-    environment:
-      DATABASE_HOST: postgres
-    command: gunicorn asgi:application --bind 0.0.0.0:8002 -k uvicorn.workers.UvicornWorker
-    ports:
-      - 8002:8002
-    depends_on:
-      - build_image
-      - postgres
+volumes:
+  postgres:

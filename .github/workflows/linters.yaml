@@ -1,7 +1,7 @@
 name: linters
 on: [push]
 jobs:
-  pre-commit:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -13,5 +13,9 @@ jobs:
           python-version: "3.x"
       - name: Install Dependencies
         run: poetry install
-      - name: Run linters
+      - name: Install psycopg
+        run: poetry run pip install psycopg
+      - name: Run pre-commit
         uses: pre-commit/action@v2.0.0
+      - name: Run mypy
+        run: poetry run mypy .

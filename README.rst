@@ -3,7 +3,7 @@ django-pgschemas
 
 .. image:: https://img.shields.io/badge/packaging-poetry-purple.svg
     :alt: Packaging: poetry
-    :target: https://github.com/sdispater/poetry
+    :target: https://python-poetry.org/
 
 .. image:: https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg
     :alt: Build status
@@ -27,7 +27,7 @@ django-pgschemas
 
 |
 
-This app uses PostgreSQL schemas to support data multi-tenancy in a single
+This app uses Postgres schemas to support data multi-tenancy in a single
 Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 
 - There are static tenants and dynamic tenants. Static tenants can have their
@@ -44,7 +44,7 @@ If you are willing to experiment with a single database, single schema and
 the power of Postgres row level security, you might be also interested in
 `django-pgrls`_.
 
-.. _django-tenants: https://github.com/tomturner/django-tenants
+.. _django-tenants: https://github.com/django-tenants/django-tenants
 .. _django-pgrls: https://github.com/lorinkoz/django-pgrls
 
 Documentation
@@ -59,9 +59,7 @@ Contributing
 - PRs are welcome! If you have questions or comments, please use the discussions
   link above.
 - To run the test suite run ``make`` or ``make coverage``. The tests for this
-  project live inside a small django project called ``dpgs_sandbox``. Database
-  password and database host can be set through the environment variables
-  ``DATABASE_PASSWORD`` and ``DATABASE_HOST``.
+  project live inside a small django project called ``sandbox``.
 
 Credits
 -------
@@ -69,5 +67,5 @@ Credits
 * Tom Turner for `django-tenants`_.
 * Bernardo Pires for `django-tenant-schemas`_.
 
-.. _django-tenants: https://github.com/tomturner/django-tenants
+.. _django-tenants: https://github.com/django-tenants/django-tenants
 .. _django-tenant-schemas: https://github.com/bernardopires/django-tenant-schemas

@@ -15,18 +15,16 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-        django-version: ["==5.0b1"]
+        django-version: ["~=4.2", "==5.0b1"]
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: dpgs_sandbox
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --name postgres --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
@@ -43,14 +41,13 @@ jobs:
         run: poetry run pip install ${{ matrix.psycopg-version }}
       - name: Run Tests
         run: |
-          poetry run coverage run dpgs_sandbox/manage.py test tests -r
-          poetry run dpgs_sandbox/manage.py test tests --settings settings.static_only -r
+          poetry run pytest --cov="django_pgschemas" sandbox/tests
           poetry run coverage lcov -o ./coverage/lcov.info
       - name: Upload coverage to Coveralls in parallel
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: run-py${{ matrix.python-version }}-Django${{ matrix.django-version }}
+          flag-name: run-py${{ matrix.python-version }}-Django${{ matrix.django-version }}-${{ matrix.psycopg-version }}
           parallel: true
   finish:
     needs: django-tests

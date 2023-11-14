@@ -1,9 +1,0 @@
-.git
-.github
-.mypy_cache
-.postgres
-.ruff_cache
-.venv
-.vscode
-.coverage
-.DS_Store

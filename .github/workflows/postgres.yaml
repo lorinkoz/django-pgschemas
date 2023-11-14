@@ -22,10 +22,10 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: dpgs_sandbox
+          POSTGRES_DB: sandbox
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --name postgres --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
@@ -39,4 +39,4 @@ jobs:
       - name: Install psycopg specific version ${{ matrix.psycopg-version }}
         run: poetry run pip install ${{ matrix.psycopg-version }}
       - name: Run Tests
-        run: poetry run coverage run dpgs_sandbox/manage.py test tests
+        run: poetry run pytest sandbox/tests

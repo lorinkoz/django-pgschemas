@@ -8,7 +8,7 @@ from .utils import get_tenant_model, is_valid_schema_name
 
 class DjangoPGSchemasConfig(AppConfig):
     name = "django_pgschemas"
-    verbose_name = "Django PostgreSQL Schemas"
+    verbose_name = "Django Postgres Schemas"
 
     def _check_tenant_dict(self):
         if not isinstance(getattr(settings, "TENANTS", None), dict):

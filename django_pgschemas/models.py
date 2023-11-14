@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models, transaction
 
-from .postgresql_backend.base import check_schema_name
+from .postgresql.base import check_schema_name
 from .schema import Schema
 from .signals import dynamic_tenant_needs_sync, dynamic_tenant_post_sync, dynamic_tenant_pre_drop
 from .utils import create_or_clone_schema, drop_schema, get_domain_model, schema_exists

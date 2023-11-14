@@ -1,16 +1,33 @@
-# Makefile for django-pgschemas
+# Makefile
+
+# Makefile
 
 .PHONY: test
 test:
-	poetry run dpgs_sandbox/manage.py test tests
+	poetry run pytest sandbox/tests --reuse-db
 
 .PHONY: coverage
 coverage:
-	poetry run coverage run dpgs_sandbox/manage.py test tests
+	poetry run pytest --cov="django_pgschemas" --reuse-db sandbox/tests
+	poetry run coverage html
 
-.PHONY: coverage-html
-coverage-html:
-	poetry run coverage run dpgs_sandbox/manage.py test tests && poetry run coverage html
+
+.PHONY: types
+types:
+	poetry run mypy .
+
+.PHONY: down
+down:
+	docker compose down
+
+.PHONY: up
+up:
+	docker compose up --wait
+	poetry run sandbox/manage.py migrate
+
+.PHONY: docs
+docs:
+	poetry run $(MAKE) -C docs html
 
 .PHONY: update-clone-schema
 update-clone-schema:

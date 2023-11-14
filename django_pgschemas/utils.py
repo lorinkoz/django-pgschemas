@@ -108,19 +108,26 @@ def dynamic_models_exist() -> bool:
     SELECT count(*)
     FROM   information_schema.tables
     WHERE  table_schema = 'public'
-    AND    table_name in ('%s', '%s');
+    AND    table_name in (%s);
     """
     TenantModel = get_tenant_model()
     DomainModel = get_domain_model()
 
-    if TenantModel is None or DomainModel is None:
+    models_to_check = []
+
+    if TenantModel is not None:
+        models_to_check.append(TenantModel)
+    if DomainModel is not None:
+        models_to_check.append(DomainModel)
+
+    if not models_to_check:
         return False
 
-    cursor = connection.cursor()
-    cursor.execute(sql % (TenantModel._meta.db_table, DomainModel._meta.db_table))
-    value = cursor.fetchone() == (2,)
-    cursor.close()
-    return value
+    template = ", ".join(f"'{model._meta.db_table}'" for model in models_to_check)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql % template)
+        return cursor.fetchone() == (len(models_to_check),)
 
 
 @run_in_public_schema

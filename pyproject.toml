@@ -26,7 +26,6 @@ pytest-django = "*"
 ruff = "*"
 sphinx = "<7"
 sphinx_rtd_theme = "*"
-sphinx-django-command = "*"
 
 [tool.ruff]
 select = ["I", "E", "F"]

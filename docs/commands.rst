@@ -6,14 +6,14 @@ Management commands
 ``runschema``
 -------------
 
-.. djcommand:: django_pgschemas.management.commands.runschema
+Runs a management in schemas.
 
 .. _migrateschema-cmd:
 
 ``migrateschema``
 -----------------
 
-.. djcommand:: django_pgschemas.management.commands.migrateschema
+Runs migrations on schemas.
 
 .. _migrate-cmd:
 
@@ -27,18 +27,18 @@ Wrapper around ``migrateschema`` to override Django's default ``migrate``.
 ``createrefschema``
 -------------------
 
-.. djcommand:: django_pgschemas.management.commands.createrefschema
+Creates the clone reference schema.
 
 .. _cloneschema-cmd:
 
 ``cloneschema``
 ---------------
 
-.. djcommand:: django_pgschemas.management.commands.cloneschema
+Clones an existing schema into a new schema.
 
 .. _whowill-cmd:
 
 ``whowill``
 -----------
 
-.. djcommand:: django_pgschemas.management.commands.whowill
+Outputs the schemas that are matched from command parameters.

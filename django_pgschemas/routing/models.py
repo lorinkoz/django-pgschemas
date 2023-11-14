@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import models, transaction
 
+from django_pgschemas.models import TenantModel
+from django_pgschemas.utils import get_domain_model
+
 
 class DomainModel(models.Model):
     """
@@ -53,3 +56,15 @@ class DomainModel(models.Model):
         if not path.startswith("/"):
             path = "/" + path
         return "//" + self.domain + folder + path
+
+
+def get_primary_domain_for_tenant(tenant: TenantModel) -> DomainModel | None:
+    DomainModel = get_domain_model()
+
+    if DomainModel is None:
+        return None
+
+    try:
+        return tenant.domains.get(is_primary=True)
+    except DomainModel.DoesNotExist:
+        return None

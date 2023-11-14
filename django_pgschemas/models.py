@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.db import models
 
 from django_pgschemas.postgresql.base import check_schema_name
@@ -12,7 +10,6 @@ from django_pgschemas.signals import (
 from django_pgschemas.utils import (
     create_or_clone_schema,
     drop_schema,
-    get_domain_model,
     schema_exists,
 )
 
@@ -109,15 +106,3 @@ class TenantModel(Schema, models.Model):
         Drops the schema.
         """
         return drop_schema(self.schema_name)
-
-    def get_primary_domain(self) -> Any:
-        DomainModel = get_domain_model()
-
-        if DomainModel is None:
-            return None
-
-        try:
-            domain = self.domains.get(is_primary=True)
-            return domain
-        except DomainModel.DoesNotExist:
-            return None

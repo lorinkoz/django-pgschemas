@@ -9,7 +9,9 @@ from django.shortcuts import redirect
 from django.urls import clear_url_caches, set_urlconf
 from django.utils.decorators import sync_and_async_middleware
 
+from django_pgschemas.models import TenantModel as TenantModelBase
 from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
+from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 from django_pgschemas.schema import Schema, activate, activate_public
 from django_pgschemas.settings import get_tenant_header, get_tenant_session_key
@@ -70,7 +72,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
                     pass
 
         if domain is not None:
-            tenant = cast(Schema, domain.tenant)
+            tenant = cast(TenantModelBase, domain.tenant)
             tenant.routing = DomainInfo(domain=hostname)
             request.strip_tenant_from_path = lambda x: x
 
@@ -80,9 +82,10 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
                 clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
 
             if domain.redirect_to_primary:
-                primary_domain = DomainModel._default_manager.get(tenant=tenant, is_primary=True)
-                path = request.strip_tenant_from_path(request.path)
-                return redirect(primary_domain.absolute_url(path), permanent=True)
+                primary_domain = get_primary_domain_for_tenant(tenant)
+                if primary_domain:
+                    path = request.strip_tenant_from_path(request.path)
+                    return redirect(primary_domain.absolute_url(path), permanent=True)
 
     # Checking fallback domains
     if not tenant:
@@ -112,12 +115,15 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
 def route_session(request: HttpRequest) -> HttpResponse | None:
     tenant_session_key = get_tenant_session_key()
+    TenantModel = get_tenant_model()
+
+    if TenantModel is None:
+        return None
 
     if hasattr(request, "session"):
         tenant_ref = request.session.get(tenant_session_key)
 
         if tenant_ref is not None:
-            TenantModel = get_tenant_model()
             tenant = TenantModel._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
             tenant.routing = SessionInfo(reference=tenant_ref)
             request.tenant = tenant
@@ -128,12 +134,16 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
 def route_headers(request: HttpRequest) -> HttpResponse | None:
     tenant_header = get_tenant_header()
+    TenantModel = get_tenant_model()
+
+    if TenantModel is None:
+        return None
 
     tenant_ref = request.headers.get(tenant_header)
 
     if tenant_ref is not None:
         TenantModel = get_tenant_model()
-        tenant = TenantModel._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
+        tenant = TenantModelBase._default_manager.get(Q(pk=tenant_ref) | Q(schema_name=tenant_ref))
         tenant.routing = HeadersInfo(reference=tenant_ref)
         request.tenant = tenant
         activate(tenant)

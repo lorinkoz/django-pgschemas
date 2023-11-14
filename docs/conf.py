@@ -7,9 +7,11 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 import os
+import sys
 
 import django
 
+sys.path.insert(0, os.path.abspath("../sandbox/"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sandbox.settings")
 django.setup()
 

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "django-pgschemas"
 version = "0.99.0"
-description = "Multi-tenancy on Django using Postgres schemas."
+description = "Django multi-tenancy through Postgres schemas"
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
 readme = "README.rst"

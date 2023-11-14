@@ -5,7 +5,7 @@ from typing import TypeAlias
 @dataclass(frozen=True)
 class DomainInfo:
     domain: str
-    folder: str | None
+    folder: str | None = None
 
 
 @dataclass(frozen=True)

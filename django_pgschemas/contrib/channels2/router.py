@@ -50,7 +50,7 @@ class TenantProtocolRouter:
             if hostname in data["DOMAINS"]:
                 tenant = Schema.create(
                     schema_name=schema,
-                    routing=DomainInfo(domain=hostname, folder=None),
+                    routing=DomainInfo(domain=hostname),
                 )
                 if "WS_URLCONF" in data:
                     ws_urlconf = data["WS_URLCONF"]

@@ -47,7 +47,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
         if hostname in data["DOMAINS"]:
             tenant = Schema.create(
                 schema_name=schema,
-                routing=DomainInfo(domain=hostname, folder=None),
+                routing=DomainInfo(domain=hostname),
             )
             break
 
@@ -73,7 +73,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
         if domain is not None:
             tenant = domain.tenant
-            tenant.routing = DomainInfo(domain=hostname, folder=None)
+            tenant.routing = DomainInfo(domain=hostname)
             request.strip_tenant_from_path = lambda x: x
 
             if prefix and domain.folder == prefix:
@@ -94,7 +94,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
             if hostname in data.get("FALLBACK_DOMAINS", []):
                 tenant = Schema.create(
                     schema_name=schema,
-                    routing=DomainInfo(domain=hostname, folder=None),
+                    routing=DomainInfo(domain=hostname),
                 )
                 break
 

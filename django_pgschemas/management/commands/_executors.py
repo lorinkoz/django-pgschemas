@@ -66,7 +66,7 @@ def run_on_schema(
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
         schema = Schema.create(
             schema_name=schema_name,
-            routing=DomainInfo(domain=domains[0] if domains else None, folder=None),
+            routing=DomainInfo(domain=domains[0] if domains else None),
         )
     elif schema_name == get_clone_reference():
         schema = Schema.create(schema_name=schema_name)

@@ -51,9 +51,7 @@ class StaticTenantTestCase(BaseTenantTestCaseMixin, TestCase):
             if settings.TENANTS[cls.schema_name]["DOMAINS"]
             else cls.schema_name + ALLOWED_TEST_DOMAIN
         )
-        cls.tenant = Schema.create(
-            schema_name=cls.schema_name, routing=DomainInfo(domain=domain, folder=None)
-        )
+        cls.tenant = Schema.create(schema_name=cls.schema_name, routing=DomainInfo(domain=domain))
         activate(cls.tenant)
         cls.cls_atomics = cls._enter_atomics()
         try:

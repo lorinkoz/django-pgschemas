@@ -56,15 +56,15 @@ def ensure_public_schema() -> None:
     if not isinstance(settings.TENANTS.get("public"), dict):
         raise ImproperlyConfigured("TENANTS must contain a 'public' dict.")
 
-    public_tenant = settings.TENANTS["public"]
+    tenants_public = settings.TENANTS["public"]
 
-    if "URLCONF" in public_tenant:
+    if "URLCONF" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'URLCONF' key.")
-    if "WS_URLCONF" in public_tenant:
+    if "WS_URLCONF" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'WS_URLCONF' key.")
-    if "DOMAINS" in public_tenant:
+    if "DOMAINS" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'DOMAINS' key.")
-    if "FALLBACK_DOMAINS" in public_tenant:
+    if "FALLBACK_DOMAINS" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
 
 
@@ -75,17 +75,17 @@ def ensure_default_schemas() -> None:
     if not isinstance(settings.TENANTS["default"], dict):
         raise ImproperlyConfigured("TENANTS must contain a 'default' dict.")
 
-    default_tenant = settings.TENANTS["default"]
+    tenants_default = settings.TENANTS["default"]
 
-    if "TENANT_MODEL" not in default_tenant:
+    if "TENANT_MODEL" not in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] must contain a 'TENANT_MODEL' key.")
-    if "URLCONF" not in default_tenant:
+    if "URLCONF" not in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] must contain a 'URLCONF' key.")
-    if "DOMAINS" in default_tenant:
+    if "DOMAINS" in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
-    if "FALLBACK_DOMAINS" in default_tenant:
+    if "FALLBACK_DOMAINS" in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key.")
-    if default_tenant.get("CLONE_REFERENCE") in settings.TENANTS:
+    if tenants_default.get("CLONE_REFERENCE") in settings.TENANTS:
         raise ImproperlyConfigured(
             "TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name."
         )
@@ -135,14 +135,16 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> list:
     tenant_app = get_tenant_app()
     domain_app = get_domain_app()
 
-    if tenant_app is not None and tenant_app not in settings.TENANTS["public"].get("APPS", []):
+    tenants_public = settings.TENANTS["public"]
+
+    if tenant_app is not None and tenant_app not in tenants_public.get("APPS", []):
         errors.append(
             checks.Error(
                 f"Your tenant app '{tenant_app}' must be on the 'public' schema.",
                 id="pgschemas.W001",
             )
         )
-    if domain_app is not None and domain_app not in settings.TENANTS["public"].get("APPS", []):
+    if domain_app is not None and domain_app not in tenants_public.get("APPS", []):
         errors.append(
             checks.Error(
                 f"Your domain app '{domain_app}' must be on the 'public' schema.",
@@ -157,7 +159,7 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> list:
         if tenant_app is not None and tenant_app in schema_apps:
             errors.append(
                 checks.Error(
-                    "Your tenant app '{tenant_app}' in TENANTS['{schema}']['APPS'] "
+                    f"Your tenant app '{tenant_app}' in TENANTS['{schema}']['APPS'] "
                     "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 )
@@ -165,7 +167,7 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> list:
         if domain_app is not None and domain_app in schema_apps:
             errors.append(
                 checks.Error(
-                    "Your domain app '{domain_app}' in TENANTS['{schema}']['APPS'] "
+                    f"Your domain app '{domain_app}' in TENANTS['{schema}']['APPS'] "
                     "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 )

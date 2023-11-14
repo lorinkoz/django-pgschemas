@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from django_pgschemas.routing.info import DomainInfo
+from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
 from django_pgschemas.schema import get_current_schema
 
 
@@ -18,6 +18,11 @@ class SchemaContextFilter(logging.Filter):
             case DomainInfo(domain, folder):
                 record.domain = domain
                 record.folder = folder
+            case SessionInfo(reference):
+                record.reference = reference
+            case HeadersInfo(reference):
+                record.reference = reference
             case _:
                 pass
+
         return True

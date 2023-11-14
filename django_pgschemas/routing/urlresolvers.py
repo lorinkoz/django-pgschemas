@@ -4,7 +4,7 @@ import sys
 from django.conf import settings
 from django.urls import URLResolver
 
-from .schema import Schema, get_current_schema
+from django_pgschemas.schema import Schema, get_current_schema
 
 
 class TenantPrefixPattern:

@@ -14,7 +14,7 @@ class DomainModel(models.Model):
             related_name="domains",
             on_delete=models.CASCADE,
         )
-        if hasattr(settings, "TENANTS") and "default" in settings.TENANTS
+        if getattr(settings, "TENANTS", {}).get("default")
         else None
     )
 

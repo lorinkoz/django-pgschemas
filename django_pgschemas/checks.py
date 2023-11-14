@@ -9,7 +9,13 @@ from django.db import connection
 from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
-from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
+from django_pgschemas.settings import get_extra_search_paths
+from django_pgschemas.utils import (
+    get_clone_reference,
+    get_domain_model,
+    get_tenant_model,
+    is_valid_schema_name,
+)
 
 
 def get_tenant_app() -> str | None:
@@ -92,8 +98,6 @@ def ensure_default_schemas() -> None:
 
 
 def ensure_overall_schemas() -> None:
-    from django_pgschemas.utils import is_valid_schema_name
-
     for schema in settings.TENANTS:
         if schema not in ["public", "default"]:
             if not is_valid_schema_name(schema):
@@ -101,32 +105,35 @@ def ensure_overall_schemas() -> None:
 
 
 def ensure_extra_search_paths() -> None:
-    from django_pgschemas.utils import get_tenant_model
+    if not (extra_search_paths := get_extra_search_paths()):
+        return
 
-    if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
-        TenantModel = get_tenant_model()
-        if TenantModel is None:
-            return
+    TenantModel = get_tenant_model()
 
-        cursor = connection.cursor()
+    if TenantModel is None:
+        return
+
+    with connection.cursor() as cursor:
         cursor.execute(
             "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
             [TenantModel._meta.db_table],
         )
+
         dynamic_tenants = []
+
         if "CLONE_REFERENCE" in settings.TENANTS["default"]:
             dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
+
         if cursor.fetchone():
             dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
-        cursor.close()
-        invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
-            set(settings.TENANTS.keys()).union(dynamic_tenants)
-        )
-        if invalid_schemas:
-            invalid = ", ".join(invalid_schemas)
-            raise ImproperlyConfigured(
-                f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS."
-            )
+
+    invalid_schemas = set(extra_search_paths) & (
+        set(settings.TENANTS.keys()) | set(dynamic_tenants)
+    )
+
+    if invalid_schemas:
+        invalid = ", ".join(invalid_schemas)
+        raise ImproperlyConfigured(f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS.")
 
 
 @checks.register()

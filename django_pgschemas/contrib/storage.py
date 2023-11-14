@@ -1,9 +1,9 @@
 import os
 
-from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
 from django_pgschemas.schema import get_current_schema
+from django_pgschemas.settings import get_pathname_function
 
 
 class TenantFileSystemStorage(FileSystemStorage):
@@ -19,8 +19,8 @@ class TenantFileSystemStorage(FileSystemStorage):
         path_identifier = current_schema.schema_name
         if hasattr(current_schema, "schema_pathname"):
             path_identifier = current_schema.schema_pathname()
-        elif hasattr(settings, "PGSCHEMAS_PATHNAME_FUNCTION"):
-            path_identifier = settings.PGSCHEMAS_PATHNAME_FUNCTION(current_schema)
+        elif pathname_function := get_pathname_function():
+            path_identifier = pathname_function(current_schema)
         return path_identifier
 
     @property  # To avoid caching of tenant

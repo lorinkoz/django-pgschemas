@@ -2,17 +2,17 @@ from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.utils.encoding import force_str
 
 from django_pgschemas.schema import get_current_schema
+from django_pgschemas.settings import get_base_backend_module, get_original_backend_module
 
 from . import _constraints
-from .settings import base_backend, original_backend
 
 try:
-    DatabaseIntrospection = original_backend.DatabaseIntrospection
+    module = get_original_backend_module("introspection")
 except AttributeError:
-    DatabaseIntrospection = base_backend.DatabaseIntrospection
+    module = get_base_backend_module("introspection")
 
 
-class DatabaseSchemaIntrospection(DatabaseIntrospection):  # pragma: no cover
+class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no cover
     """
     database schema introspection class
     """

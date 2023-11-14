@@ -2,7 +2,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from django_pgschemas.management.commands import TenantCommand
-from django_pgschemas.urlresolvers import get_urlconf_from_schema
+from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 
 
 class Command(TenantCommand):

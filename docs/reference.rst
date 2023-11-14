@@ -13,7 +13,7 @@ Models
 ``DomainModel``
 +++++++++++++++
 
-.. autoclass:: django_pgschemas.models.DomainModel
+.. autoclass:: django_pgschemas.routing.models.DomainModel
     :members: absolute_url
 
 Utils
@@ -21,9 +21,9 @@ Utils
 
 .. automodule:: django_pgschemas.utils
     :members: get_tenant_model, get_domain_model, is_valid_identifier,
-        is_valid_schema_name, check_schema_name, remove_www,
-        run_in_public_schema, schema_exists, dynamic_models_exist,
-        create_schema, drop_schema, clone_schema, create_or_clone_schema
+        is_valid_schema_name, check_schema_name, run_in_public_schema,
+        schema_exists, dynamic_models_exist, create_schema, drop_schema,
+        clone_schema, create_or_clone_schema
 
 Signals
 -------
@@ -36,5 +36,5 @@ Signals
 URL resolvers
 -------------
 
-.. automodule:: django_pgschemas.urlresolvers
+.. automodule:: django_pgschemas.routing.urlresolvers
     :members: get_urlconf_from_schema

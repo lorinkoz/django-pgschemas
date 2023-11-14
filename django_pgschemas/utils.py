@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Any, Callable
 
 from django.apps import apps
 from django.conf import settings
@@ -49,7 +50,7 @@ def is_valid_schema_name(name: str) -> bool:
     return is_valid_identifier(name) and not SQL_SCHEMA_NAME_RESERVED_RE.match(name)
 
 
-def check_schema_name(name: str):
+def check_schema_name(name: str) -> None:
     """
     Checks schema name and raises ``ValidationError`` if ``name`` is not a
     valid identifier.
@@ -68,10 +69,10 @@ def django_is_in_test_mode() -> bool:
     return hasattr(mail, "outbox")
 
 
-def run_in_public_schema(func):
+def run_in_public_schema(func: Callable) -> Callable:
     "Decorator that makes decorated function to be run in the public schema."
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: object, **kwargs: object) -> Any:
         from django_pgschemas.schema import Schema
 
         with Schema.create(schema_name="public"):
@@ -163,7 +164,7 @@ class DryRunException(Exception):
     pass
 
 
-def _create_clone_schema_function():
+def _create_clone_schema_function() -> None:
     """
     Creates a postgres function `clone_schema` that copies a schema and its
     contents. Will replace any existing `clone_schema` functions owned by the
@@ -182,7 +183,7 @@ def _create_clone_schema_function():
 
 
 @run_in_public_schema
-def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = False):
+def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = False) -> None:
     """
     Creates a new schema ``new_schema_name`` as a clone of an existing schema
     ``base_schema_name``.

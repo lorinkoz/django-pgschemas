@@ -9,13 +9,13 @@ from django_pgschemas.signals import schema_activate
 
 
 class Schema:
-    schema_name: str = None
+    schema_name: str | None = None
     routing: RoutingInfo = None
 
     is_dynamic = False
 
     @staticmethod
-    def create(schema_name: str, routing: RoutingInfo | None = None):
+    def create(schema_name: str, routing: RoutingInfo | None = None) -> "Schema":
         schema = Schema()
         schema.schema_name = schema_name
         schema.routing = routing

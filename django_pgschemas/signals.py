@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db.models.signals import pre_delete
 from django.dispatch import Signal, receiver
 
@@ -19,7 +21,7 @@ dynamic_tenant_pre_drop.__doc__ = "Sent when a schema from a dynamic tenant is a
 
 
 @receiver(pre_delete)
-def tenant_delete_callback(sender, instance, **kwargs):
+def tenant_delete_callback(sender: Any, instance: Any, **kwargs: object) -> None:
     TenantModel = get_tenant_model()
     if TenantModel is None:
         return

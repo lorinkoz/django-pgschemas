@@ -4,7 +4,7 @@ from django.apps import AppConfig
 class DjangoPgSchemasConfig(AppConfig):
     name = "django_pgschemas"
 
-    def ready(self):
+    def ready(self) -> None:
         from . import checks  # noqa
         from .checks import (
             ensure_tenant_dict,

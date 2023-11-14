@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import models
 
 from django_pgschemas.postgresql.base import check_schema_name
@@ -43,11 +45,17 @@ class TenantModel(Schema, models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, **kwargs):
-        verbosity = kwargs.pop("verbosity", 1)
+    def save(
+        self,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: list[str] | None = None,
+        verbosity: int = 1,
+    ) -> None:
         is_new = self.pk is None
 
-        super().save(*args, **kwargs)
+        super().save(force_insert, force_update, using, update_fields)
 
         if is_new and self.auto_create_schema:
             try:
@@ -70,7 +78,9 @@ class TenantModel(Schema, models.Model):
                 self.drop_schema()
                 raise
 
-    def delete(self, force_drop=False, *args, **kwargs):
+    def delete(
+        self, using: str | None = None, keep_parents: bool = False, force_drop: bool = False
+    ) -> None:
         """
         Deletes this row. Drops the tenant's schema if the attribute
         ``auto_drop_schema`` is ``True``.
@@ -78,30 +88,36 @@ class TenantModel(Schema, models.Model):
         if force_drop or self.auto_drop_schema:
             dynamic_tenant_pre_drop.send(sender=TenantModel, tenant=self.serializable_fields())
             self.drop_schema()
-        super().delete(*args, **kwargs)
 
-    def serializable_fields(self):
+        super().delete(using, keep_parents)
+
+    def serializable_fields(self) -> "TenantModel":
         """
         In certain cases the user model isn't serializable so you may want to
         only send the id.
         """
         return self
 
-    def create_schema(self, sync_schema=True, verbosity=1):
+    def create_schema(self, sync_schema: bool = True, verbosity: int = 1) -> bool:
         """
         Creates or clones the schema ``schema_name`` for this tenant.
         """
         return create_or_clone_schema(self.schema_name, sync_schema, verbosity)
 
-    def drop_schema(self):
+    def drop_schema(self) -> bool:
         """
         Drops the schema.
         """
         return drop_schema(self.schema_name)
 
-    def get_primary_domain(self):
+    def get_primary_domain(self) -> Any:
+        DomainModel = get_domain_model()
+
+        if DomainModel is None:
+            return None
+
         try:
             domain = self.domains.get(is_primary=True)
             return domain
-        except get_domain_model().DoesNotExist:
+        except DomainModel.DoesNotExist:
             return None

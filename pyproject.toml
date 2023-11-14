@@ -51,7 +51,14 @@ module = ["channels.*", "psycopg.*", "psycopg2.*", "django.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["docs.*", "sandbox.*"]
+module = [
+    "docs.*",
+    "sandbox.*",
+    "django_pgschemas.test.*",
+    "django_pgschemas.contrib.*",
+    "django_pgschemas.management.*",
+    "django_pgschemas.postgresql.*",
+]
 ignore_errors = true
 
 

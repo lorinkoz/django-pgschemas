@@ -1,5 +1,5 @@
 import re
-from typing import Callable, TypeAlias
+from typing import Callable, TypeAlias, cast
 
 from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
@@ -24,8 +24,8 @@ def remove_www(path: str) -> str:
     return path
 
 
-def strip_tenant_from_path_factory(prefix):
-    def strip_tenant_from_path(path):
+def strip_tenant_from_path_factory(prefix: str) -> Callable[[str], str]:
+    def strip_tenant_from_path(path: str) -> str:
         return re.sub(r"^/{}/".format(prefix), "/", path)
 
     return strip_tenant_from_path
@@ -38,7 +38,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
     hostname = remove_www(request.get_host().split(":")[0])
 
     activate_public()
-    tenant = None
+    tenant: Schema | None = None
 
     # Checking for static tenants
     for schema, data in settings.TENANTS.items():
@@ -53,26 +53,26 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
     # Checking for dynamic tenants
     else:
-        ActualDomainModel = get_domain_model()
+        DomainModel = get_domain_model()
 
         prefix = request.path.split("/")[1]
         domain = None
 
-        if ActualDomainModel is not None:
+        if DomainModel is not None:
             try:
-                domain = ActualDomainModel.objects.select_related("tenant").get(
+                domain = DomainModel.objects.select_related("tenant").get(
                     domain=hostname, folder=prefix
                 )
-            except ActualDomainModel.DoesNotExist:
+            except DomainModel.DoesNotExist:
                 try:
-                    domain = ActualDomainModel.objects.select_related("tenant").get(
+                    domain = DomainModel.objects.select_related("tenant").get(
                         domain=hostname, folder=""
                     )
-                except ActualDomainModel.DoesNotExist:
+                except DomainModel.DoesNotExist:
                     pass
 
         if domain is not None:
-            tenant = domain.tenant
+            tenant = cast(Schema, domain.tenant)
             tenant.routing = DomainInfo(domain=hostname)
             request.strip_tenant_from_path = lambda x: x
 
@@ -82,7 +82,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
                 clear_url_caches()  # Required to remove previous tenant prefix from cache (#8)
 
             if domain.redirect_to_primary:
-                primary_domain = tenant.domains.get(is_primary=True)
+                primary_domain = DomainModel._default_manager.get(tenant=tenant, is_primary=True)
                 path = request.strip_tenant_from_path(request.path)
                 return redirect(primary_domain.absolute_url(path), permanent=True)
 
@@ -109,6 +109,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
     set_urlconf(urlconf)
 
     activate(tenant)
+    return None
 
 
 def route_session(request: HttpRequest) -> HttpResponse | None:

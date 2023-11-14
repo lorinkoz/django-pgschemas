@@ -28,11 +28,11 @@ class DomainModel(models.Model):
         abstract = True
         unique_together = (("domain", "folder"),)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "/".join([self.domain, self.folder]) if self.folder else self.domain
 
     @transaction.atomic
-    def save(self, *args, **kwargs):
+    def save(self, *args: object, **kwargs: object) -> None:
         using = kwargs.get("using")
         domain_list = self.__class__.objects
         if using:
@@ -45,7 +45,7 @@ class DomainModel(models.Model):
                 self.redirect_to_primary = False
         super().save(*args, **kwargs)
 
-    def absolute_url(self, path):
+    def absolute_url(self, path: str) -> str:
         """
         Constructs an absolute url for this domain / folder and a given path
         """

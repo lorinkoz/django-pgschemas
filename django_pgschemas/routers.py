@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.apps import apps
 from django.conf import settings
 
@@ -10,12 +12,14 @@ class SyncRouter:
     A router to control which applications will be synced depending on the schema we're syncing.
     """
 
-    def app_in_list(self, app_label, app_list):
+    def app_in_list(self, app_label: str, app_list: Iterable) -> bool:
         app_config = apps.get_app_config(app_label)
         app_config_full_name = f"{app_config.__module__}.{app_config.__class__.__name__}"
         return (app_config.name in app_list) or (app_config_full_name in app_list)
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
+    def allow_migrate(
+        self, db: str, app_label: str, model_name: str | None = None, **hints: object
+    ) -> bool | None:
         current_schema = get_current_schema()
         if db != get_tenant_database_alias() or current_schema is None:
             return False

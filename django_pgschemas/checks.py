@@ -47,12 +47,12 @@ def get_session_app() -> str | None:
     return None
 
 
-def ensure_tenant_dict():
+def ensure_tenant_dict() -> None:
     if not isinstance(getattr(settings, "TENANTS", None), dict):
         raise ImproperlyConfigured("TENANTS dict setting not set.")
 
 
-def ensure_public_schema():
+def ensure_public_schema() -> None:
     if not isinstance(settings.TENANTS.get("public"), dict):
         raise ImproperlyConfigured("TENANTS must contain a 'public' dict.")
 
@@ -68,7 +68,7 @@ def ensure_public_schema():
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
 
 
-def ensure_default_schemas():
+def ensure_default_schemas() -> None:
     if "default" not in settings.TENANTS:
         return  # Escape hatch for static only configs
 
@@ -91,7 +91,7 @@ def ensure_default_schemas():
         )
 
 
-def ensure_overall_schemas():
+def ensure_overall_schemas() -> None:
     from django_pgschemas.utils import is_valid_schema_name
 
     for schema in settings.TENANTS:
@@ -100,7 +100,7 @@ def ensure_overall_schemas():
                 raise ImproperlyConfigured(f"'{schema}' is not a valid schema name.")
 
 
-def ensure_extra_search_paths():
+def ensure_extra_search_paths() -> None:
     from django_pgschemas.utils import get_tenant_model
 
     if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
@@ -130,7 +130,7 @@ def ensure_extra_search_paths():
 
 
 @checks.register()
-def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
+def check_principal_apps(app_configs: Any, **kwargs: Any) -> list:
     errors = []
     tenant_app = get_tenant_app()
     domain_app = get_domain_app()
@@ -175,7 +175,7 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
 
 
 @checks.register()
-def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
+def check_other_apps(app_configs: Any, **kwargs: Any) -> list:
     errors = []
     user_app = get_user_app()
     session_app = get_session_app()
@@ -226,7 +226,7 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
 
 
 @checks.register(checks.Tags.database)
-def check_schema_names(app_configs: Any, **kwargs: Any) -> None:
+def check_schema_names(app_configs: Any, **kwargs: Any) -> list:
     errors = []
     static_names = set(settings.TENANTS.keys())
     clone_reference = get_clone_reference()

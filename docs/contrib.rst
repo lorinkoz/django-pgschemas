@@ -37,7 +37,7 @@ Tenant aware file system storage
 
 We provide a tenant aware file system storage at
 ``django_pgschemas.contrib.files.TenantFileSystemStorage``. It subclasses
-``django.core.files.storage.FileSystemStorage`` and behaves like it in every
+``django.core.storage.FileSystemStorage`` and behaves like it in every
 aspect, except that it prepends a tenant identifier to the path and URL of all
 files.
 

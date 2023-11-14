@@ -10,7 +10,6 @@ from django.db.utils import ProgrammingError
 from django.test import TestCase, TransactionTestCase, tag
 
 from django_pgschemas.checks import check_schema_names
-from django_pgschemas.models import TenantModel
 from django_pgschemas.utils import get_tenant_model
 
 TenantModel = get_tenant_model()

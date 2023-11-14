@@ -1,48 +1,48 @@
-from typing import Optional
+from contextlib import contextmanager
+from contextvars import ContextVar
+from typing import Any, Iterator, Optional
 
-from asgiref.local import Local
+from asgiref.sync import sync_to_async
 
-from .signals import schema_activate
-
-_active = Local()
-
-
-def __getattr__(name):
-    from warnings import warn
-
-    if name == "SchemaDescriptor":
-        warn("'SchemaDescriptor' is deprecated, use 'Schema' instead", DeprecationWarning)
-        return globals()["Schema"]
-
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+from django_pgschemas.signals import schema_activate
 
 
 def get_default_schema() -> "Schema":
     return Schema.create("public")
 
 
+active: ContextVar["Schema"] = ContextVar("active", default=get_default_schema())
+
+
 def get_current_schema() -> "Schema":
-    current_schema = getattr(_active, "value", None)
-    return current_schema or get_default_schema()
+    active.get()
 
 
 def activate(schema: "Schema"):
     if not isinstance(schema, Schema):
         raise RuntimeError("'activate' must be called with a Schema descendant")
 
-    _active.value = schema
+    active.set(schema)
 
     schema_activate.send(sender=Schema, schema=schema)
 
 
 def deactivate():
-    if hasattr(_active, "value"):
-        del _active.value
+    active.set(get_default_schema())
 
     schema_activate.send(sender=Schema, schema=Schema.create("public"))
 
 
 activate_public = deactivate
+
+
+@contextmanager
+def override(schema: "Schema") -> Iterator[None]:
+    token = active.set(schema)
+
+    yield
+
+    active.reset(token)
 
 
 class Schema:
@@ -60,10 +60,16 @@ class Schema:
         schema.folder = folder
         return schema
 
-    def __enter__(self):
-        self._previous_schema = get_current_schema()
-        activate(self)
+    def __enter__(self) -> None:
+        schema = active.get()
+        if schema is not None:
+            self._previous_active_token = active.set(self)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        _previous_schema = getattr(self, "_previous_schema", None)
-        activate(_previous_schema) if _previous_schema else deactivate()
+    __aenter__ = sync_to_async(__enter__)
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        _previous_active_token = getattr(self, "_previous_active_token", None)
+        if _previous_active_token is not None:
+            active.reset(_previous_active_token)
+
+    __aexit__ = sync_to_async(__exit__)

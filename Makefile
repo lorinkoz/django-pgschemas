@@ -1,7 +1,5 @@
 # Makefile
 
-# Makefile
-
 .PHONY: test
 test:
 	poetry run pytest sandbox/tests --reuse-db

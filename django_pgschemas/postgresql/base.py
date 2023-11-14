@@ -1,5 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
+from django.utils.asyncio import async_unsafe
 
 from django_pgschemas.schema import get_current_schema, get_default_schema
 from django_pgschemas.utils import check_schema_name, get_limit_set_calls
@@ -40,10 +41,17 @@ class DatabaseWrapper(original_backend.DatabaseWrapper):
         # Patched version of DatabaseIntrospection that only returns the table list for the currently selected schema
         self.introspection = DatabaseSchemaIntrospection(self)
 
-    def close(self):
+    @async_unsafe
+    def close(self) -> None:
         self._search_path = None
         self._setting_search_path = False
         super().close()
+
+    @async_unsafe
+    def rollback(self) -> None:
+        self._search_path = None
+        self._setting_search_path = False
+        super().rollback()
 
     def _handle_search_path(self, cursor=None):
         search_path_for_current_schema = get_search_path(get_current_schema())

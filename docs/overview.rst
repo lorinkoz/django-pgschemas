@@ -123,6 +123,6 @@ kinds of routing.
     For static tenants, only the subdomain routing is available.
 
 In order to manage dynamic tenants, we provide two model mixins you must
-inherit in your models: ``TenantMixin`` and ``DomainMixin``. The former
+inherit in your models: ``TenantModel`` and ``DomainModel``. The former
 controls the tenants and the latter controls the domain/folder combinations
 that will route each tenant.

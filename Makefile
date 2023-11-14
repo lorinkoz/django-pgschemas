@@ -6,7 +6,7 @@ test:
 
 .PHONY: coverage
 coverage:
-	poetry run pytest --cov="django_pgschemas" --reuse-db sandbox/tests
+	poetry run pytest --cov="django_pgschemas" sandbox/tests --reuse-db
 	poetry run coverage html
 
 

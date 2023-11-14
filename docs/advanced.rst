@@ -167,8 +167,8 @@ be omitted:
         }
     }
 
-In this case, no model is expected to inherit from ``TenantMixin`` and
-``DomainMixin``, and no clone reference schema can be created.
+In this case, no model is expected to inherit from ``TenantModel`` and
+``DomainModel``, and no clone reference schema can be created.
 
 Running management commands
 ---------------------------

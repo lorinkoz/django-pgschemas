@@ -27,6 +27,57 @@ DEBUG = True
 
 ALLOWED_HOSTS = [".localhost"]
 
+TENANTS = {
+    "public": {
+        "APPS": [
+            "sandbox.shared_public",
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.staticfiles",
+        ],
+    },
+    "www": {
+        "APPS": [
+            "sandbox.shared_common",
+            "sandbox.app_main",
+            "django.contrib.sessions",
+        ],
+        "URLCONF": "sandbox.app_main.urls",
+        "WS_URLCONF": "app_main.ws_urls",
+        "DOMAINS": ["localhost"],
+        "FALLBACK_DOMAINS": ["everyone.localhost"],
+    },
+    "blog": {
+        "APPS": [
+            "sandbox.shared_common",
+            "sandbox.app_blog",
+            "django.contrib.sessions",
+        ],
+        "URLCONF": "sandbox.app_blog.urls",
+        "DOMAINS": ["blog.localhost"],
+    },
+    "default": {
+        "TENANT_MODEL": "shared_public.Tenant",
+        "DOMAIN_MODEL": "shared_public.Domain",
+        "APPS": [
+            "sandbox.shared_common",
+            "sandbox.app_tenants",
+            "django.contrib.sessions",
+        ],
+        "URLCONF": "sandbox.app_tenants.urls",
+        "WS_URLCONF": "app_tenants.ws_urls",
+        "CLONE_REFERENCE": "sample",
+    },
+}
+
+# Application definition
+
+INSTALLED_APPS = ["django_pgschemas"]
+for schema in TENANTS:
+    INSTALLED_APPS += [app for app in TENANTS[schema]["APPS"] if app not in INSTALLED_APPS]
+
+ROOT_URLCONF = TENANTS["default"]["URLCONF"]
+
 AUTH_USER_MODEL = "shared_common.User"
 LOGIN_URL = "login"
 

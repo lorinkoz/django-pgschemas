@@ -5,24 +5,19 @@ from django.contrib.auth import get_user_model
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core import checks
 from django.core.exceptions import ImproperlyConfigured
+from django.db import connection
 from django.db.utils import ProgrammingError
 from django.utils.module_loading import import_module
 
-from django_pgschemas.utils import get_clone_reference, get_domain_model, get_tenant_model
+from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
 
 def get_tenant_app() -> str | None:
-    TenantModel = get_tenant_model(require_ready=False)
-    if TenantModel is None:
-        return None
-    return TenantModel._meta.app_config.name
+    return settings.TENANTS["default"].get("TENANT_MODEL")
 
 
 def get_domain_app() -> str | None:
-    DomainModel = get_domain_model(require_ready=False)
-    if DomainModel is None:
-        return None
-    return DomainModel._meta.app_config.name
+    return settings.TENANTS["default"].get("DOMAIN_MODEL")
 
 
 def get_user_app() -> str | None:
@@ -42,26 +37,105 @@ def get_session_app() -> str | None:
     return None
 
 
+def ensure_tenant_dict():
+    if not isinstance(getattr(settings, "TENANTS", None), dict):
+        raise ImproperlyConfigured("TENANTS dict setting not set.")
+
+
+def ensure_public_schema():
+    if not isinstance(settings.TENANTS.get("public"), dict):
+        raise ImproperlyConfigured("TENANTS must contain a 'public' dict.")
+
+    public_tenant = settings.TENANTS["public"]
+
+    if "URLCONF" in public_tenant:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'URLCONF' key.")
+    if "WS_URLCONF" in public_tenant:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'WS_URLCONF' key.")
+    if "DOMAINS" in public_tenant:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'DOMAINS' key.")
+    if "FALLBACK_DOMAINS" in public_tenant:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
+
+
+def ensure_default_schemas():
+    if "default" not in settings.TENANTS:
+        return  # Escape hatch for static only configs
+
+    if not isinstance(settings.TENANTS["default"], dict):
+        raise ImproperlyConfigured("TENANTS must contain a 'default' dict.")
+
+    default_tenant = settings.TENANTS["default"]
+
+    if "TENANT_MODEL" not in default_tenant:
+        raise ImproperlyConfigured("TENANTS['default'] must contain a 'TENANT_MODEL' key.")
+    if "URLCONF" not in default_tenant:
+        raise ImproperlyConfigured("TENANTS['default'] must contain a 'URLCONF' key.")
+    if "DOMAINS" in default_tenant:
+        raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
+    if "FALLBACK_DOMAINS" in default_tenant:
+        raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key.")
+    if default_tenant.get("CLONE_REFERENCE") in settings.TENANTS:
+        raise ImproperlyConfigured(
+            "TENANTS['default']['CLONE_REFERENCE'] must be a unique schema name."
+        )
+
+
+def ensure_overall_schemas():
+    from django_pgschemas.utils import is_valid_schema_name
+
+    for schema in settings.TENANTS:
+        if schema not in ["public", "default"]:
+            if not is_valid_schema_name(schema):
+                raise ImproperlyConfigured(f"'{schema}' is not a valid schema name.")
+
+
+def ensure_extra_search_paths():
+    from django_pgschemas.utils import get_tenant_model
+
+    if hasattr(settings, "PGSCHEMAS_EXTRA_SEARCH_PATHS"):
+        TenantModel = get_tenant_model()
+        if TenantModel is None:
+            return
+
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
+            [TenantModel._meta.db_table],
+        )
+        dynamic_tenants = []
+        if "CLONE_REFERENCE" in settings.TENANTS["default"]:
+            dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
+        if cursor.fetchone():
+            dynamic_tenants += list(TenantModel.objects.all().values_list("schema_name", flat=True))
+        cursor.close()
+        invalid_schemas = set(settings.PGSCHEMAS_EXTRA_SEARCH_PATHS).intersection(
+            set(settings.TENANTS.keys()).union(dynamic_tenants)
+        )
+        if invalid_schemas:
+            invalid = ", ".join(invalid_schemas)
+            raise ImproperlyConfigured(
+                f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS."
+            )
+
+
 @checks.register()
 def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
     errors = []
     tenant_app = get_tenant_app()
     domain_app = get_domain_app()
 
-    if tenant_app is None or domain_app is None:
-        return []
-
-    if tenant_app not in settings.TENANTS["public"].get("APPS", []):
+    if tenant_app is not None and tenant_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
             checks.Error(
-                "Your tenant app '%s' must be on the 'public' schema." % tenant_app,
+                f"Your tenant app '{tenant_app}' must be on the 'public' schema.",
                 id="pgschemas.W001",
             )
         )
-    if domain_app not in settings.TENANTS["public"].get("APPS", []):
+    if domain_app is not None and domain_app not in settings.TENANTS["public"].get("APPS", []):
         errors.append(
             checks.Error(
-                "Your domain app '%s' must be on the 'public' schema." % domain_app,
+                f"Your domain app '{domain_app}' must be on the 'public' schema.",
                 id="pgschemas.W001",
             )
         )
@@ -70,19 +144,19 @@ def check_principal_apps(app_configs: Any, **kwargs: Any) -> None:
         schema_apps = settings.TENANTS[schema].get("APPS", [])
         if schema == "public":
             continue
-        if tenant_app in schema_apps:
+        if tenant_app is not None and tenant_app in schema_apps:
             errors.append(
                 checks.Error(
-                    "Your tenant app '%s' in TENANTS['%s']['APPS'] must be on the 'public' schema only."
-                    % (tenant_app, schema),
+                    "Your tenant app '{tenant_app}' in TENANTS['{schema}']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 )
             )
-        if domain_app in schema_apps:
+        if domain_app is not None and domain_app in schema_apps:
             errors.append(
                 checks.Error(
-                    "Your domain app '%s' in TENANTS['%s']['APPS'] must be on the 'public' schema only."
-                    % (domain_app, schema),
+                    "Your domain app '{domain_app}' in TENANTS['{schema}']['APPS'] "
+                    "must be on the 'public' schema only.",
                     id="pgschemas.W001",
                 )
             )
@@ -99,7 +173,8 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
     if "django.contrib.contenttypes" in settings.TENANTS.get("default", {}).get("APPS", []):
         errors.append(
             checks.Warning(
-                "'django.contrib.contenttypes' in TENANTS['default']['APPS'] must be on 'public' schema only.",
+                "'django.contrib.contenttypes' in TENANTS['default']['APPS'] "
+                "must be on 'public' schema only.",
                 id="pgschemas.W002",
             )
         )
@@ -110,8 +185,8 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
             if "django.contrib.contenttypes" in schema_apps:
                 errors.append(
                     checks.Warning(
-                        "'django.contrib.contenttypes' in TENANTS['%s']['APPS'] must be on 'public' schema only."
-                        % schema,
+                        f"'django.contrib.contenttypes' in TENANTS['{schema}']['APPS'] "
+                        "must be on 'public' schema only.",
                         id="pgschemas.W002",
                     )
                 )
@@ -119,8 +194,8 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
             if session_app in schema_apps and user_app not in schema_apps:
                 errors.append(
                     checks.Warning(
-                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
-                        % (user_app, session_app, schema),
+                        f"'{user_app}' must be together with '{session_app}' in "
+                        f"TENANTS['{schema}']['APPS'].",
                         id="pgschemas.W003",
                     )
                 )
@@ -131,8 +206,8 @@ def check_other_apps(app_configs: Any, **kwargs: Any) -> None:
             ):
                 errors.append(
                     checks.Warning(
-                        "'%s' must be together with '%s' in TENANTS['%s']['APPS']."
-                        % (session_app, user_app, schema),
+                        f"'{session_app}' must be together with '{user_app}' in "
+                        f"TENANTS['{schema}']['APPS'].",
                         id="pgschemas.W003",
                     )
                 )
@@ -164,7 +239,7 @@ def check_schema_names(app_configs: Any, **kwargs: Any) -> None:
     if intersection:
         errors.append(
             checks.Critical(
-                "Name clash found between static and dynamic tenants: %s" % intersection,
+                f"Name clash found between static and dynamic tenants: {intersection}",
                 id="pgschemas.W004",
             )
         )

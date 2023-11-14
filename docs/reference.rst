@@ -4,16 +4,16 @@ Reference
 Models
 ------
 
-``TenantMixin``
+``TenantModel``
 +++++++++++++++
 
-.. autoclass:: django_pgschemas.models.TenantMixin
+.. autoclass:: django_pgschemas.models.TenantModel
     :members: auto_create_schema, auto_drop_schema, create_schema, drop_schema
 
-``DomainMixin``
+``DomainModel``
 +++++++++++++++
 
-.. autoclass:: django_pgschemas.models.DomainMixin
+.. autoclass:: django_pgschemas.models.DomainModel
     :members: absolute_url
 
 Utils

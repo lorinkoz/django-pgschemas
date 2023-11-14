@@ -143,15 +143,16 @@ Dynamic tenants need to be created through instances of
     # shared_app/models.py
 
     from django.db import models
-    from django_pgschemas.models import TenantMixin, DomainMixin
+    from django_pgschemas.models import TenantModel
+    from django_pgschemas.routing.models DomainModel
 
-    class Client(TenantMixin):
+    class Client(TenantModel):
         name = models.CharField(max_length=100)
         paid_until =  models.DateField(blank=True, null=True)
         on_trial = models.BooleanField(default=True)
         created_on = models.DateField(auto_now_add=True)
 
-    class Domain(DomainMixin):
+    class Domain(DomainModel):
         pass
 
 Synchronizing tenants

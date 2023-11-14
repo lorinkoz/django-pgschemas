@@ -1,13 +1,14 @@
 from django.db import models
 
-from django_pgschemas.models import DomainMixin, TenantMixin
+from django_pgschemas.models import TenantModel
+from django_pgschemas.routing.models import DomainModel
 
 
-class Tenant(TenantMixin):
+class Tenant(TenantModel):
     pass
 
 
-class Domain(DomainMixin):
+class Domain(DomainModel):
     pass
 
 

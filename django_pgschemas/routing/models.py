@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models, transaction
 
 
-class DomainMixin(models.Model):
+class DomainModel(models.Model):
     """
     All models that store the domains must inherit this class.
     """

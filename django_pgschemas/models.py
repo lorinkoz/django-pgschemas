@@ -15,7 +15,7 @@ from django_pgschemas.utils import (
 )
 
 
-class TenantMixin(Schema, models.Model):
+class TenantModel(Schema, models.Model):
     """
     All tenant models must inherit this class.
     """
@@ -52,19 +52,19 @@ class TenantMixin(Schema, models.Model):
         if is_new and self.auto_create_schema:
             try:
                 self.create_schema(verbosity=verbosity)
-                dynamic_tenant_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+                dynamic_tenant_post_sync.send(sender=TenantModel, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the tenant, delete what we created and re-raise the exception
                 self.delete(force_drop=True)
                 raise
         elif is_new:
             # Although we are not using the schema functions directly, the signal might be registered by a listener
-            dynamic_tenant_needs_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+            dynamic_tenant_needs_sync.send(sender=TenantModel, tenant=self.serializable_fields())
         elif not is_new and self.auto_create_schema and not schema_exists(self.schema_name):
             # Create schemas for existing models, deleting only the schema on failure
             try:
                 self.create_schema(verbosity=verbosity)
-                dynamic_tenant_post_sync.send(sender=TenantMixin, tenant=self.serializable_fields())
+                dynamic_tenant_post_sync.send(sender=TenantModel, tenant=self.serializable_fields())
             except Exception:
                 # We failed creating the schema, delete what we created and re-raise the exception
                 self.drop_schema()
@@ -76,7 +76,7 @@ class TenantMixin(Schema, models.Model):
         ``auto_drop_schema`` is ``True``.
         """
         if force_drop or self.auto_drop_schema:
-            dynamic_tenant_pre_drop.send(sender=TenantMixin, tenant=self.serializable_fields())
+            dynamic_tenant_pre_drop.send(sender=TenantModel, tenant=self.serializable_fields())
             self.drop_schema()
         super().delete(*args, **kwargs)
 

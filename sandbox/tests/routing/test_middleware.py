@@ -110,7 +110,9 @@ class TestDomainRoutingMiddleware:
             ("tenant2.localhost", "", "tenant2"),
             ("tenants.localhost", "tenant2", "tenant2"),
             ("tenant3.localhost", "", None),
-            ("tenants.localhost", "tenant3", None),
+            ("localhost", "", "www"),
+            ("blog.localhost", "", "blog"),
+            ("tenants.localhost", "", "www"),  # fallback domains
         ],
     )
     def test_tenant_matching(self, domain, path, schema_name):
@@ -132,8 +134,17 @@ class TestDomainRoutingMiddleware:
 
 
 class TestSessionRoutingMiddleware:
-    def test_tenant_matching(self, tenant1):
-        request = FakeRequest(session_tenant_ref=tenant1.schema_name)
+    @pytest.mark.parametrize(
+        "session_key, schema_name",
+        [
+            ("www", "www"),
+            ("main", "www"),
+            ("blog", "blog"),
+            ("tenant1", "tenant1"),
+        ],
+    )
+    def test_tenant_matching(self, session_key, schema_name, db):
+        request = FakeRequest(session_tenant_ref=session_key)
         get_response = MagicMock()
 
         handler = SessionRoutingMiddleware(get_response)
@@ -141,13 +152,23 @@ class TestSessionRoutingMiddleware:
         handler(request)
 
         assert request.tenant is not None
-        assert request.tenant == tenant1
+        assert request.tenant.schema_name == schema_name
         assert isinstance(request.tenant.routing, SessionInfo)
+        assert request.tenant.routing.reference == session_key
 
 
 class TestHeadersRoutingMiddleware:
-    def test_tenant_matching(self, tenant1):
-        request = FakeRequest(headers_tenant_ref=tenant1.schema_name)
+    @pytest.mark.parametrize(
+        "header, schema_name",
+        [
+            ("www", "www"),
+            ("main", "www"),
+            ("blog", "blog"),
+            ("tenant1", "tenant1"),
+        ],
+    )
+    def test_tenant_matching(self, header, schema_name, db):
+        request = FakeRequest(headers_tenant_ref=header)
         get_response = MagicMock()
 
         handler = HeadersRoutingMiddleware(get_response)
@@ -155,8 +176,9 @@ class TestHeadersRoutingMiddleware:
         handler(request)
 
         assert request.tenant is not None
-        assert request.tenant == tenant1
+        assert request.tenant.schema_name == schema_name
         assert isinstance(request.tenant.routing, HeadersInfo)
+        assert request.tenant.routing.reference == header
 
 
 @pytest.mark.parametrize(

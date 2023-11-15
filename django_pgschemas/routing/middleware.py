@@ -44,7 +44,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
     for schema, data in settings.TENANTS.items():
         if schema in ["public", "default"]:
             continue
-        if hostname in data["DOMAINS"]:
+        if hostname in data.get("DOMAINS", []):
             tenant = Schema.create(
                 schema_name=schema,
                 routing=DomainInfo(domain=hostname),
@@ -117,19 +117,33 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
     tenant_session_key = get_tenant_session_key()
     TenantModel = get_tenant_model()
 
-    if TenantModel is None:
+    if (
+        TenantModel is None
+        or not hasattr(request, "session")
+        or not (tenant_ref := request.session.get(tenant_session_key))
+    ):
         return None
 
-    if hasattr(request, "session"):
-        tenant_ref = request.session.get(tenant_session_key)
+    tenant: Schema | None = None
 
-        if tenant_ref is not None:
-            tenant = TenantModel._default_manager.get(
-                Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
-            )
-            tenant.routing = SessionInfo(reference=tenant_ref)
-            request.tenant = tenant
-            activate(tenant)
+    # Checking for static tenants
+    for schema, data in settings.TENANTS.items():
+        if schema in ["public", "default"]:
+            continue
+        if tenant_ref == schema or tenant_ref == data.get("SESSION_KEY"):
+            tenant = Schema.create(schema_name=schema)
+            break
+
+    # Checking for dynamic tenants
+    else:
+        tenant = TenantModel._default_manager.filter(
+            Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
+        ).first()
+
+    if tenant is not None:
+        tenant.routing = SessionInfo(reference=tenant_ref)
+        request.tenant = tenant
+        activate(tenant)
 
     return None
 
@@ -138,15 +152,26 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
     tenant_header = get_tenant_header()
     TenantModel = get_tenant_model()
 
-    if TenantModel is None:
+    if TenantModel is None or not (tenant_ref := request.headers.get(tenant_header)):
         return None
 
-    tenant_ref = request.headers.get(tenant_header)
+    tenant: Schema | None = None
 
-    if tenant_ref is not None:
-        tenant = TenantModel._default_manager.get(
+    # Checking for static tenants
+    for schema, data in settings.TENANTS.items():
+        if schema in ["public", "default"]:
+            continue
+        if tenant_ref == schema or tenant_ref == data.get("HEADER"):
+            tenant = Schema.create(schema_name=schema)
+            break
+
+    # Checking for dynamic tenants
+    else:
+        tenant = TenantModel._default_manager.filter(
             Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
-        )
+        ).first()
+
+    if tenant is not None:
         tenant.routing = HeadersInfo(reference=tenant_ref)
         request.tenant = tenant
         activate(tenant)

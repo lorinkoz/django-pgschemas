@@ -222,7 +222,7 @@ class WrappedSchemaOption:
                         schema_name
                         for schema_name, data in settings.TENANTS.items()
                         if schema_name not in ["public", "default"]
-                        and any(x for x in data["DOMAINS"] if x.startswith(reference))
+                        and any(x for x in data.get("DOMAINS", []) if x.startswith(reference))
                     ]
                 if TenantModel is not None and dynamic_ready and allow_dynamic:
                     local += (

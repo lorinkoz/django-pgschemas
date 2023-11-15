@@ -47,7 +47,7 @@ class TenantProtocolRouter:
         for schema, data in settings.TENANTS.items():
             if schema in ["public", "default"]:
                 continue
-            if hostname in data["DOMAINS"]:
+            if hostname in data.get("DOMAINS", []):
                 tenant = Schema.create(
                     schema_name=schema,
                     routing=DomainInfo(domain=hostname),

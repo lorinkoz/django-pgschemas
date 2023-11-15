@@ -45,7 +45,9 @@ TENANTS = {
         "URLCONF": "sandbox.app_main.urls",
         "WS_URLCONF": "sandbox.app_main.ws_urls",
         "DOMAINS": ["localhost"],
-        "FALLBACK_DOMAINS": ["everyone.localhost"],
+        "SESSION_KEY": "main",
+        "HEADER": "main",
+        "FALLBACK_DOMAINS": ["tenants.localhost"],
     },
     "blog": {
         "APPS": [

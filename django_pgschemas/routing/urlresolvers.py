@@ -83,7 +83,7 @@ def get_urlconf_from_schema(schema: Schema) -> str | None:
         for schema_name, data in settings.TENANTS.items():
             if schema_name in ["public", "default"]:
                 continue
-            if domain_info.domain in data["DOMAINS"]:
+            if domain_info.domain in data.get("DOMAINS", []):
                 return data["URLCONF"]
             if domain_info.domain in data.get("FALLBACK_DOMAINS", []):
                 return data["URLCONF"]

@@ -70,6 +70,10 @@ def ensure_public_schema() -> None:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'WS_URLCONF' key.")
     if "DOMAINS" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'DOMAINS' key.")
+    if "SESSION_KEY" in tenants_public:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'SESSION_KEY' key.")
+    if "HEADER" in tenants_public:
+        raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'HEADER' key.")
     if "FALLBACK_DOMAINS" in tenants_public:
         raise ImproperlyConfigured("TENANTS['public'] cannot contain a 'FALLBACK_DOMAINS' key.")
 
@@ -89,6 +93,10 @@ def ensure_default_schemas() -> None:
         raise ImproperlyConfigured("TENANTS['default'] must contain a 'URLCONF' key.")
     if "DOMAINS" in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'DOMAINS' key.")
+    if "SESSION_KEY" in tenants_default:
+        raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'SESSION_KEY' key.")
+    if "HEADER" in tenants_default:
+        raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'HEADER' key.")
     if "FALLBACK_DOMAINS" in tenants_default:
         raise ImproperlyConfigured("TENANTS['default'] cannot contain a 'FALLBACK_DOMAINS' key.")
     if tenants_default.get("CLONE_REFERENCE") in settings.TENANTS:

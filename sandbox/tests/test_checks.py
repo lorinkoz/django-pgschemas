@@ -81,6 +81,8 @@ class TestEnsurePublicSchema:
             "WS_URLCONF",
             "DOMAINS",
             "FALLBACK_DOMAINS",
+            "SESSION_KEY",
+            "HEADER",
         ],
     )
     def test_invalid_members(self, settings_tenants, member):
@@ -112,6 +114,8 @@ class TestEnsureDefaultSchema:
         [
             "DOMAINS",
             "FALLBACK_DOMAINS",
+            "SESSION_KEY",
+            "HEADER",
         ],
     )
     def test_invalid_members(self, settings_tenants, member):

@@ -40,12 +40,7 @@ Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 - Management commands can be run on multiple schemas via wildcards - the
   multiproc behavior of migrations was extended to just any tenant command.
 
-If you are willing to experiment with a single database, single schema and
-the power of Postgres row level security, you might be also interested in
-`django-pgrls`_.
-
 .. _django-tenants: https://github.com/django-tenants/django-tenants
-.. _django-pgrls: https://github.com/lorinkoz/django-pgrls
 
 Documentation
 -------------

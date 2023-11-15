@@ -64,6 +64,7 @@ ignore_errors = true
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "sandbox.settings"
 django_find_project = false
+markers = ["bug"]
 
 [build-system]
 requires = ["poetry-core"]

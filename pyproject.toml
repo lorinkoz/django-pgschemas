@@ -24,7 +24,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-django = "*"
 ruff = "*"
-sphinx = "<7"
+sphinx = "<8"
 sphinx_rtd_theme = "*"
 
 [tool.ruff]

@@ -11,23 +11,20 @@ VALID_SCHEMA_NAMES = ["a_pg", "w_pg_a", "_pg_awa", "pgwa"] + VALID_IDENTIFIERS
 INVALID_SCHEMA_NAMES = ["pg_a", "pg_"] + INVALID_IDENTIFIERS
 
 
-def test_get_tenant_model(variable_settings_tenants):
+def test_get_tenant_model(tenants_settings):
     TenantModel = utils.get_tenant_model()
 
-    if "default" in variable_settings_tenants:
+    if "default" in tenants_settings:
         assert TenantModel is not None
         assert TenantModel._meta.model_name == "tenant"
     else:
         assert TenantModel is None
 
 
-def test_get_domain_model(variable_settings_tenants):
+def test_get_domain_model(tenants_settings):
     DomainModel = utils.get_domain_model()
 
-    if (
-        "default" in variable_settings_tenants
-        and "DOMAIN_MODEL" in variable_settings_tenants["default"]
-    ):
+    if "default" in tenants_settings and "DOMAIN_MODEL" in tenants_settings["default"]:
         assert DomainModel is not None
         assert DomainModel._meta.model_name == "domain"
     else:
@@ -52,10 +49,10 @@ def test_get_limit_set_calls(settings, has_value):
         assert not utils.get_limit_set_calls()
 
 
-def test_get_clone_reference(variable_settings_tenants):
+def test_get_clone_reference(tenants_settings):
     clone_reference = utils.get_clone_reference()
 
-    if "default" in variable_settings_tenants:
+    if "default" in tenants_settings:
         assert clone_reference == "sample"
     else:
         assert clone_reference is None
@@ -113,8 +110,8 @@ def test_schema_exists(db):
     assert not utils.schema_exists("default")
 
 
-def test_dynamic_models_exist(variable_settings_tenants, db):
-    if "default" in variable_settings_tenants:
+def test_dynamic_models_exist(tenants_settings, db):
+    if "default" in tenants_settings:
         assert utils.dynamic_models_exist()
     else:
         assert not utils.dynamic_models_exist()

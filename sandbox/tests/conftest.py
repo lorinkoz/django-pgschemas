@@ -13,26 +13,22 @@ def setup(django_db_setup, django_db_blocker):
         Tenant.objects.get_or_create(schema_name="tenant3")
 
 
-@pytest.fixture
-def _settings_tenants(settings):
+@pytest.fixture(autouse=True, params=["static-only", "tenants-no-domains", "tenants-and-domains"])
+def tenants_settings(request, settings):
     from copy import deepcopy
 
     current = deepcopy(settings.TENANTS)
+
+    if request.param == "static-only":
+        del settings.TENANTS["default"]
+
+    if request.param == "tenants-no-domains":
+        del settings.TENANTS["default"]["DOMAIN_MODEL"]
 
     yield settings.TENANTS
 
     settings.TENANTS.clear()
     settings.TENANTS.update(current)
-
-
-@pytest.fixture(autouse=True, params=["static-only", "tenants-no-domains", "tenants-and-domains"])
-def variable_settings_tenants(request, _settings_tenants):
-    if request.param == "static-only":
-        del _settings_tenants["default"]
-    if request.param == "tenants-no-domains":
-        del _settings_tenants["default"]["DOMAIN_MODEL"]
-
-    yield _settings_tenants
 
 
 @pytest.fixture

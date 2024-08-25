@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.urls import reverse
 
-from django_pgschemas.management.commands import TenantCommand
+from django_pgschemas.management.commands import SchemaCommand
 from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 from django_pgschemas.schema import Schema
 
 
-class Command(TenantCommand):
+class Command(SchemaCommand):
     def add_arguments(self, parser):
         super().add_arguments(parser)
         parser.add_argument(

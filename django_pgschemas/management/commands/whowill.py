@@ -1,9 +1,9 @@
 from django_pgschemas.schema import Schema
 
-from . import TenantCommand
+from . import SchemaCommand
 
 
-class Command(TenantCommand):
+class Command(SchemaCommand):
     help = "Displays which schemas would be used based on the passed schema selectors"
 
     def handle_schema(self, schema: Schema, *args, **options):

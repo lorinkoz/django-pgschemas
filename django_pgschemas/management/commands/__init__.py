@@ -282,7 +282,7 @@ class WrappedSchemaOption:
         )
 
 
-class TenantCommand(WrappedSchemaOption, BaseCommand):
+class SchemaCommand(WrappedSchemaOption, BaseCommand):
     def handle(self, *args, **options):
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
@@ -296,9 +296,9 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
         pass
 
 
-class StaticTenantCommand(TenantCommand):
+class StaticSchemaCommand(SchemaCommand):
     scope = CommandScope.STATIC
 
 
-class DynamicTenantCommand(TenantCommand):
+class DynamicSchemaCommand(SchemaCommand):
     scope = CommandScope.DYNAMIC

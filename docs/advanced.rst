@@ -264,16 +264,16 @@ The base commands are:
 
     # django_pgschemas.management.commands.__init__.py
 
-    class TenantCommand(WrappedSchemaOption, BaseCommand):
+    class SchemaCommand(WrappedSchemaOption, BaseCommand):
         # ...
 
         def handle_schema(self, schema, *args, **options):
             pass
 
-    class StaticTenantCommand(TenantCommand):
+    class StaticSchemaCommand(SchemaCommand):
         # ...
 
-    class DynamicTenantCommand(TenantCommand):
+    class DynamicSchemaCommand(SchemaCommand):
         # ...
 
 .. attention::

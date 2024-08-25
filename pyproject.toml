@@ -25,9 +25,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-django = "*"
 ruff = "*"
-sphinx = "<8"
-sphinx_rtd_theme = "*"
-sphinxcontrib-jquery = "*"
+mkdocs = "*"
 
 [tool.ruff]
 select = ["I", "E", "F"]

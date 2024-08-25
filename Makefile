@@ -25,7 +25,7 @@ up:
 
 .PHONY: docs
 docs:
-	poetry run $(MAKE) -C docs html
+	poetry run mkdocs build
 
 .PHONY: update-clone-schema
 update-clone-schema:

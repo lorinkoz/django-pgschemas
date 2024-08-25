@@ -16,7 +16,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sandbox.settings")
 django.setup()
 
 project = "django-pgschemas"
-copyright = "Lorenzo Peña, Tom Turner & Bernardo Pires."
+copyright = "Lorenzo Peña"
 author = "Lorenzo Peña"
 
 # -- General configuration ---------------------------------------------------

@@ -1,2 +1,9 @@
 site_name: django-pgschemas
 theme: readthedocs
+markdown_extensions:
+  - toc:
+      permalink: true
+nav:
+  - Index: index.md
+  - Overview: overview.md
+  - Credits: credits.md

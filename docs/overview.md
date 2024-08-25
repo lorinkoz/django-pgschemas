@@ -1,0 +1,7 @@
+# Overview
+
+This app uses PostgreSQL schemas to support data multi-tenancy in a single Django project. Schemas are a layer of separation between databases and tables, so that one database can have multiple schemas, which in turn can have multiple (and possibly identical) tables. For an accurate description on schemas, see [the official documentation on PostgreSQL schemas](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html).
+
+PostgreSQL uses a "search path" to denote in which schemas it should look for the appropriate tables. If there are three schemas: `client1`, `common` and `public` and the search path is set to `["client1", "public"]`, PostgreSQL will look for tables first on schema `client1`, and then, if not found, will look on schema `public`. The tables on schema `common` would never be searched. Also, if there is a table with the same name on both `client1` and `public` schemas (i.e. `django_migrations`), only the table in `client1` will be found by that search path. Table creation always takes place on the first schema in the search path.
+
+`django-pgschemas`, as well as it's predecessors `django-tenants` and `django-tenant-schemas`, takes advantage of PostgreSQL schemas to emulate multi-tenancy, by mapping certain URL patterns to schemas, and setting the search path accordingly. It also provides an API to smartly change the search path outside the request/response cycle, in order to perform schema-specific tasks.

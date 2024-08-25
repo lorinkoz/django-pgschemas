@@ -27,6 +27,7 @@ pytest-django = "*"
 ruff = "*"
 sphinx = "<8"
 sphinx_rtd_theme = "*"
+sphinxcontrib-jquery = "*"
 
 [tool.ruff]
 select = ["I", "E", "F"]

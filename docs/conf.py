@@ -23,7 +23,11 @@ author = "Lorenzo Peña"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 
-extensions = ["sphinx.ext.autosectionlabel", "sphinx.ext.autodoc"]
+extensions = [
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.autodoc",
+    "sphinxcontrib.jquery",
+]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

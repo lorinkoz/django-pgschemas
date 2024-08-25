@@ -57,11 +57,11 @@ class DomainModel(models.Model):
         if self.folder:
             parts.append(self.folder)
 
-        parts.append(path.strip("/"))
+        parts.append(path)
 
-        final_path = "/".join(parts)
+        final_path = "/".join(parts).replace("//", "/")
 
-        return f"//{final_path}/"
+        return f"//{final_path}"
 
 
 def get_primary_domain_for_tenant(tenant: TenantModel) -> DomainModel | None:

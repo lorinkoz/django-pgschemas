@@ -52,10 +52,16 @@ class DomainModel(models.Model):
         """
         Constructs an absolute url for this domain / folder and a given path
         """
-        folder = self.folder and "/" + self.folder
-        if not path.startswith("/"):
-            path = "/" + path
-        return "//" + self.domain + folder + path
+        parts = [self.domain]
+
+        if self.folder:
+            parts.append(self.folder)
+
+        parts.append(path.strip("/"))
+
+        final_path = "/".join(parts)
+
+        return f"//{final_path}/"
 
 
 def get_primary_domain_for_tenant(tenant: TenantModel) -> DomainModel | None:

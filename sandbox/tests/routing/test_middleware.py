@@ -55,7 +55,7 @@ class FakeRequest:
         headers_tenant_ref: str | None = None,
     ) -> None:
         self.domain = domain
-        self.path = f"/{path}/some/path/"
+        self.path = path
         self.session_tenant_ref = session_tenant_ref
         self.headers_tenant_ref = headers_tenant_ref
 
@@ -118,7 +118,7 @@ class TestDomainRoutingMiddleware:
         ],
     )
     def test_tenant_matching(self, domain, path, schema_name, db):
-        request = FakeRequest(domain=domain, path=path)
+        request = FakeRequest(domain=domain, path=f"/{path}/some/path/")
         get_response = MagicMock()
 
         handler = DomainRoutingMiddleware(get_response)
@@ -133,6 +133,78 @@ class TestDomainRoutingMiddleware:
             assert isinstance(request.tenant.routing, DomainInfo)
             assert request.tenant.routing.domain == domain
             assert request.tenant.routing.folder == (path if path else None)
+
+
+class TestDomainRoutingMiddlewareRedirection:
+    @pytest.fixture(autouse=True)
+    def _setup(self, tenant1, tenant2, DomainModel):
+        if DomainModel is None:
+            pytest.skip("Domain model is not in use")
+
+        DomainModel(domain="tenant1.localhost", tenant=tenant1).save()
+        DomainModel(
+            domain="tenant1redirect.localhost",
+            tenant=tenant1,
+            is_primary=False,
+            redirect_to_primary=True,
+        ).save()
+        DomainModel(
+            domain="everyone.localhost",
+            folder="tenant1redirect",
+            tenant=tenant1,
+            is_primary=False,
+            redirect_to_primary=True,
+        ).save()
+
+        DomainModel(domain="everyone.localhost", folder="tenant2", tenant=tenant2).save()
+        DomainModel(
+            domain="tenant2redirect.localhost",
+            tenant=tenant2,
+            is_primary=False,
+            redirect_to_primary=True,
+        ).save()
+        DomainModel(
+            domain="everyone.localhost",
+            folder="tenant2redirect",
+            tenant=tenant2,
+            is_primary=False,
+            redirect_to_primary=True,
+        ).save()
+
+    @pytest.mark.parametrize(
+        "domain, path, expected_redirection",
+        [
+            (
+                "tenant1redirect.localhost",
+                "/some/random/url/",
+                "//tenant1.localhost/some/random/url/",
+            ),
+            (
+                "everyone.localhost",
+                "/tenant1redirect/some/random/url/",
+                "//tenant1.localhost/some/random/url/",
+            ),
+            (
+                "tenant2redirect.localhost",
+                "/some/random/url/",
+                "//everyone.localhost/tenant2/some/random/url/",
+            ),
+            (
+                "everyone.localhost",
+                "/tenant2redirect/some/random/url/",
+                "//everyone.localhost/tenant2/some/random/url/",
+            ),
+        ],
+    )
+    def test_redirection(self, domain, path, expected_redirection):
+        request = FakeRequest(domain=domain, path=path)
+        get_response = MagicMock()
+
+        response = DomainRoutingMiddleware(get_response)(request)
+
+        assert response.status_code == 301
+        assert response.url == expected_redirection
+        assert response["Location"] == expected_redirection
 
 
 class TestSessionRoutingMiddleware:
@@ -208,7 +280,7 @@ def test_last_middleware_prevails(
 
     request = FakeRequest(
         domain="tenants.localhost",
-        path="tenant1",
+        path="/tenant1/some/path/",
         session_tenant_ref=tenant2.schema_name,
         headers_tenant_ref=tenant3.schema_name,
     )

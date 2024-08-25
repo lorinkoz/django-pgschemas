@@ -1,10 +1,9 @@
 import functools
-import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
-from django.db import connection, connections, transaction
 from django.db.utils import ProgrammingError
 
 from django_pgschemas.routing.info import DomainInfo
@@ -21,7 +20,6 @@ def run_on_schema(
     args=None,
     kwargs=None,
     pass_schema_in_kwargs=False,
-    fork_db=False,
 ):
     if args is None:
         args = []
@@ -61,9 +59,6 @@ def run_on_schema(
     command.stdout.style_func = StyleFunc()
     command.stderr.style_func = StyleFunc()
 
-    if fork_db:
-        connections.close_all()
-
     if schema_name in settings.TENANTS:
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
         schema = Schema.create(
@@ -95,10 +90,6 @@ def run_on_schema(
     else:
         getattr(command, function_name)(*args, **kwargs)
 
-    if fork_db:
-        transaction.commit()
-        connection.close()
-
     return schema_name
 
 
@@ -113,16 +104,16 @@ def sequential(
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
-        fork_db=False,
     )
+
     for schema in schemas:
         runner(schema)
+
     return schemas
 
 
 def parallel(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
     processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
-    pool = multiprocessing.Pool(processes=processes)
     runner = functools.partial(
         run_on_schema,
         executor_codename="parallel",
@@ -131,6 +122,10 @@ def parallel(schemas, command, function_name, args=None, kwargs=None, pass_schem
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
-        fork_db=True,
     )
-    return pool.map(runner, schemas)
+
+    with ThreadPoolExecutor(max_workers=processes) as executor:
+        results = {executor.submit(runner, schema) for schema in schemas}
+        as_completed(results)
+
+    return schemas

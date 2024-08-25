@@ -1,15 +1,14 @@
 import pytest
 from django.core import management
 
-from sandbox.shared_public.models import Domain
-
 
 @pytest.fixture(autouse=True)
-def _setup(tenant1, tenant2, tenant3):
-    for tenant in [tenant1, tenant2, tenant3]:
-        Domain.objects.create(
-            tenant=tenant, domain=f"{tenant.schema_name}.localhost", is_primary=True
-        )
+def _setup(tenant1, tenant2, tenant3, DomainModel):
+    if DomainModel:
+        for tenant in [tenant1, tenant2, tenant3]:
+            DomainModel.objects.create(
+                tenant=tenant, domain=f"{tenant.schema_name}.localhost", is_primary=True
+            )
 
 
 def split_output(buffer):

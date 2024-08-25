@@ -1,17 +1,18 @@
 import pytest
 from django.core import management
 
-from sandbox.shared_public.models import Domain, Tenant
-
 
 @pytest.fixture(autouse=True)
-def _setup(db):
+def _setup(db, TenantModel, DomainModel):
     tenants = []
 
     for i in range(10, 20):
-        tenant = Tenant(schema_name=f"tenant{i + 1}")
+        tenant = TenantModel(schema_name=f"tenant{i + 1}")
         tenant.save(verbosity=0)
-        Domain.objects.create(tenant=tenant, domain=f"tenant{i + 1}.localhost", is_primary=True)
+        if DomainModel:
+            DomainModel.objects.create(
+                tenant=tenant, domain=f"tenant{i + 1}.localhost", is_primary=True
+            )
 
         tenants.append(tenant)
 

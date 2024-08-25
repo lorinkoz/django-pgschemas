@@ -1,7 +1,6 @@
 import pytest
 
 from django_pgschemas.routing.models import get_primary_domain_for_tenant
-from sandbox.shared_public.models import Domain
 
 
 @pytest.mark.parametrize(
@@ -11,8 +10,8 @@ from sandbox.shared_public.models import Domain
         ("tenants.localhost", "tenant1", "tenants.localhost/tenant1"),
     ],
 )
-def test_str(tenant1, domain, folder, expected):
-    item = Domain.objects.create(
+def test_str(tenant1, domain, folder, expected, DomainModel):
+    item = DomainModel.objects.create(
         tenant=tenant1,
         domain=domain,
         folder=folder,
@@ -21,8 +20,8 @@ def test_str(tenant1, domain, folder, expected):
     assert str(item) == expected
 
 
-def test_only_one_primary(tenant1):
-    domain1 = Domain.objects.create(
+def test_only_one_primary(tenant1, DomainModel):
+    domain1 = DomainModel.objects.create(
         tenant=tenant1,
         domain="tenant1.localhost",
         folder="",
@@ -31,7 +30,7 @@ def test_only_one_primary(tenant1):
 
     assert domain1.is_primary
 
-    domain2 = Domain.objects.create(
+    domain2 = DomainModel.objects.create(
         tenant=tenant1,
         domain="tenants.localhost",
         folder="tenant1",
@@ -45,8 +44,8 @@ def test_only_one_primary(tenant1):
 
 
 @pytest.mark.parametrize("is_primary", [True, False])
-def test_redirect_to_primary_if_primary(tenant1, is_primary):
-    domain1 = Domain.objects.create(
+def test_redirect_to_primary_if_primary(tenant1, is_primary, DomainModel):
+    domain1 = DomainModel.objects.create(
         domain="tenant1.localhost",
         folder="",
         is_primary=is_primary,
@@ -67,8 +66,8 @@ def test_redirect_to_primary_if_primary(tenant1, is_primary):
         ("tenants.localhost", "tenant1", "/some/path/", "//tenants.localhost/tenant1/some/path/"),
     ],
 )
-def test_absolute_url(tenant1, domain, folder, path, expected):
-    item = Domain.objects.create(
+def test_absolute_url(tenant1, domain, folder, path, expected, DomainModel):
+    item = DomainModel.objects.create(
         tenant=tenant1,
         domain=domain,
         folder=folder,
@@ -78,13 +77,13 @@ def test_absolute_url(tenant1, domain, folder, path, expected):
 
 
 @pytest.mark.parametrize("is_primary", [True, False, None])
-def test_get_primary_domain_for_tenant(tenant1, is_primary):
+def test_get_primary_domain_for_tenant(tenant1, is_primary, DomainModel):
     if is_primary is not None:
-        item = Domain.objects.create(
+        item = DomainModel.objects.create(
             tenant=tenant1,
             domain="tenant1.localhost",
         )
-        Domain.objects.update(is_primary=is_primary)
+        DomainModel.objects.update(is_primary=is_primary)
         item.refresh_from_db()
 
     if is_primary:

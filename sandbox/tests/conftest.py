@@ -2,11 +2,11 @@ from io import StringIO
 
 import pytest
 
-from sandbox.shared_public.models import Tenant
-
 
 @pytest.fixture(scope="session", autouse=True)
 def setup(django_db_setup, django_db_blocker):
+    from sandbox.shared_public.models import Tenant
+
     with django_db_blocker.unblock():
         Tenant.objects.get_or_create(schema_name="tenant1")
         Tenant.objects.get_or_create(schema_name="tenant2")
@@ -36,17 +36,37 @@ def variable_settings_tenants(request, settings_tenants):
 
 
 @pytest.fixture
+def TenantModel():
+    from django_pgschemas.utils import get_tenant_model
+
+    return get_tenant_model()
+
+
+@pytest.fixture
+def DomainModel():
+    from django_pgschemas.utils import get_domain_model
+
+    return get_domain_model()
+
+
+@pytest.fixture
 def tenant1(db):
+    from sandbox.shared_public.models import Tenant
+
     return Tenant.objects.get(schema_name="tenant1")
 
 
 @pytest.fixture
 def tenant2(db):
+    from sandbox.shared_public.models import Tenant
+
     return Tenant.objects.get(schema_name="tenant2")
 
 
 @pytest.fixture
 def tenant3(db):
+    from sandbox.shared_public.models import Tenant
+
     return Tenant.objects.get(schema_name="tenant3")
 
 

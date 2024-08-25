@@ -12,7 +12,6 @@ from django_pgschemas.routing.middleware import (
     remove_www,
     strip_tenant_from_path_factory,
 )
-from sandbox.shared_public.models import Domain
 
 
 @pytest.mark.parametrize(
@@ -78,24 +77,24 @@ class FakeRequest:
 
 class TestDomainRoutingMiddleware:
     @pytest.fixture(autouse=True)
-    def _setup(self, tenant1, tenant2):
-        Domain.objects.create(
+    def _setup(self, tenant1, tenant2, DomainModel):
+        DomainModel.objects.create(
             tenant=tenant1,
             domain="tenant1.localhost",
             is_primary=True,
         )
-        Domain.objects.create(
+        DomainModel.objects.create(
             tenant=tenant1,
             domain="tenants.localhost",
             folder="tenant1",
             is_primary=False,
         )
-        Domain.objects.create(
+        DomainModel.objects.create(
             tenant=tenant2,
             domain="tenant2.localhost",
             is_primary=True,
         )
-        Domain.objects.create(
+        DomainModel.objects.create(
             tenant=tenant2,
             domain="tenants.localhost",
             folder="tenant2",
@@ -186,14 +185,15 @@ class TestHeadersRoutingMiddleware:
     permutations([DomainRoutingMiddleware, SessionRoutingMiddleware, HeadersRoutingMiddleware]),
 )
 def test_last_middleware_prevails(
-    first_middleware, second_middleware, last_middleware, tenant1, tenant2, tenant3
+    first_middleware, second_middleware, last_middleware, tenant1, tenant2, tenant3, DomainModel
 ):
-    Domain.objects.create(
-        domain="tenants.localhost",
-        tenant=tenant1,
-        folder="tenant1",
-        is_primary=True,
-    )
+    if DomainModel:
+        DomainModel.objects.create(
+            domain="tenants.localhost",
+            tenant=tenant1,
+            folder="tenant1",
+            is_primary=True,
+        )
 
     request = FakeRequest(
         domain="tenants.localhost",

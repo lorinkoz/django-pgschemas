@@ -2,7 +2,7 @@ import enum
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import CharField, Q, Value as V
+from django.db.models import Case, CharField, Q, Value, When
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
@@ -12,6 +12,7 @@ from django_pgschemas.utils import (
     create_schema,
     dynamic_models_exist,
     get_clone_reference,
+    get_domain_model,
     get_tenant_model,
 )
 
@@ -171,6 +172,8 @@ class WrappedSchemaOption:
                 raise CommandError("No schema provided")
 
         TenantModel = get_tenant_model()
+        has_domains = get_domain_model() is not None
+
         static_schemas = (
             [x for x in settings.TENANTS.keys() if x != "default"] if allow_static else []
         )
@@ -227,18 +230,23 @@ class WrappedSchemaOption:
                 if TenantModel is not None and dynamic_ready and allow_dynamic:
                     local += (
                         TenantModel.objects.annotate(
-                            route=Concat(
-                                "domains__domain",
-                                V("/"),
-                                "domains__folder",
+                            route=Case(
+                                When(
+                                    domains__folder="",
+                                    then="domains__domain",
+                                ),
+                                default=Concat(
+                                    "domains__domain",
+                                    Value("/"),
+                                    "domains__folder",
+                                    output_field=CharField(),
+                                ),
                                 output_field=CharField(),
                             )
+                            if has_domains
+                            else Value("")
                         )
-                        .filter(
-                            Q(schema_name=reference)
-                            | Q(domains__domain__istartswith=reference)
-                            | Q(route=reference)
-                        )
+                        .filter(Q(schema_name=reference) | Q(route__startswith=reference))
                         .distinct()
                         .values_list("schema_name", flat=True)
                     )

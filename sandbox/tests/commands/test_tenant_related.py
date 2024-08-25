@@ -6,19 +6,33 @@ from django.core.management.base import CommandError
 
 from django_pgschemas.management.commands import CommandScope
 from django_pgschemas.management.commands.whowill import Command as WhoWillCommand
-from sandbox.shared_public.models import Domain
 
 
 @pytest.fixture(autouse=True)
-def _setup(tenant1, tenant2):
-    Domain.objects.create(tenant=tenant1, domain="tenant1.localhost", is_primary=True)
-    Domain.objects.create(
-        tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=False
-    )
-    Domain.objects.create(tenant=tenant2, domain="tenant2.localhost", is_primary=True)
-    Domain.objects.create(
-        tenant=tenant2, domain="everyone.localhost", folder="tenant2", is_primary=False
-    )
+def _setup(tenant1, tenant2, DomainModel):
+    if DomainModel:
+        DomainModel.objects.create(
+            tenant=tenant1,
+            domain="tenant1.localhost",
+            is_primary=True,
+        )
+        DomainModel.objects.create(
+            tenant=tenant1,
+            domain="everyone.localhost",
+            folder="tenant1",
+            is_primary=False,
+        )
+        DomainModel.objects.create(
+            tenant=tenant2,
+            domain="tenant2.localhost",
+            is_primary=True,
+        )
+        DomainModel.objects.create(
+            tenant=tenant2,
+            domain="everyone.localhost",
+            folder="tenant2",
+            is_primary=False,
+        )
 
 
 def test_no_schema_provided():

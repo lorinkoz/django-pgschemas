@@ -66,3 +66,5 @@ def test_interactive_cloneschema(transactional_db):
         )
 
     assert utils.schema_exists("tenant1copy")
+
+    utils.drop_schema("tenant1copy")

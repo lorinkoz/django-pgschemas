@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from django.core import management
 
@@ -27,7 +29,7 @@ def test_all_schemas_in_sequential():
     management.call_command("migrate", all_schemas=True, parallel=False, verbosity=0)
 
 
-@pytest.mark.skip(reason="Fails for some OS")
+@pytest.mark.skipif(sys.platform == "darwin", reason="Does not work on Mac")
 def test_all_schemas_in_parallel():
     # If there are no errors, then this test passed
     management.call_command("migrate", all_schemas=True, parallel=True, verbosity=0)

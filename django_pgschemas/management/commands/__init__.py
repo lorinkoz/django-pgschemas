@@ -7,7 +7,7 @@ from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
 
 from django_pgschemas.management.commands._executors import parallel, sequential
-from django_pgschemas.schema import get_current_schema
+from django_pgschemas.schema import Schema, get_current_schema
 from django_pgschemas.utils import (
     create_schema,
     dynamic_models_exist,
@@ -292,7 +292,7 @@ class TenantCommand(WrappedSchemaOption, BaseCommand):
         kwargs.pop("schema_name")
         self.handle_schema(get_current_schema(), *args, **kwargs)
 
-    def handle_schema(self, schema, *args, **options):
+    def handle_schema(self, schema: Schema, *args, **options):
         pass
 
 

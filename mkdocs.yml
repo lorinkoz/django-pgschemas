@@ -1,9 +1,24 @@
 site_name: django-pgschemas
-theme: readthedocs
+theme:
+  name: material
+  features:
+    - content.code.copy
 markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
   - toc:
       permalink: true
 nav:
-  - Index: index.md
-  - Overview: overview.md
+  - Overview: index.md
+  - Usage: basic.md
+  - Advanced: advanced.md
+  - Troubleshooting: troubleshooting.md
+  - Settings: settings.md
   - Credits: credits.md

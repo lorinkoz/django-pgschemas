@@ -4,7 +4,7 @@ version = "0.99.0"
 description = "Django multi-tenancy through Postgres schemas"
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
-readme = "README.rst"
+readme = "README.md"
 repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
 keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgres"]
@@ -25,7 +25,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-django = "*"
 ruff = "*"
-mkdocs = "*"
+mkdocs-material = "*"
 
 [tool.ruff]
 select = ["I", "E", "F"]

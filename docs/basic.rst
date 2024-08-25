@@ -5,6 +5,7 @@ This app requires:
 
 * Python (3.10+)
 * Django (5.0+)
+* Postgres (13+)
 * Any compatible version of psycopg
 
 You can install ``django-pgschemas`` via ``pip`` or any other installer.

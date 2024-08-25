@@ -78,6 +78,9 @@ class FakeRequest:
 class TestDomainRoutingMiddleware:
     @pytest.fixture(autouse=True)
     def _setup(self, tenant1, tenant2, DomainModel):
+        if DomainModel is None:
+            pytest.skip("Domain model is not in use")
+
         DomainModel.objects.create(
             tenant=tenant1,
             domain="tenant1.localhost",
@@ -114,7 +117,7 @@ class TestDomainRoutingMiddleware:
             ("tenants.localhost", "", "www"),  # fallback domains
         ],
     )
-    def test_tenant_matching(self, domain, path, schema_name):
+    def test_tenant_matching(self, domain, path, schema_name, db):
         request = FakeRequest(domain=domain, path=path)
         get_response = MagicMock()
 
@@ -142,7 +145,10 @@ class TestSessionRoutingMiddleware:
             ("tenant1", "tenant1"),
         ],
     )
-    def test_tenant_matching(self, session_key, schema_name, db):
+    def test_tenant_matching(self, DomainModel, session_key, schema_name, db):
+        if DomainModel is None and "tenant" in schema_name:
+            pytest.skip("Domain model is not in use")
+
         request = FakeRequest(session_tenant_ref=session_key)
         get_response = MagicMock()
 
@@ -166,7 +172,10 @@ class TestHeadersRoutingMiddleware:
             ("tenant1", "tenant1"),
         ],
     )
-    def test_tenant_matching(self, header, schema_name, db):
+    def test_tenant_matching(self, DomainModel, header, schema_name, db):
+        if DomainModel is None and "tenant" in schema_name:
+            pytest.skip("Domain model is not in use")
+
         request = FakeRequest(headers_tenant_ref=header)
         get_response = MagicMock()
 
@@ -187,13 +196,15 @@ class TestHeadersRoutingMiddleware:
 def test_last_middleware_prevails(
     first_middleware, second_middleware, last_middleware, tenant1, tenant2, tenant3, DomainModel
 ):
-    if DomainModel:
-        DomainModel.objects.create(
-            domain="tenants.localhost",
-            tenant=tenant1,
-            folder="tenant1",
-            is_primary=True,
-        )
+    if DomainModel is None:
+        pytest.skip("Domain model is not in use")
+
+    DomainModel.objects.create(
+        domain="tenants.localhost",
+        tenant=tenant1,
+        folder="tenant1",
+        is_primary=True,
+    )
 
     request = FakeRequest(
         domain="tenants.localhost",

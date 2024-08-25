@@ -6,7 +6,11 @@ from django.core.management.base import CommandError
 
 from django_pgschemas import utils
 
-DomainModel = utils.get_domain_model()
+
+@pytest.fixture(autouse=True)
+def _setup(TenantModel):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
 
 
 def test_cloneschema(transactional_db):

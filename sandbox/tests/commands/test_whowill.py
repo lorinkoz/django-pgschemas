@@ -3,7 +3,10 @@ from django.core import management
 
 
 @pytest.fixture(autouse=True)
-def _setup(tenant1, tenant2, tenant3, DomainModel):
+def _setup(tenant1, tenant2, tenant3, TenantModel, DomainModel):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     if DomainModel:
         for tenant in [tenant1, tenant2, tenant3]:
             DomainModel.objects.create(
@@ -16,74 +19,79 @@ def split_output(buffer):
     return set(buffer.read().strip().splitlines())
 
 
-def test_all_schemas(stdout, db):
+def test_all_schemas(DomainModel, stdout):
     management.call_command("whowill", all_schemas=True, stdout=stdout)
 
-    assert split_output(stdout) == {
-        "public",
-        "sample",
-        "localhost",
-        "blog.localhost",
-        "tenant1.localhost",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {"tenant1.localhost", "tenant2.localhost", "tenant3.localhost"}
+        if DomainModel
+        else {"tenant1", "tenant2", "tenant3"}
+    )
+
+    assert (
+        split_output(stdout)
+        == {"public", "sample", "localhost", "blog.localhost"} | expected_dynamic
+    )
 
 
-def test_static_schemas(stdout, db):
+def test_static_schemas(stdout):
     management.call_command("whowill", static_schemas=True, stdout=stdout)
 
     assert split_output(stdout) == {"public", "sample", "localhost", "blog.localhost"}
 
 
-def test_tenant_like_schemas(stdout, db):
+def test_tenant_like_schemas(DomainModel, stdout):
     management.call_command("whowill", tenant_schemas=True, stdout=stdout)
 
-    assert split_output(stdout) == {
-        "sample",
-        "tenant1.localhost",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {"tenant1.localhost", "tenant2.localhost", "tenant3.localhost"}
+        if DomainModel
+        else {"tenant1", "tenant2", "tenant3"}
+    )
+
+    assert split_output(stdout) == {"sample"} | expected_dynamic
 
 
-def test_dynamic_schemas(stdout, db):
+def test_dynamic_schemas(DomainModel, stdout):
     management.call_command("whowill", dynamic_schemas=True, stdout=stdout)
 
-    assert split_output(stdout) == {
-        "tenant1.localhost",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {"tenant1.localhost", "tenant2.localhost", "tenant3.localhost"}
+        if DomainModel
+        else {"tenant1", "tenant2", "tenant3"}
+    )
+
+    assert split_output(stdout) == expected_dynamic
 
 
-def test_specific_schemas(stdout, db):
+def test_specific_schemas(DomainModel, stdout):
     management.call_command("whowill", schemas=["www", "blog", "tenant1"], stdout=stdout)
 
-    assert split_output(stdout) == {
-        "localhost",
-        "blog.localhost",
-        "tenant1.localhost",
-    }
+    expected_dynamic = {"tenant1.localhost"} if DomainModel else {"tenant1"}
+
+    assert split_output(stdout) == {"localhost", "blog.localhost"} | expected_dynamic
 
 
 # Same test cases as before, but excluding one
 
 
-def test_all_schemas_minus_one(stdout, db):
+def test_all_schemas_minus_one(DomainModel, stdout):
     management.call_command("whowill", all_schemas=True, excluded_schemas=["blog"], stdout=stdout)
 
-    assert split_output(stdout) == {
-        "public",
-        "sample",
-        "localhost",
-        "tenant1.localhost",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {
+            "tenant1.localhost",
+            "tenant2.localhost",
+            "tenant3.localhost",
+        }
+        if DomainModel
+        else {"tenant1", "tenant2", "tenant3"}
+    )
+
+    assert split_output(stdout) == {"public", "sample", "localhost"} | expected_dynamic
 
 
-def test_static_schemas_minus_one(stdout, db):
+def test_static_schemas_minus_one(stdout):
     management.call_command(
         "whowill", static_schemas=True, excluded_schemas=["sample"], stdout=stdout
     )
@@ -91,31 +99,41 @@ def test_static_schemas_minus_one(stdout, db):
     assert split_output(stdout) == {"public", "localhost", "blog.localhost"}
 
 
-def test_tenant_like_schemas_minus_one(stdout, db):
+def test_tenant_like_schemas_minus_one(DomainModel, stdout):
     management.call_command(
         "whowill", tenant_schemas=True, excluded_schemas=["tenant1"], stdout=stdout
     )
 
-    assert split_output(stdout) == {
-        "sample",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {"tenant2.localhost", "tenant3.localhost"} if DomainModel else {"tenant2", "tenant3"}
+    )
+
+    assert split_output(stdout) == {"sample"} | expected_dynamic
 
 
-def test_dynamic_schemas_minus_one(stdout, db):
+def test_dynamic_schemas_minus_one(DomainModel, stdout):
     management.call_command(
         "whowill", dynamic_schemas=True, excluded_schemas=["public"], stdout=stdout
     )
 
-    assert split_output(stdout) == {
-        "tenant1.localhost",
-        "tenant2.localhost",
-        "tenant3.localhost",
-    }
+    expected_dynamic = (
+        {
+            "tenant1.localhost",
+            "tenant2.localhost",
+            "tenant3.localhost",
+        }
+        if DomainModel
+        else {
+            "tenant1",
+            "tenant2",
+            "tenant3",
+        }
+    )
+
+    assert split_output(stdout) == expected_dynamic
 
 
-def test_specific_schemas_minus_one(stdout, db):
+def test_specific_schemas_minus_one(DomainModel, stdout):
     management.call_command(
         "whowill",
         schemas=["www", "blog", "tenant1"],
@@ -123,7 +141,6 @@ def test_specific_schemas_minus_one(stdout, db):
         stdout=stdout,
     )
 
-    assert split_output(stdout) == {
-        "blog.localhost",
-        "tenant1.localhost",
-    }
+    expected_dynamic = {"tenant1.localhost"} if DomainModel else {"tenant1"}
+
+    assert split_output(stdout) == {"blog.localhost"} | expected_dynamic

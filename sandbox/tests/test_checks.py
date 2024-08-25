@@ -4,7 +4,6 @@ from django.core.checks import Critical, Error, Warning
 from django.core.exceptions import ImproperlyConfigured
 
 from django_pgschemas import checks
-from django_pgschemas.utils import get_tenant_model
 
 
 @pytest.fixture
@@ -13,9 +12,7 @@ def app_config():
 
 
 @pytest.fixture
-def tenant_manager(db):
-    TenantModel = get_tenant_model()
-
+def tenant_manager(TenantModel, db):
     if TenantModel is None:
         yield None
     else:
@@ -27,18 +24,20 @@ def tenant_manager(db):
         TenantModel.auto_create_schema = backup
 
 
-def test_get_tenant_app(settings_tenants):
-    assert checks.get_tenant_app() == "sandbox.shared_public"
+def test_get_tenant_app(variable_settings_tenants, TenantModel):
+    if TenantModel:
+        assert checks.get_tenant_app() == "sandbox.shared_public"
 
-    del settings_tenants["default"]
+        del variable_settings_tenants["default"]
 
     assert checks.get_tenant_app() is None
 
 
-def test_get_domain_app(settings_tenants):
-    assert checks.get_domain_app() == "sandbox.shared_public"
+def test_get_domain_app(variable_settings_tenants, DomainModel):
+    if DomainModel:
+        assert checks.get_domain_app() == "sandbox.shared_public"
 
-    del settings_tenants["default"]["DOMAIN_MODEL"]
+        del variable_settings_tenants["default"]["DOMAIN_MODEL"]
 
     assert checks.get_domain_app() is None
 
@@ -56,6 +55,8 @@ def test_get_session_app(settings):
 
 
 def test_ensure_tenant_dict(settings):
+    backup = settings.TENANTS
+
     del settings.TENANTS
 
     with pytest.raises(ImproperlyConfigured) as ctx:
@@ -63,11 +64,13 @@ def test_ensure_tenant_dict(settings):
 
     assert str(ctx.value) == "TENANTS dict setting not set."
 
+    settings.TENANTS = backup
+
 
 class TestEnsurePublicSchema:
     @pytest.mark.parametrize("value", [None, "", 1])
-    def test_no_dict(self, settings_tenants, value):
-        settings_tenants["public"] = value
+    def test_no_dict(self, variable_settings_tenants, value):
+        variable_settings_tenants["public"] = value
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_public_schema()
@@ -85,8 +88,8 @@ class TestEnsurePublicSchema:
             "HEADER",
         ],
     )
-    def test_invalid_members(self, settings_tenants, member):
-        settings_tenants["public"][member] = None
+    def test_invalid_members(self, variable_settings_tenants, member):
+        variable_settings_tenants["public"][member] = None
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_public_schema()
@@ -95,14 +98,15 @@ class TestEnsurePublicSchema:
 
 
 class TestEnsureDefaultSchema:
-    def test_static_only(self, settings_tenants):
-        del settings_tenants["default"]
+    def test_static_only(self, variable_settings_tenants):
+        if "default" in variable_settings_tenants:
+            del variable_settings_tenants["default"]
 
         checks.ensure_default_schemas()
 
     @pytest.mark.parametrize("value", [None, "", 1])
-    def test_no_dict(self, settings_tenants, value):
-        settings_tenants["default"] = value
+    def test_no_dict(self, variable_settings_tenants, value):
+        variable_settings_tenants["default"] = value
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_default_schemas()
@@ -118,8 +122,11 @@ class TestEnsureDefaultSchema:
             "HEADER",
         ],
     )
-    def test_invalid_members(self, settings_tenants, member):
-        settings_tenants["default"][member] = None
+    def test_invalid_members(self, variable_settings_tenants, member):
+        if "default" not in variable_settings_tenants:
+            pytest.skip("default not in tenant settings")
+
+        variable_settings_tenants["default"][member] = None
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_default_schemas()
@@ -133,8 +140,11 @@ class TestEnsureDefaultSchema:
             "URLCONF",
         ],
     )
-    def test_required_members(self, settings_tenants, member):
-        del settings_tenants["default"][member]
+    def test_required_members(self, variable_settings_tenants, member):
+        if "default" not in variable_settings_tenants:
+            pytest.skip("default not in tenant settings")
+
+        del variable_settings_tenants["default"][member]
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_default_schemas()
@@ -150,8 +160,11 @@ class TestEnsureDefaultSchema:
             "www",
         ],
     )
-    def test_clone_reference_invalid_name(self, settings_tenants, name):
-        settings_tenants["default"]["CLONE_REFERENCE"] = name
+    def test_clone_reference_invalid_name(self, variable_settings_tenants, name):
+        if "default" not in variable_settings_tenants:
+            pytest.skip("default not in tenant settings")
+
+        variable_settings_tenants["default"]["CLONE_REFERENCE"] = name
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_default_schemas()
@@ -172,8 +185,8 @@ class TestEnsureOverallSchema:
             "tomanycharacters0123456789abcdef0123456789abcef0123456789abcdef0",
         ],
     )
-    def test_invalid_names(self, settings_tenants, name):
-        settings_tenants[name] = {}
+    def test_invalid_names(self, variable_settings_tenants, name):
+        variable_settings_tenants[name] = {}
 
         with pytest.raises(ImproperlyConfigured) as ctx:
             checks.ensure_overall_schemas()
@@ -203,8 +216,8 @@ def test_ensure_extra_search_paths(settings, extra, db):
 class TestCheckPrincipalApps:
     BASE_DEFAULT = {"TENANT_MODEL": "shared_public.Tenant", "DOMAIN_MODEL": "shared_public.DOMAIN"}
 
-    def test_location_wrong(self, settings_tenants, app_config):
-        settings_tenants.update(
+    def test_location_wrong(self, variable_settings_tenants, app_config):
+        variable_settings_tenants.update(
             {
                 "public": {"APPS": []},
                 "default": self.BASE_DEFAULT,
@@ -224,8 +237,8 @@ class TestCheckPrincipalApps:
         errors = checks.check_principal_apps(app_config)
         assert errors == expected_errors
 
-    def test_location_twice(self, settings_tenants, app_config):
-        settings_tenants.update(
+    def test_location_twice(self, variable_settings_tenants, app_config):
+        variable_settings_tenants.update(
             {
                 "public": {"APPS": ["sandbox.shared_public"]},
                 "default": {**self.BASE_DEFAULT, "APPS": ["sandbox.shared_public"]},
@@ -250,8 +263,8 @@ class TestCheckPrincipalApps:
 
 
 class TestCheckOtherApps:
-    def test_contenttypes_location_wrong(self, settings_tenants, app_config):
-        settings_tenants.update(
+    def test_contenttypes_location_wrong(self, variable_settings_tenants, app_config):
+        variable_settings_tenants.update(
             {
                 "default": {"APPS": ["django.contrib.contenttypes"]},
             }
@@ -267,8 +280,8 @@ class TestCheckOtherApps:
         errors = checks.check_other_apps(app_config)
         assert errors == expected_errors
 
-    def test_contenttypes_location_twice(self, settings_tenants, app_config):
-        settings_tenants.update(
+    def test_contenttypes_location_twice(self, variable_settings_tenants, app_config):
+        variable_settings_tenants.update(
             {
                 "default": {},
                 "www": {"APPS": ["django.contrib.contenttypes"]},
@@ -285,9 +298,9 @@ class TestCheckOtherApps:
         errors = checks.check_other_apps(app_config)
         assert errors == expected_errors
 
-    def test_user_location_wrong(self, settings_tenants, app_config):
+    def test_user_location_wrong(self, variable_settings_tenants, app_config):
         user_app = checks.get_user_app()
-        settings_tenants.update(
+        variable_settings_tenants.update(
             {
                 "default": {"APPS": ["django.contrib.sessions"]},
             }
@@ -303,9 +316,9 @@ class TestCheckOtherApps:
         errors = checks.check_other_apps(app_config)
         assert errors == expected_errors
 
-    def test_session_location_wrong(self, settings_tenants, app_config):
+    def test_session_location_wrong(self, variable_settings_tenants, app_config):
         user_app = checks.get_user_app()
-        settings_tenants.update(
+        variable_settings_tenants.update(
             {
                 "www": {"APPS": ["shared_common", user_app]},
                 "default": {"APPS": ["shared_common"]},
@@ -325,6 +338,9 @@ class TestCheckOtherApps:
 
 @pytest.mark.parametrize("schema", ["public", "www", "blog", "sample"])
 def test_check_schema_names(schema, app_config, tenant_manager):
+    if tenant_manager is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     tenant_manager.create(schema_name=schema)
     expected_errors = [
         Critical(

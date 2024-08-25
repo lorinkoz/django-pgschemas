@@ -25,7 +25,7 @@ def settings_tenants(settings):
     settings.TENANTS.update(current)
 
 
-@pytest.fixture(params=["static-only", "tenants-no-domains", "tenants-and-domains"])
+@pytest.fixture(autouse=True, params=["static-only", "tenants-no-domains", "tenants-and-domains"])
 def variable_settings_tenants(request, settings_tenants):
     if request.param == "static-only":
         del settings_tenants["default"]

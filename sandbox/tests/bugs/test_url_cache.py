@@ -2,15 +2,11 @@ import pytest
 from django.apps import apps
 from django.test import Client
 
-from django_pgschemas.utils import get_domain_model, get_tenant_model
-
-TenantModel = get_tenant_model()
-DomainModel = get_domain_model()
 User = apps.get_model("shared_common.User")
 
 
 @pytest.fixture(autouse=True)
-def _setup(tenant1, tenant2):
+def _setup(tenant1, tenant2, DomainModel):
     DomainModel.objects.create(
         tenant=tenant1, domain="everyone.localhost", folder="tenant1", is_primary=True
     )

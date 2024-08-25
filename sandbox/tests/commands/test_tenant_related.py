@@ -9,7 +9,10 @@ from django_pgschemas.management.commands.whowill import Command as WhoWillComma
 
 
 @pytest.fixture(autouse=True)
-def _setup(tenant1, tenant2, DomainModel):
+def _setup(tenant1, tenant2, TenantModel, DomainModel):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     if DomainModel:
         DomainModel.objects.create(
             tenant=tenant1,
@@ -107,7 +110,10 @@ def test_nonexisting_schema():
     assert str(ctx.value) == "No schema found for 'unknown'"
 
 
-def test_ambiguous_schema():
+def test_ambiguous_schema(DomainModel):
+    if DomainModel is None:
+        pytest.skip("Domain model is not in use")
+
     with pytest.raises(CommandError) as ctx:
         management.call_command("whowill", schemas=["tenant"], verbosity=0)
 
@@ -136,7 +142,10 @@ def test_nonexisting_schema_excluded():
     assert str(ctx.value) == "No schema found for 'unknown' (excluded)"
 
 
-def test_ambiguous_schema_excluded():
+def test_ambiguous_schema_excluded(DomainModel):
+    if DomainModel is None:
+        pytest.skip("Domain model is not in use")
+
     with pytest.raises(CommandError) as ctx:
         management.call_command(
             "whowill", all_schemas=True, excluded_schemas=["tenant"], verbosity=0
@@ -171,7 +180,10 @@ def test_interactive_nonexisting():
         assert str(ctx.value) == "No schema found for 'unknown'"
 
 
-def test_mixed_ok():
+def test_mixed_ok(DomainModel):
+    if DomainModel is None:
+        pytest.skip("Domain model is not in use")
+
     management.call_command("whowill", all_schemas=True, verbosity=0)
     management.call_command("whowill", static_schemas=True, verbosity=0)
     management.call_command("whowill", dynamic_schemas=True, verbosity=0)

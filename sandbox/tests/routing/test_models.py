@@ -3,6 +3,12 @@ import pytest
 from django_pgschemas.routing.models import get_primary_domain_for_tenant
 
 
+@pytest.fixture(autouse=True)
+def _setup(DomainModel):
+    if DomainModel is None:
+        pytest.skip("Domain model is not in use")
+
+
 @pytest.mark.parametrize(
     "domain, folder, expected",
     [

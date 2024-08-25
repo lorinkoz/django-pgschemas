@@ -115,12 +115,9 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
 def route_session(request: HttpRequest) -> HttpResponse | None:
     tenant_session_key = get_tenant_session_key()
-    TenantModel = get_tenant_model()
 
-    if (
-        TenantModel is None
-        or not hasattr(request, "session")
-        or not (tenant_ref := request.session.get(tenant_session_key))
+    if not hasattr(request, "session") or not (
+        tenant_ref := request.session.get(tenant_session_key)
     ):
         return None
 
@@ -136,9 +133,10 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
     # Checking for dynamic tenants
     else:
-        tenant = TenantModel._default_manager.filter(
-            Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
-        ).first()
+        if (TenantModel := get_tenant_model()) is not None:
+            tenant = TenantModel._default_manager.filter(
+                Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
+            ).first()
 
     if tenant is not None:
         tenant.routing = SessionInfo(reference=tenant_ref)
@@ -150,9 +148,8 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
 def route_headers(request: HttpRequest) -> HttpResponse | None:
     tenant_header = get_tenant_header()
-    TenantModel = get_tenant_model()
 
-    if TenantModel is None or not (tenant_ref := request.headers.get(tenant_header)):
+    if not (tenant_ref := request.headers.get(tenant_header)):
         return None
 
     tenant: Schema | None = None
@@ -167,9 +164,10 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
 
     # Checking for dynamic tenants
     else:
-        tenant = TenantModel._default_manager.filter(
-            Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
-        ).first()
+        if (TenantModel := get_tenant_model()) is not None:
+            tenant = TenantModel._default_manager.filter(
+                Q(pk__iexact=tenant_ref) | Q(schema_name=tenant_ref)
+            ).first()
 
     if tenant is not None:
         tenant.routing = HeadersInfo(reference=tenant_ref)
@@ -180,7 +178,7 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
 
 
 def middleware_factory(
-    handler: Callable[[HttpRequest], HttpResponse | None]
+    handler: Callable[[HttpRequest], HttpResponse | None],
 ) -> Callable[[ResponseHandler], ResponseHandler]:
     @sync_and_async_middleware
     def middleware(get_response: ResponseHandler) -> ResponseHandler:

@@ -5,7 +5,10 @@ from django.core import management
 
 
 @pytest.fixture(autouse=True)
-def _setup(db, TenantModel, DomainModel):
+def _setup(TenantModel, DomainModel, db):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     tenants = []
 
     for i in range(10, 20):

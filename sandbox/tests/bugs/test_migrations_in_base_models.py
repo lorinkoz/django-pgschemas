@@ -14,13 +14,17 @@ from django_pgschemas.utils import get_tenant_model
 
 
 def patched_get_tenant_model(*args, **kwargs):
-    class TenantModel(BaseTenantModel):
-        dummy = models.TextField()
+    if RealTenantModel := get_tenant_model():
 
-        class Meta:
-            app_label = get_tenant_model()._meta.app_label
+        class TenantModel(BaseTenantModel):
+            dummy = models.TextField()
 
-    return TenantModel
+            class Meta:
+                app_label = RealTenantModel._meta.app_label
+
+        return TenantModel
+
+    return None
 
 
 @pytest.mark.bug
@@ -36,10 +40,13 @@ def test_database_checks_with_zero_migrations(transactional_db):
 
 @pytest.mark.bug
 @patch("django_pgschemas.management.commands.get_tenant_model", patched_get_tenant_model)
-def test_whowill_with_pending_migrations(db):
+def test_whowill_with_pending_migrations(TenantModel, db):
     """
     Provoke a handled ProgrammingError by running tenant command with pending model changes.
     """
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # Avoid warnings about model being registered twice
 
@@ -53,7 +60,10 @@ def test_whowill_with_pending_migrations(db):
 
 
 @pytest.mark.bug
-def test_migrate_with_exclusions(db):
+def test_migrate_with_exclusions(TenantModel, db):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
+
     # We first unapply a migration with fake so we can reapply it without fake
     # This should work without errors
     management.call_command(

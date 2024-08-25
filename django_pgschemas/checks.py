@@ -118,21 +118,19 @@ def ensure_extra_search_paths() -> None:
 
     TenantModel = get_tenant_model()
 
-    if TenantModel is None:
-        return
-
     dynamic_tenants = []
 
-    if "CLONE_REFERENCE" in settings.TENANTS["default"]:
+    if "default" in settings.TENANTS and "CLONE_REFERENCE" in settings.TENANTS["default"]:
         dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
-            [TenantModel._meta.db_table],
-        )
-        if cursor.fetchone():
-            dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
+    if TenantModel is not None:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
+                [TenantModel._meta.db_table],
+            )
+            if cursor.fetchone():
+                dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
 
     invalid_schemas = set(extra_search_paths) & (
         set(settings.TENANTS.keys()) | set(dynamic_tenants)

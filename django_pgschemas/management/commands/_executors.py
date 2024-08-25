@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
 from django.db import connection, connections, transaction
+from django.db.utils import ProgrammingError
 
 from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema, activate
@@ -71,7 +72,11 @@ def run_on_schema(
     elif schema_name == get_clone_reference():
         schema = Schema.create(schema_name=schema_name)
     elif (TenantModel := get_tenant_model()) is not None:
-        schema = TenantModel.objects.get(schema_name=schema_name)
+        try:
+            schema = TenantModel.objects.get(schema_name=schema_name)
+        except ProgrammingError:
+            schema = Schema.create(schema_name=schema_name)
+
     else:
         raise CommandError(f"Unable to find schema {schema_name}!")
 

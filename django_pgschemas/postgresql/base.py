@@ -63,10 +63,8 @@ class DatabaseWrapper(module.DatabaseWrapper):
     def _handle_search_path(self, cursor=None):
         search_path_for_current_schema = get_search_path(get_current_schema())
 
-        skip = (
-            self._setting_search_path
-            or self._search_path == search_path_for_current_schema
-            or get_limit_set_calls()
+        skip = self._setting_search_path or (
+            self._search_path == search_path_for_current_schema and get_limit_set_calls()
         )
 
         if not skip:

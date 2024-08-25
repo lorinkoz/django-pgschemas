@@ -1,9 +1,11 @@
 from django.test import Client, RequestFactory
 
+from django_pgschemas.routing.models import get_primary_domain_for_tenant
+
 
 def get_domain(tenant):
     if tenant.is_dynamic:
-        return tenant.get_primary_domain().domain
+        return get_primary_domain_for_tenant(tenant).domain
     return tenant.domain_url or tenant.schema_name
 
 

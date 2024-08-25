@@ -9,7 +9,7 @@ from django_pgschemas.signals import schema_activate
 
 
 class Schema:
-    schema_name: str | None = None
+    schema_name: str
     routing: RoutingInfo = None
 
     is_dynamic = False
@@ -36,18 +36,18 @@ class Schema:
     __aexit__ = sync_to_async(__exit__)
 
 
-def get_default_schema() -> "Schema":
+def get_default_schema() -> Schema:
     return Schema.create("public")
 
 
 active: ContextVar["Schema"] = ContextVar("active", default=get_default_schema())
 
 
-def get_current_schema() -> "Schema":
+def get_current_schema() -> Schema:
     return active.get()
 
 
-def activate(schema: "Schema") -> None:
+def activate(schema: Schema) -> None:
     active.set(schema)
 
     schema_activate.send(sender=Schema, schema=schema)
@@ -63,7 +63,7 @@ activate_public = deactivate
 
 
 @contextmanager
-def override(schema: "Schema") -> Iterator[None]:
+def override(schema: Schema) -> Iterator[None]:
     token = active.set(schema)
 
     yield

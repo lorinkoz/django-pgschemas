@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from django_pgschemas.management.commands import TenantCommand
+from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 
 
@@ -15,7 +16,7 @@ class Command(TenantCommand):
 
     def handle_tenant(self, tenant, *args, **options):
         if tenant.is_dynamic:
-            primary_domain = tenant.get_primary_domain()
+            primary_domain = get_primary_domain_for_tenant(tenant)
             tenant.domain_url = primary_domain.domain
             tenant.folder = primary_domain.folder
         else:

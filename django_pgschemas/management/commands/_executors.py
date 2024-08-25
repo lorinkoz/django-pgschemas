@@ -8,6 +8,7 @@ from django.db import connection, connections, transaction
 from django.db.utils import ProgrammingError
 
 from django_pgschemas.routing.info import DomainInfo
+from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.schema import Schema, activate
 from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
@@ -67,13 +68,15 @@ def run_on_schema(
         domains = settings.TENANTS[schema_name].get("DOMAINS", [])
         schema = Schema.create(
             schema_name=schema_name,
-            routing=DomainInfo(domain=domains[0] if domains else None),
+            routing=DomainInfo(domain=domains[0]) if domains else None,
         )
     elif schema_name == get_clone_reference():
         schema = Schema.create(schema_name=schema_name)
     elif (TenantModel := get_tenant_model()) is not None:
         try:
             schema = TenantModel.objects.get(schema_name=schema_name)
+            if (domain := get_primary_domain_for_tenant(schema)) is not None:
+                schema.routing = DomainInfo(domain=domain.domain, folder=domain.folder)
         except ProgrammingError:
             schema = Schema.create(schema_name=schema_name)
 

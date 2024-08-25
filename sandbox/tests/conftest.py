@@ -1,3 +1,5 @@
+from io import StringIO
+
 import pytest
 
 from sandbox.shared_public.models import Tenant
@@ -46,3 +48,9 @@ def tenant2(db):
 @pytest.fixture
 def tenant3(db):
     return Tenant.objects.get(schema_name="tenant3")
+
+
+@pytest.fixture
+def stdout():
+    with StringIO() as buffer:
+        yield buffer

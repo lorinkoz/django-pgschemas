@@ -14,11 +14,11 @@ class Command(TenantCommand):
             help="Url name to resolve in the specified schema",
         )
 
-    def handle_tenant(self, tenant, *args, **options):
-        if tenant.is_dynamic:
-            primary_domain = get_primary_domain_for_tenant(tenant)
-            tenant.domain_url = primary_domain.domain
-            tenant.folder = primary_domain.folder
+    def handle_schema(self, schema, *args, **options):
+        if schema.is_dynamic:
+            primary_domain = get_primary_domain_for_tenant(schema)
+            schema.domain_url = primary_domain.domain
+            schema.folder = primary_domain.folder
         else:
-            tenant.domain_url = settings.TENANTS[tenant.schema_name]["DOMAINS"][0]
-        self.stdout.write(reverse(options["url_name"], urlconf=get_urlconf_from_schema(tenant)))
+            schema.domain_url = settings.TENANTS[schema.schema_name]["DOMAINS"][0]
+        self.stdout.write(reverse(options["url_name"], urlconf=get_urlconf_from_schema(schema)))

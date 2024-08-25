@@ -255,7 +255,7 @@ Inheritable commands
 We also provide some base commands you can inherit, in order to mimic the
 behavior of ``runschema``. By inheriting these you will get the parameters
 we discussed in the previous section. The base commands provide a
-``handle_tenant`` you must override in order to execute the actions you need
+``handle_schema`` you must override in order to execute the actions you need
 on any given tenant.
 
 The base commands are:
@@ -267,7 +267,7 @@ The base commands are:
     class TenantCommand(WrappedSchemaOption, BaseCommand):
         # ...
 
-        def handle_tenant(self, tenant, *args, **options):
+        def handle_schema(self, schema, *args, **options):
             pass
 
     class StaticTenantCommand(TenantCommand):

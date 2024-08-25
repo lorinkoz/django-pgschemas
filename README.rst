@@ -32,13 +32,13 @@ Django project. It is a fork of `django-tenants`_ with some conceptual changes:
 
 - There are static tenants and dynamic tenants. Static tenants can have their
   own apps and urlconf.
-- Tenants can be simultaneously routed via subdomain and via subfolder on shared
-  subdomain.
-- Public is no longer the schema for storing the main site data. Public should
-  be used only for true shared data across all tenants. Table "overriding" via
-  search path is no longer encouraged.
-- Management commands can be run on multiple schemas via wildcards - the
-  multiproc behavior of migrations was extended to just any tenant command.
+- Tenants can be routed via: (1) URL using subdomain or subfolder on shared
+  subdomain, (2) session or (3) headers.
+- Public is no longer the schema for storing the main site data. Public is only
+  used for shared data across all tenants. Table "overriding" via search path is
+  not encouraged.
+- Management commands can be run on multiple schemas via wildcards, either
+  sequentially or in parallel using multithreading.
 
 .. _django-tenants: https://github.com/django-tenants/django-tenants
 

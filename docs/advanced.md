@@ -187,8 +187,6 @@ If `--parallel` is passed, the command will be run asynchronously, spawning mult
 
 By default, schemas that do not exist will be created (but not synchronized), except if `--no-create-schemas` is passed.
 
-Full details for this command can be found in :ref:`runschema-cmd`.
-
 ### Inheritable commands
 
 We also provide some base commands you can inherit, in order to mimic the behavior of `runschema`. By inheriting these you will get the parameters we discussed in the previous section. The base commands provide a `handle_tenant` you must override in order to execute the actions you need on any given tenant.

@@ -9,26 +9,8 @@ from django_pgschemas.routing.middleware import (
     DomainRoutingMiddleware,
     HeadersRoutingMiddleware,
     SessionRoutingMiddleware,
-    remove_www,
     strip_tenant_from_path_factory,
 )
-
-
-@pytest.mark.parametrize(
-    "path, expected",
-    [
-        ("", ""),
-        ("www", "www"),
-        ("www.", ""),
-        ("www.test.com", "test.com"),
-        ("www.test.com/complex/path", "test.com/complex/path"),
-        ("1www.test.com", "1www.test.com"),
-    ],
-)
-def test_remove_www(path, expected):
-    actual = remove_www(path)
-
-    assert actual == expected
 
 
 @pytest.mark.parametrize(

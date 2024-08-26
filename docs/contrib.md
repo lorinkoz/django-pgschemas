@@ -46,12 +46,26 @@ This storage class is a convenient way of storing media files in a folder struct
 
 ## Channels (websockets)
 
-We provide a tenant aware protocol router for using with `channels` v3. You can use it as follows:
+We provide a tenant middleware and a tenant URL router for using with `channels`. You can use it as follows:
 
-```python title="routing.py"
-from django_pgschemas.contrib.channels3 import TenantProtocolRouter
+```python title="routing.py"  hl_lines="10 12"
+from channels.routing import ProtocolTypeRouter
+from channels.auth import AuthMiddlewareStack
+from channels.security.websocket import AllowedHostsOriginValidator
+from django_pgschemas.contrib.channels import TenantURLRouter, TenantMiddleware
 
-application = TenantProtocolRouter()
+
+application = ProtocolTypeRouter(
+    {
+        "websocket": AllowedHostsOriginValidator(
+            TenantMiddleware(
+                AuthMiddlewareStack(
+                    TenantURLRouter()
+                )
+            )
+        ),
+    }
+)
 ```
 
 ```python title="settings.py"
@@ -76,7 +90,3 @@ TENANTS |= {
 ```
 
 You still need to name your channel groups appropriately, taking the current tenant into account, if you want to keep your groups tenant-specific. The current tenant will be passed in `scope["tenant"]`.
-
-!!! Warning
-
-    This module is NOT included in the test battery of the package. Please, create a [GitHub issue](https://github.com/lorinkoz/django-pgschemas/issues) for any errors you may find.

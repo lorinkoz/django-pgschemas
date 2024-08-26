@@ -152,3 +152,20 @@ def test_clone_schema(db):
 
 def test_create_or_clone_schema(db):
     assert not utils.create_or_clone_schema("sample")  # Schema existed
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("", ""),
+        ("www", "www"),
+        ("www.", ""),
+        ("www.test.com", "test.com"),
+        ("www.test.com/complex/path", "test.com/complex/path"),
+        ("1www.test.com", "1www.test.com"),
+    ],
+)
+def test_remove_www(path, expected):
+    actual = utils.remove_www(path)
+
+    assert actual == expected

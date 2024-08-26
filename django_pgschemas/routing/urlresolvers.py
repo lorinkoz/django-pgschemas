@@ -48,6 +48,7 @@ def tenant_patterns(*urls: object) -> list[URLResolver]:
     Add the tenant prefix to every URL pattern within this function.
     This may only be used in the root URLconf, not in an included URLconf.
     """
+
     return [URLResolver(TenantPrefixPattern(), list(urls))]
 
 
@@ -68,11 +69,7 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf: str, dynamic_path: str) -> Modu
     return LazyURLConfModule(dynamic_path)
 
 
-def get_urlconf_from_schema(schema: Schema) -> str | None:
-    """
-    Returns the proper URLConf depending on the schema.
-    """
-
+def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
     domain_info = schema.routing if isinstance(schema.routing, DomainInfo) else None
 
     if not domain_info:
@@ -84,13 +81,13 @@ def get_urlconf_from_schema(schema: Schema) -> str | None:
             if schema_name in ["public", "default"]:
                 continue
             if domain_info.domain in data.get("DOMAINS", []):
-                return data["URLCONF"]
+                return data.get(config_key)
             if domain_info.domain in data.get("FALLBACK_DOMAINS", []):
-                return data["URLCONF"]
+                return data.get(config_key)
         return None
 
     # Checking for dynamic tenants
-    urlconf = settings.TENANTS["default"]["URLCONF"]
+    urlconf = settings.TENANTS["default"][config_key]
     if domain_info.folder:
         dynamic_path = urlconf + "_dynamically_tenant_prefixed"
         if not sys.modules.get(dynamic_path):
@@ -98,3 +95,11 @@ def get_urlconf_from_schema(schema: Schema) -> str | None:
         urlconf = dynamic_path
 
     return urlconf
+
+
+def get_urlconf_from_schema(schema: Schema) -> str | None:
+    return _get_urlconf_from_schema(schema, "URLCONF")
+
+
+def get_ws_urlconf_from_schema(schema: Schema) -> str | None:
+    return _get_urlconf_from_schema(schema, "WS_URLCONF")

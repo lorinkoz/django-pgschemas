@@ -1,6 +1,7 @@
-from channels.generic.websocket import JsonWebsocketConsumer
 from django.urls import path
 
+from sandbox.consumers import EchoConsumer
+
 urlpatterns = [
-    path("", JsonWebsocketConsumer, name="main-ws"),
+    path("ws/main/", EchoConsumer.as_asgi(), name="main-ws"),
 ]

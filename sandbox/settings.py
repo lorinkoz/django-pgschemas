@@ -80,6 +80,8 @@ for schema in TENANTS:
 
 ROOT_URLCONF = TENANTS["default"]["URLCONF"]
 
+ASGI_APPLICATION = "routing.application"
+
 AUTH_USER_MODEL = "shared_common.User"
 LOGIN_URL = "login"
 

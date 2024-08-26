@@ -59,6 +59,12 @@ def check_schema_name(name: str) -> None:
         raise ValidationError("Invalid string used for the schema name.")
 
 
+def remove_www(path: str) -> str:
+    if path.startswith("www."):
+        return path[4:]
+    return path
+
+
 def django_is_in_test_mode() -> bool:
     """
     I know this is very ugly! I'm looking for more elegant solutions.

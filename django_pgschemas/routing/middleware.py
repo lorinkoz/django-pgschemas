@@ -15,13 +15,7 @@ from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.routing.urlresolvers import get_urlconf_from_schema
 from django_pgschemas.schema import Schema, activate, activate_public
 from django_pgschemas.settings import get_tenant_header, get_tenant_session_key
-from django_pgschemas.utils import get_domain_model, get_tenant_model
-
-
-def remove_www(path: str) -> str:
-    if path.startswith("www."):
-        return path[4:]
-    return path
+from django_pgschemas.utils import get_domain_model, get_tenant_model, remove_www
 
 
 def strip_tenant_from_path_factory(prefix: str) -> Callable[[str], str]:

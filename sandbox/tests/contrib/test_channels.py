@@ -27,16 +27,16 @@ async def test_on_main():
 
 
 @pytest.mark.asyncio
-async def test_on_tenant_subdomain(tenant1, DomainModel):
+async def test_on_tenant_subdomain(tenant3, DomainModel):
     if DomainModel is None:
         pytest.skip("Domain model is not in use")
 
-    await DomainModel.objects.acreate(tenant=tenant1, domain="tenant1.localhost")
+    await DomainModel.objects.acreate(tenant=tenant3, domain="ws_tenant3.localhost")
 
     communicator = WebsocketCommunicator(
         application,
         "/ws/tenant/",
-        headers=[(b"host", b"tenant1.localhost")],
+        headers=[(b"host", b"ws_tenant3.localhost")],
     )
     connected, subprotocol = await communicator.connect()
 
@@ -47,7 +47,7 @@ async def test_on_tenant_subdomain(tenant1, DomainModel):
 
     # Receive the message
     response = await communicator.receive_json_from()
-    assert response["message"] == "tenant1: hello"
+    assert response["message"] == "tenant3: hello"
 
     # Close the connection
     await communicator.disconnect()
@@ -55,16 +55,18 @@ async def test_on_tenant_subdomain(tenant1, DomainModel):
 
 @pytest.mark.xfail
 @pytest.mark.asyncio
-async def test_on_tenant_subfolder(tenant1, DomainModel):
+async def test_on_tenant_subfolder(tenant3, DomainModel):
     if DomainModel is None:
         pytest.skip("Domain model is not in use")
 
-    await DomainModel.objects.acreate(tenant=tenant1, domain="tenants.localhost", folder="tenant1")
+    await DomainModel.objects.acreate(
+        tenant=tenant3, domain="ws_tenants.localhost", folder="tenant3"
+    )
 
     communicator = WebsocketCommunicator(
         application,
-        "/tenant1/ws/tenant/",
-        headers=[(b"host", b"tenants.localhost")],
+        "/tenant3/ws/tenant/",
+        headers=[(b"host", b"ws_tenants.localhost")],
     )
     connected, subprotocol = await communicator.connect()
 
@@ -75,7 +77,7 @@ async def test_on_tenant_subfolder(tenant1, DomainModel):
 
     # Receive the message
     response = await communicator.receive_json_from()
-    assert response["message"] == "tenant1: hello"
+    assert response["message"] == "tenant3: hello"
 
     # Close the connection
     await communicator.disconnect()

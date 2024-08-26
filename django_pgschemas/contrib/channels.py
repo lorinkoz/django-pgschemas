@@ -19,7 +19,10 @@ class TenantURLRouter(URLRouter):
         self.routes = []
 
     async def __call__(self, scope, receive, send):
-        ws_urlconf = get_ws_urlconf_from_schema(scope["tenant"])
+        if "tenant" not in scope:
+            raise RuntimeWarning("`TenantURLRouter` must be wrapped by `TenantMiddleware`")
+
+        ws_urlconf = get_ws_urlconf_from_schema(scope["tenant"]) if scope["tenant"] else None
 
         if ws_urlconf:
             self.routes = import_string(ws_urlconf + ".urlpatterns")

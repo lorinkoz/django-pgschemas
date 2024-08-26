@@ -69,7 +69,7 @@ django_find_project = false
 markers = ["bug"]
 
 [tool.coverage.report]
-omit = ["django_pgschemas/test/*", "django_pgschemas/contrib/channels3/*"]
+omit = ["django_pgschemas/test/*"]
 
 [build-system]
 requires = ["poetry-core"]

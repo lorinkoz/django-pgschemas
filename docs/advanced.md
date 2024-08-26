@@ -1,36 +1,39 @@
 ## Fast dynamic tenant creation
 
-Every time a instance of `settings.TENANTS["default"]["TENANT_MODEL"]` is created, by default, the corresponding schema is created and synchronized automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
+Every time a instance of the tenant model is created, by default, the corresponding schema is created and synchronized automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
 
 If you need a faster creation of dynamic schemas, you can do so by provisioning a "reference" schema that can cloned into new schemas.
 
-```python title="settings.py" hl_lines="5"
-TENANTS = {
-    # ...
+```python title="settings.py" hl_lines="10"
+TENANTS |= {
     "default": {
-        # ...
+        "TENANT_MODEL": "tenants.Tenant",
+        "APPS": [
+            "django.contrib.auth",
+            "django.contrib.sessions",
+            "customers",
+        ],
+        "URLCONF": "customers.urls",
         "CLONE_REFERENCE": "sample",
-    },
+    }
 }
 ```
 
-Once you have this in your settings, you need to prepare your reference schema with everything a newly created dynamic schema will need. The first step is actually creating and synchronizing the reference schema. After that, you can run any command on it, or edit its tables via `shell`.
+Once you have this in your settings, you need to prepare your reference schema with everything a newly created dynamic schema will need. The first step consists of creating and applying migrations to the reference schema. After that, you can run any command on it or even edit its tables via `shell`.
 
 ```bash
 python manage.py createrefschema
-python runschema loaddata tenant_app.products -s sample
+python runschema loaddata customers.products -s sample
 python runschema shell -s sample
 ```
 
-The `runschema` command is explained in :ref:`running management commands`.
+The `runschema` command is explained in [running management commands](#running-management-commands).
 
-You don't need any extra step. As soon as a reference schema is configured, next time you create an instance of the tenant model, it will clone the reference schema instead of actually creating and synchronizing the schema.
+You don't need any extra step. As soon as a reference schema is configured, the next time you create an instance of the tenant model, it will clone the reference schema instead of actually creating and synchronizing the schema.
 
-Most importantly, by default, migrations will include the reference schema, so that it is kept up to date for future tenant creation.
+!!! Note
 
-!!! tip
-
-    The reference schema will get apps from `settings.TENANTS["default"]["APPS"]` and may look like any other dynamic tenant, but it is considered a *static* tenant instead, as there is no corresponding database entry for it. It's a special case of a static tenant, and it cannot be routed.
+    The reference schema looks like a dynamic tenant, but it's actually static. It is also non-routable by design.
 
 ## Fallback domains
 
@@ -46,51 +49,48 @@ For a case like this, we provide a setting called `FALLBACK_DOMAINS`. If no tena
 
 Something like this would be the proper configuration for the present case:
 
-```python title="settings.py" hl_lines="19 20"
+```python title="settings.py" hl_lines="16 17"
 TENANTS = {
     "public": {
         "APPS": [
             "django.contrib.contenttypes",
             "django.contrib.staticfiles",
-            # ...
             "django_pgschemas",
-            "shared_app",
-            # ...
+            "tenants",
         ],
     },
     "main": {
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "main_app",
+            "main",
         ],
-        "DOMAINS": [],  # <--- No domain here
-        "FALLBACK_DOMAINS": ["mydomain.com"], # <--- This is checked last
-        "URLCONF": "main_app.urls",
+        "DOMAINS": [],
+        "FALLBACK_DOMAINS": ["mydomain.com"],
+        "URLCONF": "main.urls",
     },
     "default": {
-        "TENANT_MODEL": "shared_app.Client",
-        "DOMAIN_MODEL": "shared_app.Domain",
+        "TENANT_MODEL": "tenants.Tenant",
+        "DOMAIN_MODEL": "tenants.Domain",
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "tenant_app",
-            # ...
+            "customers",
         ],
-        "URLCONF": "tenant_app.urls",
+        "URLCONF": "customers.urls",
     }
 }
 ```
 
-This example assumes that dynamic tenants will get their domains set to `mydomain.com` with a tenant specific subfolder, like `client1` or `client2`.
+This example assumes that dynamic tenants will get their domains set to `mydomain.com` with a tenant specific subfolder, like `tenant1` or `tenant2`.
 
-Here, an incoming request for `mydomain.com/client1/some/url/` will fail for the main tenant, then match against an existing dynamic tenant. On the other hand, an incoming request for `mydomain.com/some/url/` will fail for all static tenants, then fail for all dynamic tenants, and will finally match against the fallback domains of the main tenant.
+Here, an incoming request for `mydomain.com/tenant1/some/url/` will fail for the main tenant, then match against an existing dynamic tenant.
 
-## Static-only tenants
+On the other hand, an incoming request for `mydomain.com/some/url/` will fail for all static tenants, then fail for all dynamic tenants, and will finally match against the fallback domains of the main tenant.
 
-It's also possible to have only static tenants. For this, the default key must be omitted:
+## Static tenants only
+
+It's also possible to have only static tenants and no dynamic tenants at all. For this, the default key must be omitted altogether:
 
 ```python title="settings.py"
 TENANTS = {
@@ -98,36 +98,32 @@ TENANTS = {
         "APPS": [
             "django.contrib.contenttypes",
             "django.contrib.staticfiles",
-            # ...
             "django_pgschemas",
-            "shared_app",
-            # ...
+            "tenants",
         ],
     },
     "www": {
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "main_app",
+            "main",
         ],
         "DOMAINS": ["mydomain.com"],
-        "URLCONF": "main_app.urls",
+        "URLCONF": "main.urls",
     },
     "blog": {
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "blog_app",
+            "blog",
         ],
         "DOMAINS": ["blog.mydomain.com", "help.mydomain.com"],
-        "URLCONF": "blog_app.urls",
+        "URLCONF": "blog.urls",
     }
 }
 ```
 
-In this case, no model is expected to inherit from `TenantMixin` and `DomainMixin`, and no clone reference schema can be created.
+In this case, no model is expected to inherit from `TenantModel` and `DomainModel`, and no clone reference schema can be created.
 
 ## Running management commands
 
@@ -179,7 +175,7 @@ The `--schema` parameter accepts multiple inputs of different kinds:
 
 - The key of a static tenant or the `schema_name` of a dynamic tenant.
 - The prefix of any domain, provided only one corresponding tenant is found.
-- The `domain/folder` of a tenant, like `customers.mydomain.com/client1`
+- The prefix of any `domain/folder` of a tenant, like `tenants.mydomain.com/tenant1`
 
 The parameters `-as`, `-ss`, `-ds` and `-ts` act as wildcards for including all schemas, static schemas, dynamic schemas and tenant-like schemas, respectively. Tenant-like schemas are dynamic schemas plus the clone reference, if it exists.
 
@@ -201,18 +197,17 @@ The base commands are:
 
 ```python title="django_pgschemas/management/commands/__init__.py"
 class SchemaCommand(WrappedSchemaOption, BaseCommand):
-    # ...
 
     def handle_schema(self, schema, *args, **options):
         pass
 
 class StaticSchemaCommand(SchemaCommand):
-    # ...
+    ...
 
 class DynamicSchemaCommand(SchemaCommand):
-    # ...
+    ...
 ```
 
-!!! warning
+!!! Warning
 
-    Since these commands can work with both static and dynamic tenants, the parameter `tenant` will be an instance of `django_pgschemas.schema.SchemaDescriptor`. Make sure you do the appropriate type checking before accessing the tenant members, as not every tenant will be an instance of `settings.TENANTS["default"]["TENANT_MODEL"]`.
+    Since these commands can work with the schemas of static and dynamic tenants, the parameter `schema` will be an instance of `django_pgschemas.schema.Schema`. Make sure to do the appropriate type checking before accessing the tenant members, as not always you will get an instance of the tenant model.

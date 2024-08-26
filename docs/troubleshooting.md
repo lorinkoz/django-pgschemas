@@ -1,6 +1,6 @@
 ## Schema for tenant and domain models
 
-The application(s) that contain the tenant model and the domain model should be in the public schema only. Making those models available in other schemas will most likely cause serious bugs. This package will raise an error check if the tenant / domain application is found missing in `settings.TENANTS["public"]["APPS"]` or present in other tenant configuration. You can silence this check through the code `pgschemas.W001`.
+The application(s) that contain the tenant model and the domain model should be in the public schema only. Making those models available in other schemas will cause unpredictable problems. This package will raise an error check if the tenant / domain application is found missing in `settings.TENANTS["public"]["APPS"]` or present in other tenant configuration. You can silence this check through the code `pgschemas.W001`.
 
 ## Content types
 

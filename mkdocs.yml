@@ -16,8 +16,10 @@ markdown_extensions:
   - toc:
       permalink: true
 nav:
-  - Overview: index.md
+  - Intro: index.md
+  - Overview: overview.md
   - Usage: basic.md
+  - Routing: routing.md
   - Advanced: advanced.md
   - Troubleshooting: troubleshooting.md
   - Settings: settings.md

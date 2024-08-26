@@ -2,7 +2,7 @@
 
 Default: `None`
 
-The tenant configuration dictionary as explained in :ref:`Basic configuration`. A sample tenant configuration is:
+The tenant configuration dictionary as explained in the [basic configuration](basic.md#database-configuration). A sample tenant configuration is:
 
 ```python
 TENANTS = {
@@ -10,43 +10,34 @@ TENANTS = {
         "APPS": [
             "django.contrib.contenttypes",
             "django.contrib.staticfiles",
-            # ...
             "django_pgschemas",
-            "shared_app",
-            # ...
+            "tenants",
         ],
     },
     "www": {
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "main_app",
+            "main",
         ],
-        "DOMAINS": ["mydomain.com"],
-        "URLCONF": "main_app.urls",
+        "URLCONF": "main.urls",
     },
     "blog": {
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "blog_app",
+            "blog",
         ],
-        "DOMAINS": ["blog.mydomain.com", "help.mydomain.com"],
-        "URLCONF": "blog_app.urls",
+        "URLCONF": "blog.urls",
     },
     "default": {
-        "TENANT_MODEL": "shared_app.Client",
-        "DOMAIN_MODEL": "shared_app.Domain",
+        "TENANT_MODEL": "tenants.Tenant",
         "APPS": [
             "django.contrib.auth",
             "django.contrib.sessions",
-            # ...
-            "tenant_app",
-            # ...
+            "customers",
         ],
-        "URLCONF": "tenant_app.urls",
+        "URLCONF": "customers.urls",
         "CLONE_REFERENCE": "sample",
     }
 }
@@ -56,7 +47,7 @@ TENANTS = {
 
 Default: `[]`
 
-Other schemas to include in PostgreSQL search path. You cannot include the schema for any static or dynamic tenant. The public schema is included by default, so, including it here will raise `ImproperlyConfigured`.
+Other schemas to include in Postgres search path. You cannot include the schema for any static or dynamic tenant. The public schema is included by default, so, including it here will raise `ImproperlyConfigured`.
 
 ## `PGSCHEMAS_LIMIT_SET_CALLS`
 
@@ -68,13 +59,13 @@ By default, the search path is set every time a database cursor is required. In 
 
 Default: `"django.db.backends.postgresql"`
 
-The base backend to inherit from. If you have a customized backend of PostgreSQL, you can specify it here.
+The base backend to inherit from. If you have a customized backend of Postgres, you can specify it here.
 
 ## `PGSCHEMAS_PARALLEL_MAX_PROCESSES`
 
 Default: `None`
 
-When `--executor parallel` is passed in any tenant command, this setting will control the max number of processes the parallel executor can spawn. By default, `None` means that the number of CPUs will be used.
+When `--parallel` is passed in any tenant command, this setting will control the max number of processes the parallel executor can spawn. By default, `None` means that the number of CPUs will be used.
 
 ## `PGSCHEMAS_TENANT_DB_ALIAS`
 

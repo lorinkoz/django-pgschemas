@@ -52,13 +52,13 @@ We provide a tenant middleware and a tenant URL router for using with `channels`
 from channels.routing import ProtocolTypeRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
-from django_pgschemas.contrib.channels import TenantURLRouter, TenantMiddleware
+from django_pgschemas.contrib.channels import DomainRoutingMiddleware, TenantURLRouter
 
 
 application = ProtocolTypeRouter(
     {
         "websocket": AllowedHostsOriginValidator(
-            TenantMiddleware(
+            DomainRoutingMiddleware(
                 AuthMiddlewareStack(
                     TenantURLRouter()
                 )

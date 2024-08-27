@@ -43,7 +43,7 @@ If there is only one domain available, and no possibility to use subdomain routi
     mydomain.com/customer1      -> customer 1
     mydomain.com/customer2      -> customer 2
 
-In this case, due to the order in which domains are tested, it is not possible to put `mydomain.com` as domain for the main tenant without blocking all dynamic schemas from getting routed. When `django_pgschemas.middleware.TenantMiddleware` is checking which tenant to route from the incoming domain, it checks for static tenants first, then for dynamic tenants. If `mydomain.com` is used for the main tenant (which is static), then URLs like `mydomain.com/customer1/some/url/` will match the main tenant always.
+In this case, due to the order in which domains are tested, it is not possible to put `mydomain.com` as domain for the main tenant without blocking all dynamic schemas from getting routed. When `django_pgschemas.routing.middleware.DomainRoutingMiddleware` is checking which tenant to route from the incoming domain, it checks for static tenants first, then for dynamic tenants. If `mydomain.com` is used for the main tenant (which is static), then URLs like `mydomain.com/customer1/some/url/` will match the main tenant always.
 
 For a case like this, we provide a setting called `FALLBACK_DOMAINS`. If no tenant is found for an incoming combination of domain and subfolder, then, static tenants are checked again for the fallback domains.
 

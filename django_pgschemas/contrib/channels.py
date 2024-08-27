@@ -18,7 +18,7 @@ from django_pgschemas.utils import get_domain_model, remove_www
 def TenantURLRouter():
     async def router(scope, receive, send):
         if "tenant" not in scope:
-            raise RuntimeWarning("`TenantURLRouter` must be wrapped by `TenantMiddleware`")
+            raise RuntimeWarning("`TenantURLRouter` must be wrapped by `DomainRoutingMiddleware`")
 
         routes = []
 
@@ -39,16 +39,9 @@ def TenantURLRouter():
     return router
 
 
-class TenantMiddleware(BaseMiddleware):
-    """
-    Middleware which populates scope["tenant"] from headers.
-    """
-
+class DomainRoutingMiddleware(BaseMiddleware):
     @database_sync_to_async
     def get_scope_tenant(self, scope):
-        """
-        Get tenant and websockets urlconf based on scope host.
-        """
         hostname = force_str(dict(scope["headers"]).get(b"host", b""))
         hostname = remove_www(hostname.split(":")[0])
 

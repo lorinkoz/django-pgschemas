@@ -9,6 +9,8 @@ from django.urls import URLResolver
 from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.schema import Schema, get_current_schema
 
+DYNAMIC_URLCONF_SUFFIX = "_dynamically_tenant_prefixed"
+
 
 class TenantPrefixPattern:
     converters: dict = {}
@@ -87,9 +89,9 @@ def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
         return None
 
     # Checking for dynamic tenants
-    urlconf = settings.TENANTS["default"][config_key]
-    if domain_info.folder:
-        dynamic_path = urlconf + "_dynamically_tenant_prefixed"
+    urlconf = settings.TENANTS.get("default", {}).get(config_key)
+    if urlconf is not None and domain_info.folder:
+        dynamic_path = urlconf + DYNAMIC_URLCONF_SUFFIX
         if not sys.modules.get(dynamic_path):
             sys.modules[dynamic_path] = get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path)
         urlconf = dynamic_path

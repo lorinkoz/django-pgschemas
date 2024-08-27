@@ -53,7 +53,6 @@ async def test_on_tenant_subdomain(tenant3, DomainModel):
     await communicator.disconnect()
 
 
-@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_on_tenant_subfolder(tenant3, DomainModel):
     if DomainModel is None:

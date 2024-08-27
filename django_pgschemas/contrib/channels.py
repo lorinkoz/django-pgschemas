@@ -4,6 +4,7 @@ from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 from channels.routing import URLRouter
 from django.conf import settings
+from django.urls import URLResolver, path
 from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 
@@ -14,22 +15,28 @@ from django_pgschemas.schema import Schema
 from django_pgschemas.utils import get_domain_model, remove_www
 
 
-class TenantURLRouter(URLRouter):
-    def __init__(self):
-        self.routes = []
-
-    async def __call__(self, scope, receive, send):
+def TenantURLRouter():
+    async def router(scope, receive, send):
         if "tenant" not in scope:
             raise RuntimeWarning("`TenantURLRouter` must be wrapped by `TenantMiddleware`")
 
-        ws_urlconf = get_ws_urlconf_from_schema(scope["tenant"]) if scope["tenant"] else None
+        routes = []
+
+        schema: Schema = scope["tenant"]
+        ws_urlconf = get_ws_urlconf_from_schema(schema) if schema else None
 
         if ws_urlconf:
-            self.routes = import_string(ws_urlconf + ".urlpatterns")
+            routes = import_string(ws_urlconf + ".urlpatterns")
+            match routes:
+                case [URLResolver()] if schema.routing.folder:
+                    routes = [path(f"{schema.routing.folder}/", URLRouter(routes[0].urlconf_name))]
+                case _:
+                    pass
 
-        await super().__call__(scope, receive, send)
+        _router = URLRouter(routes)
+        return await _router(scope, receive, send)
 
-        self.routes = []
+    return router
 
 
 class TenantMiddleware(BaseMiddleware):

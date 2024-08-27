@@ -68,9 +68,6 @@ DJANGO_SETTINGS_MODULE = "sandbox.settings"
 django_find_project = false
 markers = ["bug"]
 
-[tool.coverage.report]
-omit = ["django_pgschemas/test/*"]
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

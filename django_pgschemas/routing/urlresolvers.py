@@ -6,7 +6,7 @@ from typing import Any
 from django.conf import settings
 from django.urls import URLResolver
 
-from django_pgschemas.routing.info import DomainInfo
+from django_pgschemas.routing.info import DomainInfo, HeadersInfo
 from django_pgschemas.schema import Schema, get_current_schema
 
 DYNAMIC_URLCONF_SUFFIX = "_dynamically_tenant_prefixed"
@@ -71,14 +71,11 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf: str, dynamic_path: str) -> Modu
     return LazyURLConfModule(dynamic_path)
 
 
-def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
-    domain_info = schema.routing if isinstance(schema.routing, DomainInfo) else None
-
-    if not domain_info:
-        return None
-
+def _get_urlconf_from_domain(
+    domain_info: DomainInfo, is_dynamic: bool, config_key: str
+) -> str | None:
     # Checking for static tenants
-    if not schema.is_dynamic:
+    if not is_dynamic:
         for schema_name, data in settings.TENANTS.items():
             if schema_name in ["public", "default"]:
                 continue
@@ -97,6 +94,32 @@ def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
         urlconf = dynamic_path
 
     return urlconf
+
+
+def _get_urlconf_from_headers(
+    headers_info: HeadersInfo, is_dynamic: bool, config_key: str
+) -> str | None:
+    # Checking for static tenants
+    if not is_dynamic:
+        for schema_name, data in settings.TENANTS.items():
+            if schema_name in ["public", "default"]:
+                continue
+            if headers_info.reference == data.get("HEADER"):
+                return data.get(config_key)
+        return None
+
+    # Checking for dynamic tenants
+    return settings.TENANTS.get("default", {}).get(config_key)
+
+
+def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
+    match schema.routing:
+        case DomainInfo():
+            return _get_urlconf_from_domain(schema.routing, schema.is_dynamic, config_key)
+        case HeadersInfo():
+            return _get_urlconf_from_headers(schema.routing, schema.is_dynamic, config_key)
+        case _:
+            return None
 
 
 def get_urlconf_from_schema(schema: Schema) -> str | None:

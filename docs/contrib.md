@@ -46,7 +46,7 @@ This storage class is a convenient way of storing media files in a folder struct
 
 ## Channels (websockets)
 
-We provide a tenant middleware and a tenant URL router for using with `channels`. You can use it as follows:
+We provide some tenant middleware and a tenant URL router for using with `channels`. You can use it as follows:
 
 ```python title="routing.py"  hl_lines="10 12"
 from channels.routing import ProtocolTypeRouter
@@ -72,7 +72,9 @@ application = ProtocolTypeRouter(
 ASGI_APPLICATION = "routing.application"
 ```
 
-It requires that you also route the websockets requests, at least for the dynamic tenants. If you don't route websocket requests for static tenants, the dynamic route will be used:
+There is also the `HeadersRoutingMiddleware` for headers-based routing.
+
+The `TenantURLRouter` requires a urlconf for websockets:
 
 ```python title="settings.py" hl_lines="10"
 TENANTS |= {

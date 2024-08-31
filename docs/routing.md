@@ -150,11 +150,11 @@ TENANTS = {
 
     Notice that the `public` schema doesn't have `HEADER` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is non-routable by design.
 
-Then add `HeaderRoutingMiddleware` to the top of the middleware stack.
+Then add `HeadersRoutingMiddleware` to the top of the middleware stack.
 
 ```python title="settings.py"
 MIDDLEWARE = (
-    "django_pgschemas.routing.middleware.HeaderRoutingMiddleware",
+    "django_pgschemas.routing.middleware.HeadersRoutingMiddleware",
     # other middleware
 )
 ```

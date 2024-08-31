@@ -17,11 +17,11 @@ markdown_extensions:
       permalink: true
 nav:
   - Intro: index.md
-  - Overview: overview.md
+  - Multi-tenancy: overview.md
   - Usage: basic.md
   - Routing: routing.md
   - Advanced: advanced.md
-  - Contributions: contrib.md
+  - Contrib: contrib.md
   - Troubleshooting: troubleshooting.md
   - Testing: testing.md
   - Settings: settings.md

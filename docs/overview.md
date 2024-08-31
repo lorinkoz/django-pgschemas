@@ -1,5 +1,3 @@
-## Multi-tenancy
-
 There are typically three solutions for solving the multi-tenancy problem.
 
 1. Isolated approach: Separate databases. Each tenant has its own database.

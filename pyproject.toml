@@ -19,7 +19,7 @@ classifiers = [
 python = "^3.10"
 django = "^5.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "*"
 pytest = "*"
 pytest-cov = "*"

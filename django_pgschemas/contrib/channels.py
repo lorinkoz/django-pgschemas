@@ -33,7 +33,6 @@ def TenantURLRouter():
                     case _:
                         pass
 
-        print(">>>>", schema, routes)
         _router = URLRouter(routes)
         return await _router(scope, receive, send)
 

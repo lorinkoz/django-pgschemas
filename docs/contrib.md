@@ -48,11 +48,13 @@ This storage class is a convenient way of storing media files in a folder struct
 
 We provide some tenant middleware and a tenant URL router for using with `channels`. You can use it as follows:
 
-```python title="routing.py"  hl_lines="10 12"
+```python title="routing.py"  hl_lines="12 14"
 from channels.routing import ProtocolTypeRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
-from django_pgschemas.contrib.channels import DomainRoutingMiddleware, TenantURLRouter
+from django_pgschemas.contrib.channels import (
+    DomainRoutingMiddleware, TenantURLRouter
+)
 
 
 application = ProtocolTypeRouter(

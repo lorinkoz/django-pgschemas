@@ -86,8 +86,16 @@ It is also possible to use subfolder routing, instead of using domains/subdomain
 ```bash
 >>> from tenants.models import Tenant, Domain
 >>> tenant = Tenant.objects.create(schema_name="tenant_1")
->>> Domain.objects.create(tenant=tenant, domain="tenant1.mydomain.com", is_primary=True)
->>> Domain.objects.create(tenant=tenant, domain="tenants.mydomain.com", folder="tenant1")
+>>> Domain.objects.create(
+...     tenant=tenant,
+...     domain="tenant1.mydomain.com",
+...     is_primary=True,
+... )
+>>> Domain.objects.create(
+...     tenant=tenant,
+...     domain="tenants.mydomain.com",
+...     folder="tenant1",
+... )
 ```
 
 !!! Warning

@@ -109,7 +109,7 @@ def schema_exists(schema_name: str) -> bool:
 
 @run_in_public_schema
 def dynamic_models_exist() -> bool:
-    "Checks if tenant model and domain model have been synced."
+    "Checks if tenant model and domain model are ready to be used in the database."
     sql = """
     SELECT count(*)
     FROM   information_schema.tables

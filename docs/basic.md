@@ -26,11 +26,11 @@ DATABASES = {
 }
 ```
 
-Add `django_pgschemas.routers.SyncRouter` to your `DATABASE_ROUTERS`, so that the correct apps can be synced, depending on the target schema.
+Add `django_pgschemas.routers.TenantAppsRouter` to your `DATABASE_ROUTERS`, so that the proper migrations can be applied, depending on the target schema.
 
 ```python title="settings.py"
 DATABASE_ROUTERS = (
-    "django_pgschemas.routers.SyncRouter",
+    "django_pgschemas.routers.TenantAppsRouter",
     # additional routers here if needed
 )
 ```
@@ -72,7 +72,7 @@ TENANTS = {
 }
 ```
 
-Each entry in the `TENANTS` dictionary represents a static tenant, except for `default`, which controls the settings for all dynamic tenants. Notice how each tenant has the relevant `APPS` that will be synced in the corresponding schema.
+Each entry in the `TENANTS` dictionary represents a static tenant, except for `default`, which controls the settings for all dynamic tenants. Notice how each tenant has the relevant `APPS` whose migrations will be applied in the corresponding schema.
 
 For Django to function properly, `INSTALLED_APPS` and `ROOT_URLCONF` settings must be defined. Just make them get their information from the `TENANTS` dictionary, for the sake of consistency.
 

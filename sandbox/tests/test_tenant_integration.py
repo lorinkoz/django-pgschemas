@@ -161,15 +161,15 @@ class TestTenantIntegration:
                 user.save()
                 TenantDataModel.objects.create(user=user, catalog=catalog)
 
-    def test_synced_public_apps(
+    def test_migrated_public_apps(
         self, CatalogModel, UserModel, MainDataModel, BlogEntryModel, TenantDataModel
     ):
         deactivate()
-        # Expected synced apps
+        # Apps expected to be migrated
 
         assert CatalogModel.objects.count() == 2
 
-        # Not expected synced apps
+        # Apps expected to NOT be migrated
 
         with controlled_raises(ProgrammingError):
             list(UserModel.objects.all())
@@ -184,17 +184,17 @@ class TestTenantIntegration:
             with controlled_raises(ProgrammingError):
                 list(TenantDataModel.objects.all())
 
-    def test_synced_main_apps(
+    def test_migrated_main_apps(
         self, CatalogModel, UserModel, MainDataModel, BlogEntryModel, TenantDataModel
     ):
         with Schema.create(schema_name="www"):
-            # Expected synced apps
+            # Apps expected to be migrated
 
             assert CatalogModel.objects.count() == 2
             assert UserModel.objects.count() == 1
             assert MainDataModel.objects.count() == 1
 
-            # Not expected synced apps
+            # Apps expected to NOT be migrated
 
             with controlled_raises(ProgrammingError):
                 list(BlogEntryModel.objects.all())
@@ -203,11 +203,11 @@ class TestTenantIntegration:
                 with controlled_raises(ProgrammingError):
                     list(TenantDataModel.objects.all())
 
-    def test_synced_blog_apps(
+    def test_migrated_blog_apps(
         self, CatalogModel, UserModel, MainDataModel, BlogEntryModel, TenantDataModel
     ):
         with Schema.create(schema_name="blog"):
-            # Expected synced apps
+            # Apps expected to be migrated
 
             assert CatalogModel.objects.count() == 2
             assert UserModel.objects.count() == 1
@@ -217,7 +217,7 @@ class TestTenantIntegration:
             assert UserModel.objects.first() == BlogEntryModel.objects.first().user
             assert UserModel.objects.first().blogs.first() == BlogEntryModel.objects.first()
 
-            # Not expected synced apps
+            # Apps expected to NOT be migrated
 
             with controlled_raises(ProgrammingError):
                 list(MainDataModel.objects.all())
@@ -226,14 +226,14 @@ class TestTenantIntegration:
                 with controlled_raises(ProgrammingError):
                     list(TenantDataModel.objects.all())
 
-    def test_synced_tenant_apps(
+    def test_migrated_tenant_apps(
         self, tenant1, CatalogModel, UserModel, MainDataModel, BlogEntryModel, TenantDataModel
     ):
         if not TenantDataModel:
             pytest.skip("Dynamic tenants are not in use")
 
         with tenant1:
-            # Expected synced apps
+            # Apps expected to be migrated
 
             assert CatalogModel.objects.count() == 2
             assert UserModel.objects.count() == 1
@@ -250,7 +250,7 @@ class TestTenantIntegration:
                 == TenantDataModel.objects.first()
             )
 
-            # Not expected synced apps
+            # Apps expected to NOT be migrated
 
             with controlled_raises(ProgrammingError):
                 list(MainDataModel.objects.all())

@@ -7,9 +7,9 @@ from django_pgschemas.schema import get_current_schema
 from django_pgschemas.utils import get_tenant_database_alias
 
 
-class SyncRouter:
+class TenantAppsRouter:
     """
-    A router to control which applications will be synced depending on the schema we're syncing.
+    A router to control which applications will be actually migrated depending on the schema.
     """
 
     def app_in_list(self, app_label: str, app_list: Iterable) -> bool:

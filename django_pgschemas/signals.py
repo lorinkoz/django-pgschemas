@@ -9,11 +9,13 @@ schema_activate = Signal()
 schema_activate.__doc__ = "Sent after a schema has been activated"
 
 dynamic_tenant_needs_sync = Signal()
-dynamic_tenant_needs_sync.__doc__ = "Sent when a schema from a dynamic tenant needs to be synced"
+dynamic_tenant_needs_sync.__doc__ = (
+    "Sent when a schema from a dynamic tenant needs to have migrations applied"
+)
 
 dynamic_tenant_post_sync = Signal()
 dynamic_tenant_post_sync.__doc__ = (
-    "Sent after a tenant has been saved, its schema created and synced"
+    "Sent after a tenant has been saved, its schema created and all migrations applied"
 )
 
 dynamic_tenant_pre_drop = Signal()

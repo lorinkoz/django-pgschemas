@@ -127,7 +127,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ("django_pgschemas.routers.SyncRouter",)
+DATABASE_ROUTERS = ("django_pgschemas.routers.TenantAppsRouter",)
 
 CACHES = {
     "default": {

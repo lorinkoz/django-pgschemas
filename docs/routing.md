@@ -68,7 +68,7 @@ Then you can assign domains to tenants:
 
 !!! Note
 
-    Notice that the `public` schema doesn't have `DOMAINS` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is in this package non-routable by design.
+    Notice that the `public` schema doesn't have `DOMAINS` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is non-routable by design.
 
 Finally add `DomainRoutingMiddleware` to the top of the middleware stack, so that all subsequent middleware can benefit from the added tenant.
 
@@ -94,7 +94,7 @@ It is also possible to use subfolder routing, instead of using domains/subdomain
 
     Subfolder routing is NOT supported for static tenants.
 
-For a special case with subfolder routing please see [fallback domains](advanced.md#fallback-domains)
+For a special case with subfolder routing please see [fallback domains](advanced.md#fallback-domains).
 
 ## Header routing
 
@@ -148,7 +148,7 @@ TENANTS = {
 
 !!! Note
 
-    Notice that the `public` schema doesn't have `HEADER` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is in this package non-routable by design.
+    Notice that the `public` schema doesn't have `HEADER` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is non-routable by design.
 
 Then add `HeaderRoutingMiddleware` to the top of the middleware stack.
 
@@ -211,12 +211,13 @@ TENANTS = {
 
 !!! Note
 
-    Notice that the `public` schema doesn't have `SESSION_KEY` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is in this package non-routable by design.
+    Notice that the `public` schema doesn't have `SESSION_KEY` configured. This is intentional. Attempting to add this key would result in an `ImproperlyConfigured` error. The public schema is non-routable by design.
 
-Then add `SessionRoutingMiddleware` to the top of the middleware stack.
+Then add `SessionRoutingMiddleware` to the top of the middleware stack, but after the session middleware.
 
 ```python title="settings.py"
 MIDDLEWARE = (
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django_pgschemas.routing.middleware.SessionRoutingMiddleware",
     # other middleware
 )

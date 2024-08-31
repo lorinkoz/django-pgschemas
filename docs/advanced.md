@@ -1,6 +1,6 @@
 ## Fast dynamic tenant creation
 
-Every time a instance of the tenant model is created, by default, the corresponding schema is created and synchronized automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
+Every time a instance of the tenant model is created, by default, the corresponding schema is created and migrations are applied automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
 
 If you need a faster creation of dynamic schemas, you can do so by provisioning a "reference" schema that can cloned into new schemas.
 
@@ -29,7 +29,7 @@ python runschema shell -s sample
 
 The `runschema` command is explained in [running management commands](#running-management-commands).
 
-You don't need any extra step. As soon as a reference schema is configured, the next time you create an instance of the tenant model, it will clone the reference schema instead of actually creating and synchronizing the schema.
+You don't need any extra step. As soon as a reference schema is configured, the next time you create an instance of the tenant model, it will clone the reference schema instead of actually creating the schema and applying all migrations.
 
 !!! Note
 
@@ -185,7 +185,7 @@ At least one schema is mandatory. If it's not provided with the command, either 
 
 If `--parallel` is passed, the command will be run asynchronously, spawning multiple threads controlled by the setting `PGSCHEMAS_PARALLEL_MAX_PROCESSES`. It defaults to `None`, in which case the number of CPUs will be used.
 
-By default, schemas that do not exist will be created (but not synchronized), except if `--no-create-schemas` is passed.
+By default, schemas that do not exist will be created (but migrations won't be applied), except if `--no-create-schemas` is passed.
 
 ### Inheritable commands
 

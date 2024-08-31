@@ -293,7 +293,7 @@ class SchemaCommand(WrappedSchemaOption, BaseCommand):
         self.handle_schema(get_current_schema(), *args, **kwargs)
 
     def handle_schema(self, schema: Schema, *args, **options):
-        pass
+        raise NotImplementedError
 
 
 class StaticSchemaCommand(SchemaCommand):

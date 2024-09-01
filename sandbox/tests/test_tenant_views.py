@@ -37,7 +37,7 @@ def _setup_dynamic(tenant1, UserModel, DomainModel):
     [
         ("/", 200),
         ("/register/", 200),
-        ("/ping/", 200),
+        ("/admin/", 302),
         ("/non-existing/", 404),
     ],
 )
@@ -54,7 +54,7 @@ def test_views_www(url, expected_status):
     [
         ("/", 200),
         ("/entries/", 200),
-        ("/ping/", 200),
+        ("/admin/", 302),
         ("/non-existing/", 404),
     ],
 )
@@ -73,7 +73,7 @@ def test_views_blog(url, expected_status):
         ("/profile/", 200),
         ("/profile/advanced/", 302),
         ("/login/", 200),
-        ("/ping/", 200),
+        ("/admin/", 302),
         ("/non-existing/", 404),
     ],
 )
@@ -91,7 +91,7 @@ def test_tenants_domain(url, expected_status, _setup_dynamic):
             "user": user,
             "schema": "tenant1",
             "routing": DomainInfo(domain="tenant1.localhost", folder=""),
-            "ping_url": "/ping/",
+            "admin_url": "/admin/",
         }
 
 
@@ -102,7 +102,7 @@ def test_tenants_domain(url, expected_status, _setup_dynamic):
         ("/tenant1/profile/", 200),
         ("/tenant1/profile/advanced/", 302),
         ("/tenant1/login/", 200),
-        ("/tenant1/ping/", 200),
+        ("/tenant1/admin/", 302),
         ("/tenant1/non-existing/", 404),
     ],
 )
@@ -120,5 +120,5 @@ def test_tenants_folder(url, expected_status, _setup_dynamic):
             "user": user,
             "schema": "tenant1",
             "routing": DomainInfo(domain="everyone.localhost", folder="tenant1"),
-            "ping_url": "/tenant1/ping/",
+            "admin_url": "/tenant1/admin/",
         }

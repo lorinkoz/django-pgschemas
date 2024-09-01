@@ -8,6 +8,6 @@ def generic(request):
         "user": request.user,
         "schema": request.tenant.schema_name,
         "routing": request.tenant.routing,
-        "ping_url": reverse("ping"),
+        "admin_url": reverse("admin:index"),
     }
     return render(request, "index.html", context)

@@ -29,7 +29,7 @@ def TenantURLRouter():
                 routes = import_string(ws_urlconf + ".urlpatterns")
                 match (routes, schema.routing):
                     case ([URLResolver()], DomainInfo(_, folder)) if folder:
-                        routes = [path(f"{folder}/", URLRouter(routes[0].urlconf_name))]
+                        routes = [path(f"{folder}/", URLRouter(routes[0].url_patterns))]
                     case _:
                         pass
 

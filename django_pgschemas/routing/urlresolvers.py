@@ -1,12 +1,12 @@
 import re
 import sys
 from types import ModuleType
-from typing import Any
+from typing import Any, Literal
 
 from django.conf import settings
 from django.urls import URLResolver
 
-from django_pgschemas.routing.info import DomainInfo, HeadersInfo
+from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
 from django_pgschemas.schema import Schema, get_current_schema
 
 DYNAMIC_URLCONF_SUFFIX = "_dynamically_tenant_prefixed"
@@ -71,53 +71,60 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf: str, dynamic_path: str) -> Modu
     return LazyURLConfModule(dynamic_path)
 
 
-def _get_urlconf_from_domain(
-    domain_info: DomainInfo, is_dynamic: bool, config_key: str
+def _get_urlconf_from_schema(
+    schema: Schema, config_key: Literal["URLCONF", "WS_URLCONF"]
 ) -> str | None:
-    # Checking for static tenants
-    if not is_dynamic:
-        for schema_name, data in settings.TENANTS.items():
-            if schema_name in ["public", "default"]:
-                continue
-            if domain_info.domain in data.get("DOMAINS", []):
-                return data.get(config_key)
-            if domain_info.domain in data.get("FALLBACK_DOMAINS", []):
-                return data.get(config_key)
-        return None
-
-    # Checking for dynamic tenants
-    urlconf = settings.TENANTS.get("default", {}).get(config_key)
-    if urlconf is not None and domain_info.folder:
-        dynamic_path = urlconf + DYNAMIC_URLCONF_SUFFIX
-        if not sys.modules.get(dynamic_path):
-            sys.modules[dynamic_path] = get_dynamic_tenant_prefixed_urlconf(urlconf, dynamic_path)
-        urlconf = dynamic_path
-
-    return urlconf
-
-
-def _get_urlconf_from_headers(
-    headers_info: HeadersInfo, is_dynamic: bool, config_key: str
-) -> str | None:
-    # Checking for static tenants
-    if not is_dynamic:
-        for schema_name, data in settings.TENANTS.items():
-            if schema_name in ["public", "default"]:
-                continue
-            if headers_info.reference == data.get("HEADER"):
-                return data.get(config_key)
-        return None
-
-    # Checking for dynamic tenants
-    return settings.TENANTS.get("default", {}).get(config_key)
-
-
-def _get_urlconf_from_schema(schema: Schema, config_key: str) -> str | None:
     match schema.routing:
-        case DomainInfo():
-            return _get_urlconf_from_domain(schema.routing, schema.is_dynamic, config_key)
-        case HeadersInfo():
-            return _get_urlconf_from_headers(schema.routing, schema.is_dynamic, config_key)
+        case DomainInfo(domain, _):
+            # Checking for static tenants
+            if not schema.is_dynamic:
+                for schema_name, data in settings.TENANTS.items():
+                    if schema_name in ["public", "default"]:
+                        continue
+                    if domain in data.get("DOMAINS", []):
+                        return data.get(config_key)
+                    if domain in data.get("FALLBACK_DOMAINS", []):
+                        return data.get(config_key)
+                return None
+
+            # Checking for dynamic tenants
+            urlconf = settings.TENANTS.get("default", {}).get(config_key)
+            if urlconf is not None and schema.routing.folder:
+                dynamic_path = urlconf + DYNAMIC_URLCONF_SUFFIX
+                if not sys.modules.get(dynamic_path):
+                    sys.modules[dynamic_path] = get_dynamic_tenant_prefixed_urlconf(
+                        urlconf, dynamic_path
+                    )
+                urlconf = dynamic_path
+
+            return urlconf
+
+        case SessionInfo(reference):
+            # Checking for static tenants
+            if not schema.is_dynamic:
+                for schema_name, data in settings.TENANTS.items():
+                    if schema_name in ["public", "default"]:
+                        continue
+                    if reference == data.get("SESSION_KEY"):
+                        return data.get(config_key)
+                return None
+
+            # Checking for dynamic tenants
+            return settings.TENANTS.get("default", {}).get(config_key)
+
+        case HeadersInfo(reference):
+            # Checking for static tenants
+            if not schema.is_dynamic:
+                for schema_name, data in settings.TENANTS.items():
+                    if schema_name in ["public", "default"]:
+                        continue
+                    if reference == data.get("HEADER"):
+                        return data.get(config_key)
+                return None
+
+            # Checking for dynamic tenants
+            return settings.TENANTS.get("default", {}).get(config_key)
+
         case _:
             return None
 

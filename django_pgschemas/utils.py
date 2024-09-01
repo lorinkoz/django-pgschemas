@@ -52,7 +52,7 @@ def is_valid_schema_name(name: str) -> bool:
 
 def check_schema_name(name: str) -> None:
     """
-    Checks schema name and raises ``ValidationError`` if ``name`` is not a
+    Checks schema name and raises `ValidationError` if `name` is not a
     valid identifier.
     """
     if not is_valid_schema_name(name):
@@ -146,9 +146,9 @@ def create_schema(
     verbosity: int = 1,
 ) -> bool:
     """
-    Creates the schema ``schema_name``. Optionally checks if the schema already
-    exists before creating it. Returns ``True`` if the schema was created,
-    ``False`` otherwise.
+    Creates the schema `schema_name`. Optionally checks if the schema already
+    exists before creating it. Returns `True` if the schema was created,
+    `False` otherwise.
     """
     check_schema_name(schema_name)
 
@@ -203,8 +203,8 @@ def _create_clone_schema_function() -> None:
 @run_in_public_schema
 def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = False) -> None:
     """
-    Creates a new schema ``new_schema_name`` as a clone of an existing schema
-    ``base_schema_name``.
+    Creates a new schema `new_schema_name` as a clone of an existing schema
+    `base_schema_name`.
     """
     check_schema_name(new_schema_name)
     cursor = connection.cursor()
@@ -230,9 +230,9 @@ def clone_schema(base_schema_name: str, new_schema_name: str, dry_run: bool = Fa
 
 def create_or_clone_schema(schema_name: str, sync_schema: bool = True, verbosity: int = 1) -> bool:
     """
-    Creates the schema ``schema_name``. Optionally checks if the schema already
-    exists before creating it. Returns ``True`` if the schema was created,
-    ``False`` otherwise.
+    Creates the schema `schema_name`. Optionally checks if the schema already
+    exists before creating it. Returns `True` if the schema was created,
+    `False` otherwise.
     """
     check_schema_name(schema_name)
     if schema_exists(schema_name):

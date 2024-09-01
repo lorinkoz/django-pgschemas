@@ -21,20 +21,20 @@ class TenantModel(Schema, models.Model):
 
     auto_create_schema = True
     """
-    Set this flag to ``False`` on a parent class if you don't want the schema
+    Set this flag to `False` on a parent class if you don't want the schema
     to be automatically created upon save.
     """
 
     auto_drop_schema = False
     """
-    **USE THIS WITH CAUTION!**
-    Set this flag to ``True`` on a parent class if you want the schema to be
+    *USE THIS WITH CAUTION!*
+    Set this flag to `True` on a parent class if you want the schema to be
     automatically deleted if the tenant row gets deleted.
     """
 
     is_dynamic = True
     """
-    Leave this as ``True``. Denotes it's a database controlled tenant.
+    Leave this as `True`. Denotes it's a database controlled tenant.
     """
 
     schema_name = models.CharField(max_length=63, unique=True, validators=[check_schema_name])
@@ -80,7 +80,7 @@ class TenantModel(Schema, models.Model):
     ) -> None:
         """
         Deletes this row. Drops the tenant's schema if the attribute
-        ``auto_drop_schema`` is ``True``.
+        `auto_drop_schema` is `True`.
         """
         if force_drop or self.auto_drop_schema:
             dynamic_tenant_pre_drop.send(sender=TenantModel, tenant=self.serializable_fields())
@@ -90,14 +90,14 @@ class TenantModel(Schema, models.Model):
 
     def serializable_fields(self) -> "TenantModel":
         """
-        In certain cases the user model isn't serializable so you may want to
-        only send the id.
+        In certain cases the model isn't serializable so you may want to only
+        send the id.
         """
         return self
 
     def create_schema(self, sync_schema: bool = True, verbosity: int = 1) -> bool:
         """
-        Creates or clones the schema ``schema_name`` for this tenant.
+        Creates or clones the schema `schema_name` for this tenant.
         """
         return create_or_clone_schema(self.schema_name, sync_schema, verbosity)
 

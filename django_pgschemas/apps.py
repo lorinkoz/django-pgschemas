@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from django.apps import AppConfig as BaseAppConfig
 
 
-class DjangoPgSchemasConfig(AppConfig):
+class AppConfig(BaseAppConfig):
     name = "django_pgschemas"
 
     def ready(self) -> None:

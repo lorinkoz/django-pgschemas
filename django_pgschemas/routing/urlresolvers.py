@@ -45,7 +45,7 @@ class TenantPrefixPattern:
         return self.tenant_prefix
 
 
-def tenant_patterns(*urls: object) -> list[URLResolver]:
+def tenant_patterns(urls: object) -> list[URLResolver]:
     """
     Add the tenant prefix to every URL pattern within this function.
     This may only be used in the root URLconf, not in an included URLconf.
@@ -63,10 +63,9 @@ def get_dynamic_tenant_prefixed_urlconf(urlconf: str, dynamic_path: str) -> Modu
 
     class LazyURLConfModule(ModuleType):
         def __getattr__(self, attr: str) -> Any:
-            imported = import_string(f"{urlconf}.{attr}")
             if attr == "urlpatterns":
-                return tenant_patterns(*imported)
-            return imported
+                return tenant_patterns(import_string(f"{urlconf}.{attr}"))
+            return self.__getattribute__(attr)
 
     return LazyURLConfModule(dynamic_path)
 

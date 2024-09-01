@@ -1,21 +1,13 @@
-from django.http import HttpResponse
-
-RESPONSE_TEMPLATE = """
-<dl>
-    <dt>Path:</dt> <dd>{path}</dd>
-    <dt>User:</dt> <dd>{user}</dd>
-    <dt>Schema:</dt> <dd>{schema}</dd>
-    <dt>Routing:</dt> <dd>{routing}</dd>
-</dl>
-"""
+from django.shortcuts import render
+from django.urls import reverse
 
 
 def generic(request):
-    return HttpResponse(
-        RESPONSE_TEMPLATE.format(
-            path=request.get_full_path(),
-            user=request.user,
-            schema=request.tenant.schema_name,
-            routing=request.tenant.routing,
-        )
-    )
+    context = {
+        "path": request.get_full_path(),
+        "user": request.user,
+        "schema": request.tenant.schema_name,
+        "routing": request.tenant.routing,
+        "ping_url": reverse("ping"),
+    }
+    return render(request, "index.html", context)

@@ -2,7 +2,7 @@
 
 The application(s) that contain the tenant model and the domain model should be in the public schema only. Making those models available in other schemas will cause unpredictable problems. This package will raise an error check if the tenant / domain application is found missing in `settings.TENANTS["public"]["APPS"]` or present in other tenant configuration.
 
-!!! tip
+!!! Tip
 
     You can silence this check through the code `pgschemas.W001`.
 
@@ -10,7 +10,7 @@ The application(s) that contain the tenant model and the domain model should be 
 
 Installing `django.contrib.contenttypes` outside of the public schema can lead to problems when using other static or dynamic schemas. The recommended approach is to have this app in `settings.TENANTS["public"]["APPS"]`. This package will raise a warning check if the content types app is found somewhere else.
 
-!!! tip
+!!! Tip
 
     You can silence this check through the code `pgschemas.W002`.
 
@@ -18,7 +18,7 @@ Installing `django.contrib.contenttypes` outside of the public schema can lead t
 
 Configuring users in a multi-tenant application can be challenging, because the user model(s) can be installed on any schema. Depending on the scope of your desired authentication mechanism, you should decide whether the user app will leave in the public schema or in each of the other static or dynamic schemas. If you do the latter, consdier that the same user ID could be repeated in multiple schemas. User ID is what makes authentication possible via the sessions app. In order to prevent session leaking, the recommended approach is to always put the user app and the session app together. This package will raise a warning check if the user app and the session app are found to not be together in the same schemas.
 
-!!! tip
+!!! Tip
 
     You can silence this check through the code `pgschemas.W003`.
 
@@ -38,6 +38,6 @@ It is possible to define a static tenant whose name clashes with an existing dyn
 
 We do not provide an out-of-the-box validation mechanism for dynamic tenants upon creation, as attempt to prevent name clashes with static tenants. However, we do provide a system check that fails with a critical error message if a name clash is found. Since this check must query the database in order to fetch the schema name for all dynamic tenants, it is tagged as a database check, which makes it run only in database related operations and management commands. This means that the check will not be run via `runserver`, but will be run in commands like `migrate`, `cloneschema` and `createrefschema`. If absolutely needed,
 
-!!! tip
+!!! Tip
 
     you can silence this check through the code `pgschemas.W004`.

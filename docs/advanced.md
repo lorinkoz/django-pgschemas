@@ -35,6 +35,10 @@ You don't need any extra step. As soon as a reference schema is configured, the 
 
     The reference schema looks like a dynamic tenant, but it is actually static. It is also non-routable by design.
 
+!!! Warning
+
+    This package relies on [denishpatel/pg-clone-schema](https://github.com/denishpatel/pg-clone-schema/) for the schema cloning functionality.
+
 ## Fallback domains
 
 If there is only one domain available, and no possibility to use subdomain routing, the URLs for accessing your different tenants might look like this:

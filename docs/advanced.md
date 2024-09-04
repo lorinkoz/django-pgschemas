@@ -33,7 +33,7 @@ You don't need any extra step. As soon as a reference schema is configured, the 
 
 !!! Note
 
-    The reference schema looks like a dynamic tenant, but it's actually static. It is also non-routable by design.
+    The reference schema looks like a dynamic tenant, but it is actually static. It is also non-routable by design.
 
 ## Fallback domains
 
@@ -141,7 +141,7 @@ usage: manage.py runschema [-s SCHEMAS [SCHEMAS ...]]
                         command_name
 ```
 
-The `--schema` argument accepts multiple inputs of different kinds:
+The `-s --schema` argument accepts multiple inputs of different kinds:
 
 - The key of a static tenant or the `schema_name` of a dynamic tenant.
 - The prefix of any domain, as long as only one tenant is found.
@@ -170,7 +170,7 @@ By default, schemas that do not exist will be created (although migrations won't
 
 ### Inheritable commands
 
-We also provide some base commands you can inherit, in order to mimic the behavior of `runschema`. By inheriting these you will get the arguments we discussed in the previous section. The base commands provide a `handle_tenant` you must override in order to execute the actions you need on any given tenant.
+We also provide some base commands you can inherit, in order to mimic the behavior of `runschema`. By inheriting these you will get the arguments we discussed in the previous section. The base commands provide a `handle_schema` you must override in order to execute the actions you need on any given tenant.
 
 The base commands are:
 

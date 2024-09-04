@@ -25,7 +25,7 @@ up:
 
 .PHONY: docs
 docs:
-	poetry run mkdocs serve -a localhost:9001
+	poetry run mkdocs serve -a localhost:9005
 
 .PHONY: update-clone-schema
 update-clone-schema:

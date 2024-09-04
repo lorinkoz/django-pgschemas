@@ -160,4 +160,4 @@ Before being able to operate in a tenant's schema, that tenant/schema must be ac
 ...     Product.objects.all()
 ```
 
-Tenant activation happens automatically during the request/response cycle through "tenant routing".
+Tenant activation happens automatically during the request/response cycle through [tenant routing](routing.md).

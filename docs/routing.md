@@ -100,7 +100,7 @@ It is also possible to use subfolder routing, instead of using domains/subdomain
 
 !!! Warning
 
-    Subfolder routing is NOT supported for static tenants.
+    Subfolder routing is currently not supported for static tenants.
 
 For a special case with subfolder routing please see [fallback domains](advanced.md#fallback-domains).
 

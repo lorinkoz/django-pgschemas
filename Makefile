@@ -31,4 +31,4 @@ docs:
 
 .PHONY: update-clone-schema
 update-clone-schema:
-	curl ${CLONESCHEMA_FILE}  -o - | python -m gzip - > django_pgschemas/clone_schema.gz
+	curl ${CLONESCHEMA_FILE} | python -m gzip - > django_pgschemas/clone_schema.gz

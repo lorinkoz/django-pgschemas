@@ -1,5 +1,7 @@
 # Makefile
 
+CLONESCHEMA_FILE := https://raw.githubusercontent.com/denishpatel/pg-clone-schema/master/clone_schema.sql
+
 .PHONY: test
 test:
 	poetry run pytest sandbox/tests --reuse-db
@@ -29,4 +31,4 @@ docs:
 
 .PHONY: update-clone-schema
 update-clone-schema:
-	curl https://raw.githubusercontent.com/denishpatel/pg-clone-schema/master/clone_schema.sql -o django_pgschemas/clone_schema.sql
+	curl ${CLONESCHEMA_FILE}  -o - | python -m gzip - > django_pgschemas/clone_schema.gz

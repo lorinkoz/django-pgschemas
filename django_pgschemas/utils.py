@@ -1,3 +1,4 @@
+import gzip
 import os
 import re
 from typing import Any, Callable
@@ -8,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
 from django.db.models import Model
+from django.utils.encoding import force_str
 
 
 def get_tenant_model(require_ready: bool = True) -> Model | None:
@@ -189,9 +191,11 @@ def _create_clone_schema_function() -> None:
     contents. Will replace any existing `clone_schema` functions owned by the
     `postgres` superuser.
     """
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_schema.sql")) as f:
+    with gzip.open(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_schema.gz")
+    ) as gzip_file:
         CLONE_SCHEMA_FUNCTION = (
-            f.read()
+            force_str(gzip_file.read())
             .replace("RAISE NOTICE ' source schema", "RAISE EXCEPTION ' source schema")
             .replace("RAISE NOTICE ' dest schema", "RAISE EXCEPTION ' dest schema")
         )

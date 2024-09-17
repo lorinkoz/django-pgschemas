@@ -65,7 +65,6 @@ def test_nested_override():
 
     schema1 = Schema.create(schema_name="schema_1")
     schema2 = Schema.create(schema_name="schema_2")
-    schema3 = Schema.create(schema_name="schema_3")
 
     assert get_current_schema().schema_name == get_default_schema().schema_name
 
@@ -75,8 +74,8 @@ def test_nested_override():
         with override(schema2):
             assert get_current_schema().schema_name == schema2.schema_name
 
-            with override(schema3):
-                assert get_current_schema().schema_name == schema3.schema_name
+            with override(schema1):
+                assert get_current_schema().schema_name == schema1.schema_name
 
             assert get_current_schema().schema_name == schema2.schema_name
 
@@ -90,7 +89,6 @@ def test_nested_class_override():
 
     schema1 = Schema.create(schema_name="schema_1")
     schema2 = Schema.create(schema_name="schema_2")
-    schema3 = Schema.create(schema_name="schema_3")
 
     assert get_current_schema().schema_name == get_default_schema().schema_name
 
@@ -100,8 +98,8 @@ def test_nested_class_override():
         with schema2:
             assert get_current_schema().schema_name == schema2.schema_name
 
-            with schema3:
-                assert get_current_schema().schema_name == schema3.schema_name
+            with schema1:
+                assert get_current_schema().schema_name == schema1.schema_name
 
             assert get_current_schema().schema_name == schema2.schema_name
 

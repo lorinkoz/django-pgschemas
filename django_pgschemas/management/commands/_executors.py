@@ -78,10 +78,10 @@ def run_on_schema(
     else:
         raise CommandError(f"Unable to find schema {schema_name}!")
 
-    activate(schema)
-
     if pass_schema_in_kwargs:
         kwargs.update({"schema_name": schema_name})
+
+    activate(schema)
 
     if function_name == "special:call_command":
         call_command(command, *args, **kwargs)

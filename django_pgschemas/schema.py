@@ -1,7 +1,7 @@
 from contextlib import ContextDecorator, contextmanager
 from contextvars import ContextVar, Token
 from functools import lru_cache
-from typing import Any, Iterator
+from typing import Any, Iterator, Literal
 
 from django_pgschemas.routing.info import RoutingInfo
 from django_pgschemas.signals import schema_activate
@@ -13,7 +13,7 @@ class Schema(ContextDecorator):
 
     is_dynamic = False
 
-    _context_tokens = []
+    _context_tokens: list[Token["Schema"] | None] = []
 
     @staticmethod
     def create(schema_name: str, routing: RoutingInfo | None = None) -> "Schema":
@@ -25,7 +25,7 @@ class Schema(ContextDecorator):
     def __enter__(self) -> None:
         self._context_tokens.append(push(self))
 
-    def __exit__(self, *exc: Any) -> bool:
+    def __exit__(self, *exc: Any) -> Literal[False]:
         if self._context_tokens:
             token = self._context_tokens.pop()
             if token is not None:

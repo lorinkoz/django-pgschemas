@@ -1,18 +1,19 @@
-from contextlib import contextmanager
-from contextvars import ContextVar
+from contextlib import ContextDecorator, contextmanager
+from contextvars import ContextVar, Token
+from functools import lru_cache
 from typing import Any, Iterator
-
-from asgiref.sync import sync_to_async
 
 from django_pgschemas.routing.info import RoutingInfo
 from django_pgschemas.signals import schema_activate
 
 
-class Schema:
+class Schema(ContextDecorator):
     schema_name: str
     routing: RoutingInfo = None
 
     is_dynamic = False
+
+    _context_tokens = []
 
     @staticmethod
     def create(schema_name: str, routing: RoutingInfo | None = None) -> "Schema":
@@ -22,20 +23,22 @@ class Schema:
         return schema
 
     def __enter__(self) -> None:
-        schema = active.get()
-        if schema is not None:
-            self._previous_active_token = active.set(self)
+        self._context_tokens.append(push(self))
 
-    __aenter__ = sync_to_async(__enter__)
+    def __exit__(self, *exc: Any) -> bool:
+        if self._context_tokens:
+            token = self._context_tokens.pop()
+            if token is not None:
+                active.reset(token)
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        _previous_active_token = getattr(self, "_previous_active_token", None)
-        if _previous_active_token is not None:
-            active.reset(_previous_active_token)
-
-    __aexit__ = sync_to_async(__exit__)
+        return False
 
 
+def shallow_equal(schema1: Schema, schema2: Schema) -> bool:
+    return schema1.schema_name == schema2.schema_name and schema1.routing == schema2.routing
+
+
+@lru_cache
 def get_default_schema() -> Schema:
     return Schema.create("public")
 
@@ -47,16 +50,23 @@ def get_current_schema() -> Schema:
     return active.get()
 
 
-def activate(schema: Schema) -> None:
-    active.set(schema)
+def push(schema: Schema) -> Token[Schema] | None:
+    if shallow_equal(get_current_schema(), schema):
+        return None
+
+    token = active.set(schema)
 
     schema_activate.send(sender=Schema, schema=schema)
 
+    return token
+
+
+def activate(schema: Schema) -> None:
+    push(schema)
+
 
 def deactivate() -> None:
-    active.set(get_default_schema())
-
-    schema_activate.send(sender=Schema, schema=Schema.create("public"))
+    push(get_default_schema())
 
 
 activate_public = deactivate
@@ -64,8 +74,9 @@ activate_public = deactivate
 
 @contextmanager
 def override(schema: Schema) -> Iterator[None]:
-    token = active.set(schema)
+    token = push(schema)
 
     yield
 
-    active.reset(token)
+    if token is not None:
+        active.reset(token)

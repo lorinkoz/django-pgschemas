@@ -1,13 +1,13 @@
-from contextlib import ContextDecorator, contextmanager
+from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from functools import lru_cache
-from typing import Any, Iterator, Literal
+from typing import Iterator
 
 from django_pgschemas.routing.info import RoutingInfo
 from django_pgschemas.signals import schema_activate
 
 
-class Schema(ContextDecorator):
+class Schema:
     schema_name: str
     routing: RoutingInfo = None
 
@@ -25,13 +25,11 @@ class Schema(ContextDecorator):
     def __enter__(self) -> None:
         self._context_tokens.append(push(self))
 
-    def __exit__(self, *exc: Any) -> Literal[False]:
+    def __exit__(self, *args: object) -> None:
         if self._context_tokens:
             token = self._context_tokens.pop()
             if token is not None:
                 active.reset(token)
-
-        return False
 
 
 def shallow_equal(schema1: Schema, schema2: Schema) -> bool:

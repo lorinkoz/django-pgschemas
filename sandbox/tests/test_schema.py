@@ -1,4 +1,5 @@
 import pytest
+from django.template import Context, Template
 
 from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
 from django_pgschemas.schema import (
@@ -106,3 +107,14 @@ def test_nested_class_override():
         assert get_current_schema().schema_name == schema1.schema_name
 
     assert get_current_schema().schema_name == get_default_schema().schema_name
+
+
+def test_schema_is_template_renderable():
+    schema = Schema.create(schema_name="template_schema")
+
+    context = Context({"schema": schema})
+    template = Template("{{ schema.schema_name }}")
+
+    rendered = template.render(context)
+
+    assert rendered == "template_schema"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-pgschemas"
-version = "1.0.0a4"
+version = "1.0.0a5"
 description = "Django multi-tenancy through Postgres schemas"
 license = "MIT"
 authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]

@@ -19,7 +19,7 @@ jobs:
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
         ports:

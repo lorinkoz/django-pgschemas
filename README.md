@@ -7,19 +7,21 @@
 [![PyPi version](https://badge.fury.io/py/django-pgschemas.svg)](http://badge.fury.io/py/django-pgschemas)
 [![Downloads](https://pepy.tech/badge/django-pgschemas/month)](https://pepy.tech/project/django-pgschemas/)
 
-This app uses Postgres schemas to support data multi-tenancy in a single Django project. It is a fork of [django-tenants](https://github.com/django-tenants/django-tenants) with some conceptual changes:
+This package uses Postgres schemas to support data multi-tenancy in a single Django project. It is a fork of [django-tenants](https://github.com/django-tenants/django-tenants) with some conceptual changes:
 
 - There are static tenants and dynamic tenants. Static tenants can have their own apps and urlconf.
 - Tenants can be routed via:
   - URL using subdomain or subfolder on shared subdomain
   - Session
   - Headers
-- Public is no longer the schema for storing the main site data. Public is only used for shared data across all tenants. Table "overriding" via search path is not encouraged.
+- Public schema should not be used for storing the main site data, but the true shared data across all tenants. Table "overriding" via search path is not encouraged.
 - Management commands can be run on multiple schemas via wildcards, either sequentially or in parallel using multithreading.
 
 ## Documentation
 
 https://django-pgschemas.readthedocs.io/
+
+Version 1.0 has several breaking changes from the 0.\* series. Please refer to [this discussion](https://github.com/lorinkoz/django-pgschemas/discussions/277) for details and bug reports.
 
 ## Contributing
 

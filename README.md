@@ -31,3 +31,4 @@ https://django-pgschemas.readthedocs.io/
 
 - Tom Turner for [django-tenants](https://github.com/django-tenants/django-tenants).
 - Bernardo Pires for [django-tenant-schemas](https://github.com/bernardopires/django-tenant-schemas).
+- Denish Patel for [pg-clone-schema](https://github.com/denishpatel/pg-clone-schema)

@@ -13,7 +13,11 @@ class Schema:
 
     is_dynamic = False
 
-    _context_tokens: list[Token["Schema"] | None] = []
+    _context_tokens: list[Token["Schema"] | None]
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self._context_tokens = []
 
     @staticmethod
     def create(schema_name: str, routing: RoutingInfo | None = None) -> "Schema":
@@ -41,7 +45,7 @@ def get_default_schema() -> Schema:
     return Schema.create("public")
 
 
-active: ContextVar["Schema"] = ContextVar("active", default=get_default_schema())
+active: ContextVar["Schema"] = ContextVar("active_schema", default=get_default_schema())
 
 
 def get_current_schema() -> Schema:

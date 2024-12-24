@@ -1,8 +1,12 @@
 site_name: django-pgschemas
+site_url: https://django-pgschemas.readthedocs.io/
+repo_url: https://github.com/lorinkoz/django-pgschemas
 theme:
   name: material
   features:
     - content.code.copy
+    - navigation.footer
+    - toc.integrate
 markdown_extensions:
   - admonition
   - pymdownx.details

@@ -212,14 +212,14 @@ pycparser = "*"
 
 [[package]]
 name = "channels"
-version = "4.2.0"
+version = "4.2.2"
 description = "Brings async, event-driven capabilities to Django."
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "channels-4.2.0-py3-none-any.whl", hash = "sha256:6b75bc8d6888fb7236e7e7bf1948520b72d296ad08216a242fc56b1db0ffde1a"},
-    {file = "channels-4.2.0.tar.gz", hash = "sha256:d9e707487431ba5dbce9af982970dab3b0efd786580fadb99e45dca5e39fdd59"},
+    {file = "channels-4.2.2-py3-none-any.whl", hash = "sha256:ff36a6e1576cacf40bcdc615fa7aece7a709fc4fdd2dc87f2971f4061ffdaa81"},
+    {file = "channels-4.2.2.tar.gz", hash = "sha256:8d7208e48ab8fdb972aaeae8311ce920637d97656ffc7ae5eca4f93f84bcd9a0"},
 ]
 
 [package.dependencies]

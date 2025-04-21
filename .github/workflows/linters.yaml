@@ -16,6 +16,6 @@ jobs:
       - name: Install psycopg
         run: poetry run pip install psycopg
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v3.0.1
       - name: Run mypy
         run: poetry run mypy .

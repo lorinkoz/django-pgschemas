@@ -15,7 +15,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        django-version: ["5.0", "5.1"]
+        django-version: ["5.0", "5.1", "5.2"]
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:

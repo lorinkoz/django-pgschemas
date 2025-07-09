@@ -20,7 +20,7 @@ Use `django_pgschemas.postgresql_backend` as your database engine. This enables 
 ```python title="settings.py"
 DATABASES = {
     "default": {
-        "ENGINE": "django_pgschemas.postgresql_backend",
+        "ENGINE": "django_pgschemas.postgresql",
         # more database configurations here
     }
 }

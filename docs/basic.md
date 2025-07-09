@@ -15,7 +15,7 @@ pip install django-pgschemas
 
 ## Database configuration
 
-Use `django_pgschemas.postgresql_backend` as your database engine. This enables the API for setting Postgres search path:
+Use `django_pgschemas.postgresql` as your database engine. This enables the API for setting Postgres search path:
 
 ```python title="settings.py"
 DATABASES = {

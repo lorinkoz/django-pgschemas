@@ -26,8 +26,7 @@ class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
     def handle(self, *args, **options):
         runschema = NonInteractiveRunSchemaCommand()
         options.pop("run_syncdb", False)
-        if "skip_checks" not in options:
-            options["skip_checks"] = True
+        options.setdefault("skip_checks", False)
         runschema.execute(command_name="django.core.migrate", *args, **options)
 
 

@@ -1,6 +1,7 @@
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand
 from django.core.management.commands.migrate import Command as MigrateCommand
+from django.db.migrations.autodetector import MigrationAutodetector
 
 from . import WrappedSchemaOption
 from .runschema import Command as RunSchemaCommand
@@ -11,6 +12,7 @@ class NonInteractiveRunSchemaCommand(RunSchemaCommand):
 
 
 class MigrateSchemaCommand(WrappedSchemaOption, BaseCommand):
+    autodetector = MigrationAutodetector
     allow_interactive = False
     requires_system_checks = []
 

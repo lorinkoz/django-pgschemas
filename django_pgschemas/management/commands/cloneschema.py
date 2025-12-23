@@ -1,8 +1,17 @@
-from distutils.util import strtobool
 from django.core.checks import Tags, run_checks
 from django.core.management.base import BaseCommand, CommandError
 
 from django_pgschemas.utils import clone_schema, get_domain_model, get_tenant_model
+
+
+def strtobool(val):
+    val = val.lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    elif val in ("n", "no", "f", "false", "off", "0"):
+        return 0
+    else:
+        raise ValueError(f"invalid truth value {val!r}")
 
 
 class Command(BaseCommand):

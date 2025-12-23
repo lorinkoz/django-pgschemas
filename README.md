@@ -22,7 +22,7 @@ https://django-pgschemas.readthedocs.io/
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/lorinkoz/django-pgschemas/blob/master/CONTRIBUTING.md) for details on how to contribute to this project.
+See [CONTRIBUTING.md](https://github.com/lorinkoz/django-pgschemas?tab=contributing-ov-file) for details on how to contribute to this project.
 
 ## Credits
 

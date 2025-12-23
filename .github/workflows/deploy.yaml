@@ -9,6 +9,9 @@ on:
 jobs:
   build-n-publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v3
       - name: Install uv

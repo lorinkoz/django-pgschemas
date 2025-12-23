@@ -57,11 +57,7 @@ module = ["channels.*", "psycopg.*", "psycopg2.*", "django.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = [
-    "docs.*",
-    "sandbox.*",
-    "django_pgschemas.test.*",
-]
+module = ["docs.*", "sandbox.*"]
 ignore_errors = true
 
 [tool.pytest.ini_options]

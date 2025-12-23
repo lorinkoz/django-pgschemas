@@ -1,5 +1,5 @@
 [tools]
-python = "3.11"
+python = "3.12"
 uv = "latest"
 prek = "latest"
 

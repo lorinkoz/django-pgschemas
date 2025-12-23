@@ -12,7 +12,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10" # lower python supported
+          python-version: "3.12" # lowest python supported
       - name: Install Dependencies
         run: uv sync --group dev --group psycopg
       - name: Run pre-commit

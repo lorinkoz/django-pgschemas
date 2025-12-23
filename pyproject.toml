@@ -15,7 +15,7 @@ classifiers = [
     "Framework :: Django :: 5.2",
     "Framework :: Django :: 6.0",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "django>=5.2",
 ]
@@ -40,14 +40,16 @@ repository = "https://github.com/lorinkoz/django-pgschemas"
 documentation = "https://django-pgschemas.readthedocs.io/"
 
 [tool.ruff]
-select = ["I", "E", "F"]
 line-length = 100
+
+[tool.ruff.lint]
+select = ["I", "E", "F"]
 ignore = [
     "E501", # line-too-long
     "W191", # tab-indentation
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 known-first-party = ["django_pgschemas"]
 

@@ -1,6 +1,6 @@
 This package requires:
 
-- Python (3.10+)
+- Python (3.12+)
 - Django (5.2+)
 - Postgres (14+)
 - Any version of psycopg.

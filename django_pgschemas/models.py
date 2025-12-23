@@ -52,7 +52,12 @@ class TenantModel(Schema, models.Model):
     ) -> None:
         is_new = self.pk is None
 
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
         if is_new and self.auto_create_schema:
             try:

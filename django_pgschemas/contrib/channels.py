@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Any, Awaitable, Callable, cast
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
@@ -17,8 +17,8 @@ from django_pgschemas.settings import get_tenant_header
 from django_pgschemas.utils import get_domain_model, get_tenant_model, remove_www
 
 
-def TenantURLRouter():
-    async def router(scope, receive, send):
+def TenantURLRouter() -> Callable[[dict[str, Any], Any, Any], Awaitable[None]]:
+    async def router(scope: dict[str, Any], receive: Any, send: Any) -> None:
         schema: Schema | None = scope.get("tenant")
         routes = []
 
@@ -41,10 +41,10 @@ def TenantURLRouter():
 
 class BaseRoutingMiddleware(BaseMiddleware):
     @database_sync_to_async
-    def get_scope_tenant(self, scope):
+    def get_scope_tenant(self, scope: dict[str, Any]) -> Schema | None:
         raise NotImplementedError
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> Any:
         scope = dict(scope)
         scope["tenant"] = await self.get_scope_tenant(scope)
 
@@ -53,7 +53,7 @@ class BaseRoutingMiddleware(BaseMiddleware):
 
 class DomainRoutingMiddleware(BaseRoutingMiddleware):
     @database_sync_to_async
-    def get_scope_tenant(self, scope) -> Schema | None:
+    def get_scope_tenant(self, scope: dict[str, Any]) -> Schema | None:
         hostname = force_str(dict(scope["headers"]).get(b"host", b""))
         hostname = remove_www(hostname.split(":")[0])
 
@@ -114,7 +114,7 @@ class DomainRoutingMiddleware(BaseRoutingMiddleware):
 
 class HeadersRoutingMiddleware(BaseRoutingMiddleware):
     @database_sync_to_async
-    def get_scope_tenant(self, scope) -> Schema | None:
+    def get_scope_tenant(self, scope: dict[str, Any]) -> Schema | None:
         tenant_header = get_tenant_header()
         tenant_ref = force_str(dict(scope["headers"]).get(force_bytes(tenant_header), b""))
 

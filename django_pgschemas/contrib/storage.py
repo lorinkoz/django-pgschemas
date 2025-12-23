@@ -13,7 +13,7 @@ class TenantFileSystemStorage(FileSystemStorage):
     location and base URL.
     """
 
-    def get_schema_path_identifier(self):
+    def get_schema_path_identifier(self) -> str:
         schema = get_current_schema()
 
         if schema is None:
@@ -30,7 +30,7 @@ class TenantFileSystemStorage(FileSystemStorage):
         return path_identifier
 
     @property  # To avoid caching of tenant
-    def base_location(self):
+    def base_location(self) -> str:
         """
         Appends base location with the schema path identifier.
         """
@@ -43,11 +43,11 @@ class TenantFileSystemStorage(FileSystemStorage):
         return location
 
     @property  # To avoid caching of tenant
-    def location(self):
+    def location(self) -> str:
         return super().location
 
     @property  # To avoid caching of tenant
-    def base_url(self):
+    def base_url(self) -> str:
         """
         Optionally appends base URL with the schema path identifier.
         If the current schema is already using a folder, no path identifier is

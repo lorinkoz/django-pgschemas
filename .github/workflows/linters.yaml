@@ -1,5 +1,15 @@
 name: linters
-on: [push]
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    paths:
+      - pyproject.toml
+      - uv.lock
+      - "**.py"
+
 jobs:
   check:
     runs-on: ubuntu-latest

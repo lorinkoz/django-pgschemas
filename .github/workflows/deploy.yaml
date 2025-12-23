@@ -1,8 +1,11 @@
 name: deploy
+
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+
 jobs:
   build-n-publish:
     runs-on: ubuntu-latest
@@ -22,6 +25,3 @@ jobs:
         run: uv build
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}

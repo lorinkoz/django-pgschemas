@@ -1,4 +1,5 @@
 name: code
+
 on:
   pull_request:
   push:
@@ -8,6 +9,7 @@ on:
       - pyproject.toml
       - uv.lock
       - "**.py"
+
 jobs:
   django-tests:
     runs-on: ubuntu-latest

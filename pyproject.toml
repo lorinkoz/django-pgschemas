@@ -61,7 +61,6 @@ module = [
     "docs.*",
     "sandbox.*",
     "django_pgschemas.test.*",
-    "django_pgschemas.postgresql.*",
 ]
 ignore_errors = true
 

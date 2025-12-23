@@ -1,9 +1,11 @@
+from typing import Any
+
 from django.db.models.indexes import Index
 
 from django_pgschemas.schema import get_current_schema
 
 
-def get_constraints(self, cursor, table_name):
+def get_constraints(self: Any, cursor: Any, table_name: str) -> dict[str, dict[str, Any]]:
     """
     Retrieve any constraints or keys (unique, pk, fk, check, index) across
     one or more columns. Also retrieve the definition of expression-based

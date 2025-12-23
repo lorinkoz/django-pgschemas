@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db.backends.base.introspection import FieldInfo, TableInfo
 from django.utils.encoding import force_str
 
@@ -12,7 +14,7 @@ except AttributeError:
     module = get_base_backend_module("introspection")
 
 
-class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no cover
+class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # type: ignore[name-defined]  # pragma: no cover
     """
     database schema introspection class
     """
@@ -27,7 +29,7 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no c
         WHERE c.relname = %s AND n.nspname = %s
     """
 
-    def get_table_list(self, cursor):
+    def get_table_list(self, cursor: Any) -> list[TableInfo]:
         """
         Returns a list of table names in the current database and schema.
         """
@@ -49,7 +51,7 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no c
             if row[0] not in self.ignored_tables
         ]
 
-    def get_table_description(self, cursor, table_name):
+    def get_table_description(self, cursor: Any, table_name: str) -> list[FieldInfo]:
         "Returns a description of the table, with the DB-API cursor.description interface."
         # As cursor.description does not return reliably the nullable property,
         # we have to query the information_schema (#7783)
@@ -73,7 +75,7 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no c
             for line in cursor.description
         ]
 
-    def get_indexes(self, cursor, table_name):
+    def get_indexes(self, cursor: Any, table_name: str) -> dict[str, dict[str, bool]]:
         # This query retrieves each index on the given table, including the
         # first associated field name
         cursor.execute(self._get_indexes_query, [table_name, get_current_schema().schema_name])
@@ -94,7 +96,7 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no c
                 indexes[row[0]]["unique"] = True
         return indexes
 
-    def get_relations(self, cursor, table_name):
+    def get_relations(self, cursor: Any, table_name: str) -> dict[str, tuple[str, str]]:
         """
         Returns a dictionary of {field_name: (field_name_other_table, other_table)}
         representing all relationships to the given table.
@@ -119,8 +121,8 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # pragma: no c
 
     get_constraints = _constraints.get_constraints
 
-    def get_key_columns(self, cursor, table_name):
-        key_columns = []
+    def get_key_columns(self, cursor: Any, table_name: str) -> list[tuple[str, str, str]]:
+        key_columns: list[tuple[str, str, str]] = []
         cursor.execute(
             """
             SELECT kcu.column_name, ccu.table_name AS referenced_table, ccu.column_name AS referenced_column

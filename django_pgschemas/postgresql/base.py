@@ -1,8 +1,10 @@
+from typing import Any
+
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import DatabaseError
 from django.utils.asyncio import async_unsafe
 
-from django_pgschemas.schema import get_current_schema, get_default_schema
+from django_pgschemas.schema import Schema, get_current_schema, get_default_schema
 from django_pgschemas.settings import (
     get_base_backend_module,
     get_extra_search_paths,
@@ -16,7 +18,7 @@ try:
     try:
         import psycopg as _psycopg
     except ImportError:
-        import psycopg2 as _psycopg
+        import psycopg2 as _psycopg  # type: ignore[no-redef]
 except ImportError:
     raise ImproperlyConfigured("Error loading psycopg2 or psycopg module")
 
@@ -26,7 +28,7 @@ except AttributeError:
     module = get_base_backend_module("base")
 
 
-def get_search_path(schema=None):
+def get_search_path(schema: Schema | None = None) -> str:
     if schema is None:
         schema = get_default_schema()
 
@@ -39,9 +41,9 @@ def get_search_path(schema=None):
     return ", ".join(search_path)
 
 
-class DatabaseWrapper(module.DatabaseWrapper):
-    def __init__(self, *args, **kwargs):
-        self._search_path = None
+class DatabaseWrapper(module.DatabaseWrapper):  # type: ignore[name-defined]
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self._search_path: str | None = None
         self._setting_search_path = False
         super().__init__(*args, **kwargs)
 
@@ -60,7 +62,7 @@ class DatabaseWrapper(module.DatabaseWrapper):
         self._setting_search_path = False
         super().rollback()
 
-    def _handle_search_path(self, cursor=None):
+    def _handle_search_path(self, cursor: Any | None = None) -> None:
         search_path_for_current_schema = get_search_path(get_current_schema())
 
         skip = self._setting_search_path or (
@@ -85,7 +87,7 @@ class DatabaseWrapper(module.DatabaseWrapper):
             if cursor is None:
                 cursor_for_search_path.close()
 
-    def _cursor(self, name=None):
+    def _cursor(self, name: str | None = None) -> Any:
         cursor = super()._cursor(name=name)
 
         cursor_for_search_path = cursor if name is None else None  # Named cursors cannot be reused

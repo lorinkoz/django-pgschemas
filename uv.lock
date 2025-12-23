@@ -648,7 +648,7 @@ psycopg = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "django", specifier = ">=5.0" }]
+requires-dist = [{ name = "django", specifier = ">=5.2" }]
 
 [package.metadata.requires-dev]
 dev = [

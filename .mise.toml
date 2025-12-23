@@ -4,6 +4,7 @@ uv = "latest"
 prek = "latest"
 
 [tasks]
+install = "uv sync --group dev --group psycopg"
 test = "uv run pytest sandbox/tests --reuse-db"
 coverage = [
   "uv run pytest --cov=\"django_pgschemas\" sandbox/tests --reuse-db",

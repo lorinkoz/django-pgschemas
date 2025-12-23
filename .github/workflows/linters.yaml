@@ -10,6 +10,9 @@ on:
       - uv.lock
       - "**.py"
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest

@@ -20,13 +20,9 @@ This package uses Postgres schemas to support data multi-tenancy in a single Dja
 
 https://django-pgschemas.readthedocs.io/
 
-Version 1.0 has several breaking changes from the 0.\* series. Please refer to [this discussion](https://github.com/lorinkoz/django-pgschemas/discussions/277) for details and bug reports.
-
 ## Contributing
 
-- Join the discussion at https://github.com/lorinkoz/django-pgschemas/discussions.
-- PRs are welcome! If you have questions or comments, please use the discussions link above.
-- To run the test suite run `make` or `make coverage`. The tests for this project live inside a small django project called `sandbox`.
+See [CONTRIBUTING.md](https://github.com/lorinkoz/django-pgschemas/blob/master/CONTRIBUTING.md) for details on how to contribute to this project.
 
 ## Credits
 

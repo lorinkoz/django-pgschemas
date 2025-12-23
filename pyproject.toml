@@ -4,21 +4,16 @@ version = "1.2.0"
 description = "Django multi-tenancy through Postgres schemas"
 readme = "README.md"
 license = { text = "MIT" }
-authors = [
-    { name = "Lorenzo Peña", email = "lorinkoz@gmail.com" }
-]
+authors = [{ name = "Lorenzo Peña", email = "lorinkoz@gmail.com" }]
 keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgres"]
 classifiers = [
-    "Development Status :: 4 - Beta",
-    # "Development Status :: 5 - Production/Stable",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
     "Framework :: Django :: 5.2",
     "Framework :: Django :: 6.0",
 ]
 requires-python = ">=3.12"
-dependencies = [
-    "django>=5.2",
-]
+dependencies = ["django>=5.2"]
 
 [dependency-groups]
 dev = [
@@ -31,9 +26,7 @@ dev = [
     "channels[daphne]",
     "mkdocs-material",
 ]
-psycopg = [
-    "psycopg",
-]
+psycopg = ["psycopg"]
 
 [project.urls]
 repository = "https://github.com/lorinkoz/django-pgschemas"

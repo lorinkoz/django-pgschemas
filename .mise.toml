@@ -8,13 +8,10 @@ install = "uv sync --group dev --group psycopg"
 test = "uv run pytest sandbox/tests --reuse-db"
 coverage = [
   "uv run pytest --cov=\"django_pgschemas\" sandbox/tests --reuse-db",
-  "uv run coverage html"
+  "uv run coverage html",
 ]
 types = "uv run mypy ."
 down = "docker compose down"
-up = [
-  "docker compose up --wait",
-  "uv run sandbox/manage.py migrate"
-]
+up = ["docker compose up --wait", "uv run sandbox/manage.py migrate"]
 docs = "uv run mkdocs serve -a localhost:9005"
 update-clone-schema = "curl https://raw.githubusercontent.com/denishpatel/pg-clone-schema/master/clone_schema.sql | python -m gzip - > django_pgschemas/clone_schema.gz"

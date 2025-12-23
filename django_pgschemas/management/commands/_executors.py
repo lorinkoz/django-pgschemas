@@ -1,5 +1,6 @@
 import functools
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any
 
 from django.conf import settings
 from django.core.management import call_command
@@ -13,14 +14,14 @@ from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
 
 def run_on_schema(
-    schema_name,
-    executor_codename,
-    command,
-    function_name=None,
-    args=None,
-    kwargs=None,
-    pass_schema_in_kwargs=False,
-):
+    schema_name: str,
+    executor_codename: str,
+    command: BaseCommand | type[BaseCommand],
+    function_name: str | None = None,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+    pass_schema_in_kwargs: bool = False,
+) -> str:
     if args is None:
         args = []
     if kwargs is None:
@@ -43,9 +44,9 @@ def run_on_schema(
     # whether we need to do so based on the last ending used to write. If the last write didn't end
     # in '\n' then we don't do the prefixing in order to keep the output looking good.
     class StyleFunc:
-        last_message = None
+        last_message: str | None = None
 
-        def __call__(self, message):
+        def __call__(self, message: str) -> str:
             last_message = self.last_message
             self.last_message = message
             if last_message is None or last_message.endswith("\n"):
@@ -87,15 +88,22 @@ def run_on_schema(
         call_command(command, *args, **kwargs)
     elif function_name == "special:run_from_argv":
         command.run_from_argv(args)
-    else:
+    elif function_name is not None:
         getattr(command, function_name)(*args, **kwargs)
+    else:
+        raise CommandError("function_name must be provided")
 
     return schema_name
 
 
 def sequential(
-    schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False
-):
+    schemas: list[str],
+    command: BaseCommand | type[BaseCommand],
+    function_name: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+    pass_schema_in_kwargs: bool = False,
+) -> list[str]:
     runner = functools.partial(
         run_on_schema,
         executor_codename="sequential",
@@ -112,7 +120,14 @@ def sequential(
     return schemas
 
 
-def parallel(schemas, command, function_name, args=None, kwargs=None, pass_schema_in_kwargs=False):
+def parallel(
+    schemas: list[str],
+    command: BaseCommand | type[BaseCommand],
+    function_name: str,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
+    pass_schema_in_kwargs: bool = False,
+) -> list[str]:
     processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
     runner = functools.partial(
         run_on_schema,

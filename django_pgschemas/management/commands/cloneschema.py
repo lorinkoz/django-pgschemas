@@ -1,10 +1,13 @@
+from typing import Any
+
 from django.core.checks import Tags, run_checks
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
+from django.db.models import Model
 
 from django_pgschemas.utils import clone_schema, get_domain_model, get_tenant_model
 
 
-def strtobool(val):
+def strtobool(val: str) -> int:
     val = val.lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
         return 1
@@ -17,12 +20,12 @@ def strtobool(val):
 class Command(BaseCommand):
     help = "Clones a schema"
 
-    def _run_checks(self, **kwargs):  # pragma: no cover
+    def _run_checks(self, **kwargs: Any) -> list[Any]:  # pragma: no cover
         issues = run_checks(tags=[Tags.database])
         issues.extend(super()._run_checks(**kwargs))
         return issues
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         super().add_arguments(parser)
         parser.add_argument(
             "source",
@@ -46,7 +49,7 @@ class Command(BaseCommand):
             help="Just show what clone would do; without actually cloning.",
         )
 
-    def _ask(self, question):
+    def _ask(self, question: str) -> int:
         answer = None
         while answer is None:
             try:
@@ -57,7 +60,7 @@ class Command(BaseCommand):
                 pass
         return answer
 
-    def _check_required_field(self, field, exclude=None):
+    def _check_required_field(self, field: Any, exclude: list[str] | None = None) -> bool:
         if exclude is None:
             exclude = []
         return (
@@ -74,11 +77,11 @@ class Command(BaseCommand):
             and field.name not in exclude
         )
 
-    def _get_constructed_instance(self, model_class, data):
+    def _get_constructed_instance(self, model_class: type[Model], data: dict[str, Any]) -> Model:
         fields = [
             field
             for field in model_class._meta.fields
-            if self._check_required_field(field, data.keys())
+            if self._check_required_field(field, list(data.keys()))
         ]
         instance = model_class(**data)
         if fields:
@@ -102,21 +105,25 @@ class Command(BaseCommand):
                         data.pop(field.name, None)
         return instance
 
-    def get_dynamic_tenant(self, **options):
+    def get_dynamic_tenant(self, **options: Any) -> tuple[Model | None, Model | None]:
         tenant = None
         domain = None
         if self._ask(
             "You are cloning a schema for a dynamic tenant. Would you like to create a database entry for it?"
         ):
-            tenant = self._get_constructed_instance(
-                get_tenant_model(), {"schema_name": options["destination"]}
-            )
-            domain = self._get_constructed_instance(get_domain_model(), {"is_primary": True})
+            TenantModel = get_tenant_model()
+            DomainModel = get_domain_model()
+            if TenantModel is not None:
+                tenant = self._get_constructed_instance(
+                    TenantModel, {"schema_name": options["destination"]}
+                )
+            if DomainModel is not None:
+                domain = self._get_constructed_instance(DomainModel, {"is_primary": True})
             if options["verbosity"] >= 1:
                 self.stdout.write(self.style.WARNING("Looks good! Let's get to it!"))
         return tenant, domain
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         tenant = None
         domain = None
         dry_run = options.get("dry_run")

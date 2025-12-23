@@ -1,7 +1,8 @@
 import enum
+from typing import Any, Callable, Self
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import Case, CharField, Q, Value, When
 from django.db.models.functions import Concat
 from django.db.utils import ProgrammingError
@@ -23,11 +24,11 @@ class CommandScope(enum.Enum):
     STATIC = "static"
 
     @classmethod
-    def allow_static(cls):
+    def allow_static(cls) -> list[Self]:
         return [cls.ALL, cls.STATIC]
 
     @classmethod
-    def allow_dynamic(cls):
+    def allow_dynamic(cls) -> list[Self]:
         return [cls.ALL, cls.DYNAMIC]
 
 
@@ -44,7 +45,7 @@ class WrappedSchemaOption:
     allow_interactive = True
     allow_wildcards = True
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         if self.allow_interactive:
             parser.add_argument(
                 "--noinput",
@@ -111,7 +112,7 @@ class WrappedSchemaOption:
             help="Skip automatic creation of non-existing schemas",
         )
 
-    def get_schemas_from_options(self, **options):
+    def get_schemas_from_options(self, **options: Any) -> list[str]:
         skip_schema_creation = options.get("skip_schema_creation", False)
         try:
             schemas = self._get_schemas_from_options(**options)
@@ -131,13 +132,13 @@ class WrappedSchemaOption:
                 create_schema(schema, check_if_exists=True, sync_schema=False, verbosity=0)
         return schemas
 
-    def get_executor_from_options(self, **options):
+    def get_executor_from_options(self, **options: Any) -> Callable[..., list[str]]:
         return EXECUTORS["parallel"] if options.get("parallel") else EXECUTORS["sequential"]
 
-    def get_scope_display(self):
+    def get_scope_display(self) -> str:
         return "|".join(self.specific_schemas or []) or self.scope.value
 
-    def _get_schemas_from_options(self, **options):
+    def _get_schemas_from_options(self, **options: Any) -> list[str]:
         schemas = options.get("schemas") or []
         excluded_schemas = options.get("excluded_schemas") or []
         include_all_schemas = options.get("all_schemas") or False
@@ -185,7 +186,7 @@ class WrappedSchemaOption:
         if clone_reference and allow_static:
             static_schemas.append(clone_reference)
 
-        schemas_to_return = set()
+        schemas_to_return: set[str] = set()
 
         if include_all_schemas:
             if not allow_static and not allow_dynamic:
@@ -206,7 +207,7 @@ class WrappedSchemaOption:
             if clone_reference:
                 schemas_to_return.add(clone_reference)
 
-        def find_schema_by_reference(reference, as_excluded=False):
+        def find_schema_by_reference(reference: str, as_excluded: bool = False) -> str:
             if reference in settings.TENANTS and reference != "default" and allow_static:
                 return reference
             elif reference == clone_reference:
@@ -283,16 +284,16 @@ class WrappedSchemaOption:
 
 
 class SchemaCommand(WrappedSchemaOption, BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)
         executor(schemas, self, "_raw_handle_schema", args, options, pass_schema_in_kwargs=True)
 
-    def _raw_handle_schema(self, *args, **kwargs):
+    def _raw_handle_schema(self, *args: Any, **kwargs: Any) -> None:
         kwargs.pop("schema_name")
         self.handle_schema(get_current_schema(), *args, **kwargs)
 
-    def handle_schema(self, schema: Schema, *args, **options):
+    def handle_schema(self, schema: Schema, *args: Any, **options: Any) -> None:
         raise NotImplementedError
 
 

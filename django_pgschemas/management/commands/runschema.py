@@ -1,8 +1,9 @@
 import argparse
 import sys
+from typing import Any
 
 from django.core.management import get_commands, load_command_class
-from django.core.management.base import BaseCommand, CommandError, SystemCheckError
+from django.core.management.base import BaseCommand, CommandError, CommandParser, SystemCheckError
 
 from . import WrappedSchemaOption
 
@@ -10,11 +11,11 @@ from . import WrappedSchemaOption
 class Command(WrappedSchemaOption, BaseCommand):
     help = "Wrapper around Django commands for use with an individual schema"
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         super().add_arguments(parser)
         parser.add_argument("command_name", help="The command name you want to run")
 
-    def get_command_from_arg(self, arg):
+    def get_command_from_arg(self, arg: str) -> BaseCommand:
         *chunks, command = arg.split(".")
         path = ".".join(chunks)
         if not path:
@@ -27,7 +28,7 @@ class Command(WrappedSchemaOption, BaseCommand):
             raise CommandError("Command '%s' cannot be used in runschema" % arg)
         return cmd
 
-    def run_from_argv(self, argv):  # pragma: no cover
+    def run_from_argv(self, argv: list[str]) -> None:  # pragma: no cover
         """
         Changes the option_list to use the options from the wrapped command.
         Adds schema parameter to specify which schema will be used when
@@ -65,7 +66,7 @@ class Command(WrappedSchemaOption, BaseCommand):
 
         executor(schemas, target_class, "special:run_from_argv", args)
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         target = self.get_command_from_arg(options.pop("command_name"))
         schemas = self.get_schemas_from_options(**options)
         executor = self.get_executor_from_options(**options)

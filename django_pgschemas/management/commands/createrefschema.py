@@ -1,5 +1,7 @@
+from typing import Any
+
 from django.core.checks import Tags, run_checks
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 from django_pgschemas.utils import create_schema, drop_schema, get_clone_reference
 
@@ -7,12 +9,12 @@ from django_pgschemas.utils import create_schema, drop_schema, get_clone_referen
 class Command(BaseCommand):
     help = "Creates the reference schema for faster dynamic tenant creation"
 
-    def _run_checks(self, **kwargs):  # pragma: no cover
+    def _run_checks(self, **kwargs: Any) -> list[Any]:  # pragma: no cover
         issues = run_checks(tags=[Tags.database])
         issues.extend(super()._run_checks(**kwargs))
         return issues
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         super().add_arguments(parser)
         parser.add_argument(
             "--recreate",
@@ -21,7 +23,7 @@ class Command(BaseCommand):
             help="Recreate reference schema.",
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         clone_reference = get_clone_reference()
         if not clone_reference:
             raise CommandError("There is no reference schema configured.")

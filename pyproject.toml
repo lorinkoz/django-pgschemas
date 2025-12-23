@@ -1,12 +1,12 @@
-[tool.poetry]
+[project]
 name = "django-pgschemas"
 version = "1.1.1"
 description = "Django multi-tenancy through Postgres schemas"
-license = "MIT"
-authors = ["Lorenzo Peña <lorinkoz@gmail.com>"]
 readme = "README.md"
-repository = "https://github.com/lorinkoz/django-pgschemas"
-documentation = "https://django-pgschemas.readthedocs.io/"
+license = { text = "MIT" }
+authors = [
+    { name = "Lorenzo Peña", email = "lorinkoz@gmail.com" }
+]
 keywords = ["django", "tenants", "schemas", "multi-tenancy", "postgres"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -16,20 +16,29 @@ classifiers = [
     "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
 ]
+requires-python = ">=3.10"
+dependencies = [
+    "django>=5.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-django = "^5.0"
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "pytest-django",
+    "pytest-asyncio",
+    "ruff",
+    "channels[daphne]",
+    "mkdocs-material",
+]
+psycopg = [
+    "psycopg",
+]
 
-[tool.poetry.group.dev.dependencies]
-mypy = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-django = "*"
-pytest-asyncio = "*"
-ruff = "*"
-channels = { extras = ["daphne"], version = "*" }
-mkdocs-material = "*"
+[project.urls]
+repository = "https://github.com/lorinkoz/django-pgschemas"
+documentation = "https://django-pgschemas.readthedocs.io/"
 
 [tool.ruff]
 select = ["I", "E", "F"]
@@ -64,7 +73,6 @@ module = [
 ]
 ignore_errors = true
 
-
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "sandbox.settings"
 django_find_project = false
@@ -72,5 +80,5 @@ pythonpath = ["."]
 markers = ["bug"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

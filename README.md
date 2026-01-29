@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=lorinkoz&project=django-pgschemas&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # django-pgschemas
 
 [![Build status](https://github.com/lorinkoz/django-pgschemas/workflows/code/badge.svg)](https://github.com/lorinkoz/django-pgschemas/actions)

@@ -12,6 +12,7 @@ class AppConfig(BaseAppConfig):
             ensure_default_schemas,
             ensure_overall_schemas,
         )
+        from .routing import middleware as _routing_middleware  # noqa: F401
 
         ensure_tenant_dict()
         ensure_public_schema()

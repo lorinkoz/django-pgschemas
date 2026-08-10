@@ -3,6 +3,7 @@ from typing import Callable, TypeAlias, cast
 
 from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
+from django.core.signals import request_finished
 from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -113,6 +114,8 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
 
 
 def route_session(request: HttpRequest) -> HttpResponse | None:
+    activate_public()
+
     tenant_session_key = get_tenant_session_key()
 
     if not hasattr(request, "session") or not (
@@ -145,6 +148,8 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
 
 def route_headers(request: HttpRequest) -> HttpResponse | None:
+    activate_public()
+
     tenant_header = get_tenant_header()
 
     if not (tenant_ref := request.headers.get(tenant_header)):
@@ -206,3 +211,10 @@ def middleware_factory(
 DomainRoutingMiddleware = middleware_factory(route_domain)
 SessionRoutingMiddleware = middleware_factory(route_session)
 HeadersRoutingMiddleware = middleware_factory(route_headers)
+
+
+def _reset_schema_after_request(**kwargs: object) -> None:
+    activate_public()
+
+
+request_finished.connect(_reset_schema_after_request)

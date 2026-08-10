@@ -2,6 +2,7 @@ from itertools import permutations
 from unittest.mock import MagicMock
 
 import pytest
+from django.core.signals import request_finished
 from django.http import Http404
 
 from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
@@ -11,6 +12,7 @@ from django_pgschemas.routing.middleware import (
     SessionRoutingMiddleware,
     strip_tenant_from_path_factory,
 )
+from django_pgschemas.schema import Schema, activate, get_current_schema, get_default_schema
 
 
 @pytest.mark.parametrize(
@@ -204,7 +206,10 @@ class TestSessionRoutingMiddleware:
             pytest.skip("Domain model is not in use")
 
         request = FakeRequest(session_tenant_ref=session_key)
-        get_response = MagicMock()
+        schema_during_request = {}
+
+        def get_response(req):
+            schema_during_request["name"] = get_current_schema().schema_name
 
         handler = SessionRoutingMiddleware(get_response)
 
@@ -215,6 +220,27 @@ class TestSessionRoutingMiddleware:
         assert isinstance(request.tenant.routing, SessionInfo)
         assert request.tenant.routing.reference == session_key
         assert request.urlconf == expected_urlconf
+        assert schema_during_request["name"] == schema_name
+        assert get_current_schema().schema_name == schema_name
+
+        request_finished.send(sender=None)
+        assert get_current_schema().schema_name == get_default_schema().schema_name
+
+    def test_clears_previous_schema_when_unmatched(self, db):
+        activate(Schema.create(schema_name="blog"))
+        assert get_current_schema().schema_name == "blog"
+
+        request = FakeRequest(session_tenant_ref=None)
+        schema_during_request = {}
+
+        def get_response(req):
+            schema_during_request["name"] = get_current_schema().schema_name
+
+        SessionRoutingMiddleware(get_response)(request)
+
+        assert not hasattr(request, "tenant")
+        assert schema_during_request["name"] == get_default_schema().schema_name
+        assert get_current_schema().schema_name == get_default_schema().schema_name
 
 
 class TestHeadersRoutingMiddleware:
@@ -232,7 +258,10 @@ class TestHeadersRoutingMiddleware:
             pytest.skip("Domain model is not in use")
 
         request = FakeRequest(headers_tenant_ref=header)
-        get_response = MagicMock()
+        schema_during_request = {}
+
+        def get_response(req):
+            schema_during_request["name"] = get_current_schema().schema_name
 
         handler = HeadersRoutingMiddleware(get_response)
 
@@ -243,6 +272,27 @@ class TestHeadersRoutingMiddleware:
         assert isinstance(request.tenant.routing, HeadersInfo)
         assert request.tenant.routing.reference == header
         assert request.urlconf == expected_urlconf
+        assert schema_during_request["name"] == schema_name
+        assert get_current_schema().schema_name == schema_name
+
+        request_finished.send(sender=None)
+        assert get_current_schema().schema_name == get_default_schema().schema_name
+
+    def test_clears_previous_schema_when_unmatched(self, db):
+        activate(Schema.create(schema_name="blog"))
+        assert get_current_schema().schema_name == "blog"
+
+        request = FakeRequest(headers_tenant_ref=None)
+        schema_during_request = {}
+
+        def get_response(req):
+            schema_during_request["name"] = get_current_schema().schema_name
+
+        HeadersRoutingMiddleware(get_response)(request)
+
+        assert not hasattr(request, "tenant")
+        assert schema_during_request["name"] == get_default_schema().schema_name
+        assert get_current_schema().schema_name == get_default_schema().schema_name
 
 
 @pytest.mark.parametrize(

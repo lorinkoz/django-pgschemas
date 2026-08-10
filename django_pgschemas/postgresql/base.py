@@ -79,13 +79,13 @@ class DatabaseWrapper(module.DatabaseWrapper):  # type: ignore[name-defined]
                 )
             except (DatabaseError, _psycopg.InternalError):
                 self._search_path = None
+                raise
             else:
                 self._search_path = search_path_for_current_schema
             finally:
                 self._setting_search_path = False
-
-            if cursor is None:
-                cursor_for_search_path.close()
+                if cursor is None:
+                    cursor_for_search_path.close()
 
     def _cursor(self, name: str | None = None) -> Any:
         cursor = super()._cursor(name=name)

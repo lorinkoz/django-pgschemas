@@ -144,10 +144,9 @@ def test_clone_schema(db):
 
     assert utils.schema_exists("sample2")  # Schema exists
 
+    # Intentional error aborts the test transaction; do not query afterward.
     with pytest.raises(DatabaseError):
         utils.clone_schema("sample", "sample2")  # Schema already exists, error
-
-    assert utils.schema_exists("sample2")  # Schema still exists
 
 
 def test_create_or_clone_schema(db):

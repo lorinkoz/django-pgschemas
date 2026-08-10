@@ -10,6 +10,7 @@ from django.db.utils import ProgrammingError
 from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.schema import Schema, activate
+from django_pgschemas.settings import get_parallel_max_workers
 from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
 
@@ -128,18 +129,18 @@ def parallel(
     kwargs: dict[str, Any] | None = None,
     pass_schema_in_kwargs: bool = False,
 ) -> list[str]:
-    processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
+    max_workers = get_parallel_max_workers()
     runner = functools.partial(
         run_on_schema,
         executor_codename="parallel",
-        command=type(command),  # Can't pass streams to children processes
+        command=type(command),  # Can't pass streams to children threads
         function_name=function_name,
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
 
-    with ThreadPoolExecutor(max_workers=processes) as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = {executor.submit(runner, schema) for schema in schemas}
         as_completed(results)
 

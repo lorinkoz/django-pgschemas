@@ -23,8 +23,8 @@ Once you have this in your settings, you need to prepare your reference schema w
 
 ```bash
 python manage.py createrefschema
-python runschema loaddata customers.products -s sample
-python runschema shell -s sample
+python manage.py runschema loaddata customers.products -s sample
+python manage.py runschema shell -s sample
 ```
 
 The `runschema` command is explained in [running management commands](#running-management-commands).
@@ -164,7 +164,7 @@ It's possible to exclude schemas via the `-x` argument. This argument accepts th
 
 At least one schema is mandatory. If it's not provided with the command, either explicitly or via wildcard params, it will be asked interactively, except when the option `--noinput` is passed, in which case the command will fail.
 
-If `--parallel` is passed, the command will be run asynchronously, spawning multiple threads controlled by the setting `PGSCHEMAS_PARALLEL_MAX_PROCESSES`. This setting defaults to `None`, in which case the number of CPUs will be used.
+If `--parallel` is passed, the command will be run asynchronously, spawning multiple threads controlled by the setting `PGSCHEMAS_PARALLEL_MAX_THREADS`. This setting defaults to `None`, in which case the number of CPUs will be used.
 
 By default, schemas that do not exist will be created (although migrations won't be applied). This can be bypassed by passing `--no-create-schemas`.
 

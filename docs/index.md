@@ -8,7 +8,7 @@
 
 ---
 
-This package uses Postgres schemas to support data multi-tenancy in a single Django project. Schemas are a layer of separation between databases and tables, so that one database can have multiple schemas, which in turn can have multiple (and possibly identical) tables. For an accurate description on schemas, see [the official documentation on Postgres schemas](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html).
+This package uses Postgres schemas to support data multi-tenancy in a single Django project. Schemas are a layer of separation between databases and tables, so that one database can have multiple schemas, which in turn can have multiple (and possibly identical) tables. For an accurate description on schemas, see [the official documentation on Postgres schemas](https://www.postgresql.org/docs/current/ddl-schemas.html).
 
 Postgres uses a "search path" to denote in which schemas it should look for the appropriate tables. If there are three schemas: `tenant1`, `common` and `public` and the search path is set to `["tenant1", "public"]`, Postgres will look for tables first on schema `tenant1`, and then, if not found, will look on schema `public`. The tables on schema `common` would never be searched. Also, if there is a table with the same name on both `tenant1` and `public` schemas (i.e. `django_migrations`), only the table in `tenant1` will be found by that search path. Table creation always takes place on the first schema in the search path.
 

@@ -8,9 +8,10 @@ from django_pgschemas.schema import Schema, get_current_schema, get_default_sche
 from django_pgschemas.settings import (
     get_base_backend_module,
     get_extra_search_paths,
+    get_limit_set_calls,
     get_original_backend_module,
 )
-from django_pgschemas.utils import check_schema_name, get_limit_set_calls
+from django_pgschemas.utils import check_schema_name
 
 from .introspection import DatabaseSchemaIntrospection
 

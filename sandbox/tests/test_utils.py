@@ -49,6 +49,18 @@ def test_get_limit_set_calls(settings, has_value):
         assert not utils.get_limit_set_calls()
 
 
+def test_get_parallel_max_workers(settings):
+    from django_pgschemas.settings import get_parallel_max_workers
+
+    assert get_parallel_max_workers() is None
+
+    settings.PGSCHEMAS_PARALLEL_MAX_PROCESSES = 2
+    assert get_parallel_max_workers() == 2
+
+    settings.PGSCHEMAS_PARALLEL_MAX_THREADS = 4
+    assert get_parallel_max_workers() == 4
+
+
 def test_get_clone_reference(tenants_settings):
     clone_reference = utils.get_clone_reference()
 

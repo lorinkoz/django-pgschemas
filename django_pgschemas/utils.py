@@ -7,9 +7,11 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
+from django.db import ProgrammingError, connection, transaction
 from django.db.models import Model
 from django.utils.encoding import force_str
+
+from django_pgschemas import settings as pg_settings
 
 
 def get_tenant_model(require_ready: bool = True) -> Model | None:
@@ -27,11 +29,11 @@ def get_domain_model(require_ready: bool = True) -> Model | None:
 
 
 def get_tenant_database_alias() -> str:
-    return getattr(settings, "PGSCHEMAS_TENANT_DB_ALIAS", DEFAULT_DB_ALIAS)
+    return pg_settings.get_tenant_db_alias()
 
 
 def get_limit_set_calls() -> bool:
-    return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
+    return pg_settings.get_limit_set_calls()
 
 
 def get_clone_reference() -> str | None:

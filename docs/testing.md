@@ -14,7 +14,7 @@ from tenants.models import Tenant, Domain
 def setup(django_db_setup, django_db_blocker):
 
     with django_db_blocker.unblock():
-        tenant = Tenant.objects.get_or_create(schema_name="tenant1")
+        tenant, _ = Tenant.objects.get_or_create(schema_name="tenant1")
         Domain.objects.get_or_create(
             tenant=tenant,
             domain="tenant1.mydomain.com",

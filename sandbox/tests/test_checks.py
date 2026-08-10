@@ -203,14 +203,17 @@ class TestEnsureOverallSchema:
         # "default",
     ],
 )
-def test_ensure_extra_search_paths(settings, extra, db):
+def test_check_extra_search_paths(settings, extra, db, app_config):
     settings.PGSCHEMAS_EXTRA_SEARCH_PATHS = [extra]
 
-    with pytest.raises(ImproperlyConfigured) as ctx:
-        checks.ensure_extra_search_paths()
+    errors = checks.check_extra_search_paths(app_config)
 
-    invalid = ", ".join([extra])
-    assert str(ctx.value) == f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS."
+    assert errors == [
+        Error(
+            f"Do not include '{extra}' on PGSCHEMAS_EXTRA_SEARCH_PATHS.",
+            id="pgschemas.W005",
+        )
+    ]
 
 
 class TestCheckPrincipalApps:

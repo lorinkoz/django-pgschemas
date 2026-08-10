@@ -45,7 +45,9 @@ def controlled_raises(exception):
     Since we are expecting database errors, we must use savepoints in order
     to make sure multiple errors can be caught in the same test case.
     """
-    sid = transaction.savepoint()
+    # Django 6.1 deprecated transaction.savepoint() in favor of savepoint_create().
+    create_savepoint = getattr(transaction, "savepoint_create", getattr(transaction, "savepoint"))
+    sid = create_savepoint()
 
     with pytest.raises(exception):
         yield

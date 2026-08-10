@@ -96,14 +96,17 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # type: ignore
                 indexes[row[0]]["unique"] = True
         return indexes
 
-    def get_relations(self, cursor: Any, table_name: str) -> dict[str, tuple[str, str]]:
+    def get_relations(self, cursor: Any, table_name: str) -> dict[str, tuple[Any, ...]]:
         """
-        Returns a dictionary of {field_name: (field_name_other_table, other_table)}
+        Returns a dictionary of
+        {field_name: (field_name_other_table, other_table[, db_on_delete])}
         representing all relationships to the given table.
+
+        Django 6.1+ includes db_on_delete as a third tuple element.
         """
         cursor.execute(
             """
-            SELECT c2.relname, a1.attname, a2.attname
+            SELECT c2.relname, a1.attname, a2.attname, con.confdeltype
             FROM pg_constraint con
             LEFT JOIN pg_class c1 ON con.conrelid = c1.oid
             LEFT JOIN pg_namespace n ON n.oid = c1.relnamespace
@@ -115,8 +118,12 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # type: ignore
             [table_name, get_current_schema().schema_name],
         )
         relations = {}
+        on_delete_types = getattr(self, "on_delete_types", None)
         for row in cursor.fetchall():
-            relations[row[1]] = (row[2], row[0])
+            if on_delete_types is not None:
+                relations[row[1]] = (row[2], row[0], on_delete_types.get(row[3]))
+            else:
+                relations[row[1]] = (row[2], row[0])
         return relations
 
     get_constraints = _constraints.get_constraints

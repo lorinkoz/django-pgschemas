@@ -41,6 +41,7 @@ def get_constraints(self: Any, cursor: Any, table_name: str) -> dict[str, dict[s
         JOIN pg_class AS cl ON c.conrelid = cl.oid
         JOIN pg_namespace AS ns ON cl.relnamespace = ns.oid
         WHERE ns.nspname = %s AND cl.relname = %s
+            AND c.contype != 'n'
     """,
         [get_current_schema().schema_name, table_name],
     )

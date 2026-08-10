@@ -16,7 +16,7 @@ Installing `django.contrib.contenttypes` outside of the public schema can lead t
 
 ## Session leaking
 
-Configuring users in a multi-tenant application can be challenging, because the user model(s) can be installed on any schema. Depending on the scope of your desired authentication mechanism, you should decide whether the user app will leave in the public schema or in each of the other static or dynamic schemas. If you do the latter, consdier that the same user ID could be repeated in multiple schemas. User ID is what makes authentication possible via the sessions app. In order to prevent session leaking, the recommended approach is to always put the user app and the session app together. This package will raise a warning check if the user app and the session app are found to not be together in the same schemas.
+Configuring users in a multi-tenant application can be challenging, because the user model(s) can be installed on any schema. Depending on the scope of your desired authentication mechanism, you should decide whether the user app will live in the public schema or in each of the other static or dynamic schemas. If you do the latter, consider that the same user ID could be repeated in multiple schemas. User ID is what makes authentication possible via the sessions app. In order to prevent session leaking, the recommended approach is to always put the user app and the session app together. This package will raise a warning check if the user app and the session app are found to not be together in the same schemas.
 
 !!! Tip
 
@@ -36,8 +36,8 @@ In order to remove the tables from the source app, you will have to actually do 
 
 It is possible to define a static tenant whose name clashes with an existing dynamic tenant. This is especially true for the clone reference, which can be added as an afterthought in order to speed up dynamic tenant creation. It is also possible to create a dynamic tenant with a name already present in the static tenant configuration.
 
-We do not provide an out-of-the-box validation mechanism for dynamic tenants upon creation, as attempt to prevent name clashes with static tenants. However, we do provide a system check that fails with a critical error message if a name clash is found. Since this check must query the database in order to fetch the schema name for all dynamic tenants, it is tagged as a database check, which makes it run only in database related operations and management commands. This means that the check will not be run via `runserver`, but will be run in commands like `migrate`, `cloneschema` and `createrefschema`. If absolutely needed,
+We do not provide an out-of-the-box validation mechanism for dynamic tenants upon creation, as attempt to prevent name clashes with static tenants. However, we do provide a system check that fails with a critical error message if a name clash is found. Since this check must query the database in order to fetch the schema name for all dynamic tenants, it is tagged as a database check, which makes it run only in database related operations and management commands. This means that the check will not be run via `runserver`, but will be run in commands like `migrate`, `cloneschema` and `createrefschema`.
 
 !!! Tip
 
-    you can silence this check through the code `pgschemas.W004`.
+    You can silence this check through the code `pgschemas.W004`.

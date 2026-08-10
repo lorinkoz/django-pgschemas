@@ -49,7 +49,7 @@ class TenantModel(Schema, models.Model):
 
 ```
 
-`auto_create_schema` controls whether a schema is automatically created when a instance of the tenant model is created. `auto_drop_schema` controls whether the schema is automatically deleted when the instance is deleted.
+`auto_create_schema` controls whether a schema is automatically created when an instance of the tenant model is created. `auto_drop_schema` controls whether the schema is automatically deleted when the instance is deleted.
 
 ## Domain model
 

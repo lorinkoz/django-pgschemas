@@ -10,7 +10,7 @@ We're striving to maintain/increase our code coverage, but please, make sure you
 
 ## Caching
 
-In order to generate tenant aware cache keys, we provide `django_pgschemas.contrib.cache.make_key` which can be used as`KEY_FUNCTION`:
+In order to generate tenant aware cache keys, we provide `django_pgschemas.contrib.cache.make_key` which can be used as `KEY_FUNCTION`:
 
 ```python title="settings.py"
 CACHES = {

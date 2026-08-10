@@ -6,7 +6,7 @@ This is how you set up dynamic tenants for testing.
 
 You can define some tenants in the test configuration.
 
-```python title="confest.py"
+```python title="conftest.py"
 import pytest
 from tenants.models import Tenant, Domain
 
@@ -24,15 +24,15 @@ def setup(django_db_setup, django_db_blocker):
 
 And also provide them as fixtures:
 
-```python title="confest.py"
+```python title="conftest.py"
 @pytest.fixture
 def tenant(db):
     return Tenant.objects.get(schema_name="tenant1")
 ```
 
-If you want the tenant to be activated automatically in your test cases, you can so as follows. Using the tenants as context manager is useful in activating the tenant only in the scope of each test.
+If you want the tenant to be activated automatically in your test cases, you can do so as follows. Using the tenants as context manager is useful in activating the tenant only in the scope of each test.
 
-```python title="confest.py"
+```python title="conftest.py"
 @pytest.fixture
 def tenant(db):
     with (tenant := Tenant.objects.get(schema_name="tenant1")):
@@ -41,7 +41,7 @@ def tenant(db):
 
 You can also define a fixture for a client, including the necessary headers:
 
-```python title="confest.py"
+```python title="conftest.py"
 from django.test import Client
 
 @pytest.fixture
@@ -55,4 +55,4 @@ def header_client():
 
 ## Django test cases
 
-This package does not provide base clases to be used in place for Django's `TestCase`. If you need support in this regard, please visit the [dicussions section](https://github.com/lorinkoz/django-pgschemas/discussions) in the package's repository.
+This package does not provide base classes to be used in place of Django's `TestCase`. If you need support in this regard, please visit the [discussions section](https://github.com/lorinkoz/django-pgschemas/discussions) in the package's repository.

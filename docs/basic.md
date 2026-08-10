@@ -113,7 +113,7 @@ TENANTS |= {
 }
 ```
 
-And dynamic tenants can be added as well, programatically.
+And dynamic tenants can be added as well, programmatically.
 
 But first, you must always run migrations in the public schema in order to get the tenant model created. You can then migrate the rest of the schemas.
 

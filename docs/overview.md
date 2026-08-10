@@ -29,7 +29,7 @@ The terms _schema_ and _tenant_ are used indistinctly all over the documentation
 
 In a typical software-as-a-service (SaaS), there can be a group of static sites that are related to enterprise level operations. For instance, a site where customers can enter payment information and sign up for a tenant, or an enterprise content management system. These sites are generally well defined at the time of developing the web application.
 
-On the other hand, there are the sites of the customers that will sign up of the SaaS. The specific information for these sites is dynamic in nature, because it cannot be determined at the time of developing the application.
+On the other hand, there are the sites of the customers that will sign up for the SaaS. The specific information for these sites is dynamic in nature, because it cannot be determined at the time of developing the application.
 
 This package allows you to manage both static and dynamic tenants. Static tenants are defined through Django settings, whereas dynamic tenants are stored in specific tables in the database.
 

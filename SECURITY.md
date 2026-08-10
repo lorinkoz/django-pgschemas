@@ -14,6 +14,6 @@ Instead, write an email to lorinkoz@gmail.com with full details of the finding.
 Alternatively, use GitHub's integrated vulnerability report.
 Expect a response in 24 to 48 hours.
 
-If you report is accepted, we will work to publish a patch as soon as possible.
+If your report is accepted, we will work to publish a patch as soon as possible.
 We will also provide an advisory covering the details of the vulnerability, as well
 as the affected versions.

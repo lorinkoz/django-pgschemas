@@ -1,8 +1,8 @@
 ## Fast dynamic tenant creation
 
-Every time a instance of the tenant model is created, by default, the corresponding schema is created and migrations are applied automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
+Every time an instance of the tenant model is created, by default, the corresponding schema is created and migrations are applied automatically. Depending on the number of migrations you already have in place, or the amount of time these could take, or whether you need to pre-populate the newly created schema with fixtures, this process could take a considerable amount of time.
 
-If you need a faster creation of dynamic schemas, you can do so by provisioning a "reference" schema that can cloned into new schemas.
+If you need a faster creation of dynamic schemas, you can do so by provisioning a "reference" schema that can be cloned into new schemas.
 
 ```python title="settings.py" hl_lines="10"
 TENANTS |= {

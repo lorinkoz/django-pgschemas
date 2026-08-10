@@ -117,7 +117,7 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # type: ignore
                 AND con.contype = 'f'""",
             [table_name, get_current_schema().schema_name],
         )
-        relations = {}
+        relations: dict[str, tuple[Any, ...]] = {}
         on_delete_types = getattr(self, "on_delete_types", None)
         for row in cursor.fetchall():
             if on_delete_types is not None:

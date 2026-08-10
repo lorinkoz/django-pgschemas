@@ -1,6 +1,5 @@
 from django.db import models
 
-from django_pgschemas.postgresql.base import check_schema_name
 from django_pgschemas.schema import Schema
 from django_pgschemas.signals import (
     dynamic_tenant_needs_sync,
@@ -8,6 +7,7 @@ from django_pgschemas.signals import (
     dynamic_tenant_pre_drop,
 )
 from django_pgschemas.utils import (
+    check_schema_name_not_reserved,
     create_or_clone_schema,
     drop_schema,
     schema_exists,
@@ -37,7 +37,9 @@ class TenantModel(Schema, models.Model):
     Leave this as `True`. Denotes it's a database controlled tenant.
     """
 
-    schema_name = models.CharField(max_length=63, unique=True, validators=[check_schema_name])
+    schema_name = models.CharField(
+        max_length=63, unique=True, validators=[check_schema_name_not_reserved]
+    )
 
     class Meta:
         abstract = True
@@ -51,6 +53,9 @@ class TenantModel(Schema, models.Model):
         verbosity: int = 1,
     ) -> None:
         is_new = self.pk is None
+
+        if is_new or update_fields is None or "schema_name" in update_fields:
+            check_schema_name_not_reserved(self.schema_name)
 
         super().save(
             force_insert=force_insert,

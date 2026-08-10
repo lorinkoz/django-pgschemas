@@ -341,7 +341,8 @@ def test_check_schema_names(schema, app_config, tenant_manager):
     if tenant_manager is None:
         pytest.skip("Dynamic tenants are not in use")
 
-    tenant_manager.create(schema_name=schema)
+    # Bypass TenantModel.save validation so we can seed an intentional clash for W004.
+    tenant_manager.bulk_create([tenant_manager.model(schema_name=schema)])
     expected_errors = [
         Critical(
             f"Name clash found between static and dynamic tenants: {{'{schema}'}}",

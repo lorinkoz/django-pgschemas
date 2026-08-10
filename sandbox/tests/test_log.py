@@ -13,7 +13,7 @@ class TestSchemaContextFilter:
         scf = SchemaContextFilter()
 
         with Schema.create(
-            schema_name="some-tenant",
+            schema_name="some_tenant",
             routing=DomainInfo(
                 domain="some-tenant.some-url.com",
                 folder="folder1",
@@ -21,7 +21,7 @@ class TestSchemaContextFilter:
         ):
             scf.filter(record)
 
-        assert record.schema_name == "some-tenant"
+        assert record.schema_name == "some_tenant"
         assert record.domain == "some-tenant.some-url.com"
         assert record.folder == "folder1"
 
@@ -30,12 +30,12 @@ class TestSchemaContextFilter:
         scf = SchemaContextFilter()
 
         with Schema.create(
-            schema_name="some-tenant",
+            schema_name="some_tenant",
             routing=SessionInfo(reference="tenant1"),
         ):
             scf.filter(record)
 
-        assert record.schema_name == "some-tenant"
+        assert record.schema_name == "some_tenant"
         assert record.reference == "tenant1"
 
     def test_filter_with_header(self):
@@ -43,10 +43,10 @@ class TestSchemaContextFilter:
         scf = SchemaContextFilter()
 
         with Schema.create(
-            schema_name="some-tenant",
+            schema_name="some_tenant",
             routing=HeadersInfo(reference="tenant1"),
         ):
             scf.filter(record)
 
-        assert record.schema_name == "some-tenant"
+        assert record.schema_name == "some_tenant"
         assert record.reference == "tenant1"

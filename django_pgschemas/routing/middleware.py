@@ -28,6 +28,17 @@ def strip_tenant_from_path_factory(prefix: str) -> Callable[[str], str]:
 ResponseHandler: TypeAlias = Callable[[HttpRequest], HttpResponse]
 
 
+def apply_tenant_to_request(request: HttpRequest, tenant: Schema) -> None:
+    urlconf = get_urlconf_from_schema(tenant)
+
+    request.tenant = tenant
+    if urlconf is not None:
+        request.urlconf = urlconf
+        set_urlconf(urlconf)
+
+    activate(tenant)
+
+
 def route_domain(request: HttpRequest) -> HttpResponse | None:
     hostname = remove_www(request.get_host().split(":")[0])
 
@@ -97,13 +108,7 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
     if not tenant:
         raise Http404("No tenant for hostname '%s'" % hostname)
 
-    urlconf = get_urlconf_from_schema(tenant)
-
-    request.tenant = tenant
-    request.urlconf = urlconf
-    set_urlconf(urlconf)
-
-    activate(tenant)
+    apply_tenant_to_request(request, tenant)
     return None
 
 
@@ -134,8 +139,7 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
     if tenant is not None:
         tenant.routing = SessionInfo(reference=tenant_ref)
-        request.tenant = tenant
-        activate(tenant)
+        apply_tenant_to_request(request, tenant)
 
     return None
 
@@ -165,8 +169,7 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
 
     if tenant is not None:
         tenant.routing = HeadersInfo(reference=tenant_ref)
-        request.tenant = tenant
-        activate(tenant)
+        apply_tenant_to_request(request, tenant)
 
     return None
 

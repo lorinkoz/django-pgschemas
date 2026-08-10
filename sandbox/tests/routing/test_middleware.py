@@ -191,15 +191,15 @@ class TestDomainRoutingMiddlewareRedirection:
 
 class TestSessionRoutingMiddleware:
     @pytest.mark.parametrize(
-        "session_key, schema_name",
+        "session_key, schema_name, expected_urlconf",
         [
-            ("www", "www"),
-            ("main", "www"),
-            ("blog", "blog"),
-            ("tenant1", "tenant1"),
+            ("www", "www", "sandbox.app_main.urls"),
+            ("main", "www", "sandbox.app_main.urls"),
+            ("blog", "blog", "sandbox.app_blog.urls"),
+            ("tenant1", "tenant1", "sandbox.app_tenants.urls"),
         ],
     )
-    def test_tenant_matching(self, DomainModel, session_key, schema_name, db):
+    def test_tenant_matching(self, DomainModel, session_key, schema_name, expected_urlconf, db):
         if DomainModel is None and "tenant" in schema_name:
             pytest.skip("Domain model is not in use")
 
@@ -214,19 +214,20 @@ class TestSessionRoutingMiddleware:
         assert request.tenant.schema_name == schema_name
         assert isinstance(request.tenant.routing, SessionInfo)
         assert request.tenant.routing.reference == session_key
+        assert request.urlconf == expected_urlconf
 
 
 class TestHeadersRoutingMiddleware:
     @pytest.mark.parametrize(
-        "header, schema_name",
+        "header, schema_name, expected_urlconf",
         [
-            ("www", "www"),
-            ("main", "www"),
-            ("blog", "blog"),
-            ("tenant1", "tenant1"),
+            ("www", "www", "sandbox.app_main.urls"),
+            ("main", "www", "sandbox.app_main.urls"),
+            ("blog", "blog", "sandbox.app_blog.urls"),
+            ("tenant1", "tenant1", "sandbox.app_tenants.urls"),
         ],
     )
-    def test_tenant_matching(self, DomainModel, header, schema_name, db):
+    def test_tenant_matching(self, DomainModel, header, schema_name, expected_urlconf, db):
         if DomainModel is None and "tenant" in schema_name:
             pytest.skip("Domain model is not in use")
 
@@ -241,6 +242,7 @@ class TestHeadersRoutingMiddleware:
         assert request.tenant.schema_name == schema_name
         assert isinstance(request.tenant.routing, HeadersInfo)
         assert request.tenant.routing.reference == header
+        assert request.urlconf == expected_urlconf
 
 
 @pytest.mark.parametrize(

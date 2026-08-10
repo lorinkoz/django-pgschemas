@@ -40,9 +40,9 @@ class DatabaseSchemaIntrospection(module.DatabaseIntrospection):  # type: ignore
             FROM pg_catalog.pg_class c
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind IN ('r', 'v', '')
-                AND n.nspname = '%s'
-                AND pg_catalog.pg_table_is_visible(c.oid)"""
-            % get_current_schema().schema_name
+                AND n.nspname = %s
+                AND pg_catalog.pg_table_is_visible(c.oid)""",
+            [get_current_schema().schema_name],
         )
 
         return [

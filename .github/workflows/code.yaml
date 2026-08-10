@@ -43,7 +43,7 @@ jobs:
       - name: Install Dependencies
         run: uv sync --group dev
       - name: Install Django specific version ${{ matrix.django-version }}
-        run: uv pip install "Django~=${{ matrix.django-version }}"
+        run: uv pip install "Django~=${{ matrix.django-version }}.0"
       - name: Install psycopg specific version ${{ matrix.psycopg-version }}
         run: uv pip install ${{ matrix.psycopg-version }}
       - name: Run Tests

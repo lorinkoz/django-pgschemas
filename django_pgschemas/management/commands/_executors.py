@@ -163,9 +163,11 @@ def parallel(
     if errors:
         errors.sort(key=lambda item: item[0])
         if len(errors) == 1:
-            schema, exc = errors[0]
-            raise CommandError(f"Error while running command on schema {schema}: {exc}") from exc
-        details = "\n".join(f"  {schema}: {exc}" for schema, exc in errors)
+            schema, error = errors[0]
+            raise CommandError(
+                f"Error while running command on schema {schema}: {error}"
+            ) from error
+        details = "\n".join(f"  {schema}: {error}" for schema, error in errors)
         raise CommandError(f"Error while running command on {len(errors)} schemas:\n{details}")
 
     return schemas

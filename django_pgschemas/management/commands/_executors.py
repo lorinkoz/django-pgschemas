@@ -5,6 +5,7 @@ from typing import Any
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
+from django.db import connections
 from django.db.utils import ProgrammingError
 
 from django_pgschemas.routing.info import DomainInfo
@@ -140,8 +141,31 @@ def parallel(
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
 
+    def run(schema_name: str) -> str:
+        try:
+            return runner(schema_name)
+        finally:
+            # Each worker thread gets its own DB connections; close them so the
+            # pool does not leak connections across schemas / tasks.
+            connections.close_all()
+
+    errors: list[tuple[str, Exception]] = []
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        results = {executor.submit(runner, schema) for schema in schemas}
-        as_completed(results)
+        futures = {executor.submit(run, schema): schema for schema in schemas}
+        for future in as_completed(futures):
+            schema = futures[future]
+            try:
+                future.result()
+            except Exception as exc:
+                errors.append((schema, exc))
+
+    if errors:
+        errors.sort(key=lambda item: item[0])
+        if len(errors) == 1:
+            schema, exc = errors[0]
+            raise CommandError(f"Error while running command on schema {schema}: {exc}") from exc
+        details = "\n".join(f"  {schema}: {exc}" for schema, exc in errors)
+        raise CommandError(f"Error while running command on {len(errors)} schemas:\n{details}")
 
     return schemas

@@ -149,7 +149,7 @@ For instance, after starting a new Django shell, querying the `Tenant` model wil
 Before being able to operate in a tenant's schema, that tenant/schema must be activated first:
 
 ```bash hl_lines="1 5 8"
->>> from django_pgschemas.schemas import Schema
+>>> from django_pgschemas.schema import Schema
 >>> from tenants.models import Tenant
 >>> from blog.models import BlogEntry
 >>> from customers.models import Product

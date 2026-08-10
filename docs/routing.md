@@ -9,7 +9,7 @@ Tenants will have one or many domains (or subdomains), but each domain will corr
 In this mechanism we use a database table to control domains per tenant. This domain model can be defined like this:
 
 ```python title="tenants/models.py"
-from django_pgschemas.models import DomainModel
+from django_pgschemas.routing.models import DomainModel
 
 class Domain(DomainModel):
     pass
@@ -108,6 +108,14 @@ For a special case with subfolder routing please see [fallback domains](advanced
 
 In this mechanism a request header is defined to pass the tenant database ID or the schema name.
 
+!!! Warning
+
+    Header routing is an **unauthenticated** tenant switch. Anyone who can set
+    `PGSCHEMAS_TENANT_HEADER` can activate that tenant. Only use this behind a
+    trusted gateway (for example mTLS, private network, or an API gateway that
+    strips/overrides the header). Never expose it as a public client-controlled
+    header on the open internet.
+
 ```python title="settings.py"
 PGSCHEMAS_TENANT_HEADER = "tenant"
 ```
@@ -170,6 +178,14 @@ MIDDLEWARE = (
 ## Session routing
 
 In this mechanism a session key is defined to store the tenant database ID or the schema name.
+
+!!! Warning
+
+    Session routing trusts whatever value is already stored in the session. If
+    tenants are bound to authenticated users, place
+    `SessionRoutingMiddleware` **after** both `SessionMiddleware` and
+    `AuthenticationMiddleware`, and only write the tenant session key from
+    code that has already authorized that user for that tenant.
 
 ```python title="settings.py"
 PGSCHEMAS_TENANT_SESSION_KEY = "tenant"

@@ -49,6 +49,18 @@ def test_get_limit_set_calls(settings, has_value):
         assert not utils.get_limit_set_calls()
 
 
+def test_get_parallel_max_workers(settings):
+    from django_pgschemas.settings import get_parallel_max_workers
+
+    assert get_parallel_max_workers() is None
+
+    settings.PGSCHEMAS_PARALLEL_MAX_PROCESSES = 2
+    assert get_parallel_max_workers() == 2
+
+    settings.PGSCHEMAS_PARALLEL_MAX_THREADS = 4
+    assert get_parallel_max_workers() == 4
+
+
 def test_get_clone_reference(tenants_settings):
     clone_reference = utils.get_clone_reference()
 
@@ -89,6 +101,29 @@ def test_check_schema_name(name, is_valid):
             utils.check_schema_name(name)
 
 
+def test_check_schema_name_not_reserved(tenants_settings):
+    utils.check_schema_name_not_reserved("brand_new_tenant")
+
+    with pytest.raises(ValidationError, match="clashes"):
+        utils.check_schema_name_not_reserved("www")
+
+    with pytest.raises(ValidationError, match="clashes"):
+        utils.check_schema_name_not_reserved("public")
+
+    if "default" in tenants_settings:
+        with pytest.raises(ValidationError, match="clashes"):
+            utils.check_schema_name_not_reserved("sample")
+        with pytest.raises(ValidationError, match="clashes"):
+            utils.check_schema_name_not_reserved("default")
+
+
+def test_quote_schema_name():
+    assert utils.quote_schema_name("www") == '"www"'
+
+    with pytest.raises(ValidationError):
+        utils.quote_schema_name("pg_bad")
+
+
 def test_run_in_public_schema(db):
     @utils.run_in_public_schema
     def inner():
@@ -96,11 +131,11 @@ def test_run_in_public_schema(db):
             cursor.execute("SHOW search_path")
             assert cursor.fetchone() == ("public",)
 
-    with schema.Schema.create(schema_name="test"):
+    with schema.Schema.create(schema_name="www"):
         inner()
         with connection.cursor() as cursor:
             cursor.execute("SHOW search_path")
-            cursor.fetchone() == ("test, public",)
+            assert cursor.fetchone() == ("www, public",)
 
 
 def test_schema_exists(db):
@@ -144,14 +179,19 @@ def test_clone_schema(db):
 
     assert utils.schema_exists("sample2")  # Schema exists
 
+    # Intentional error aborts the test transaction; do not query afterward.
     with pytest.raises(DatabaseError):
         utils.clone_schema("sample", "sample2")  # Schema already exists, error
 
-    assert utils.schema_exists("sample2")  # Schema still exists
 
+def test_create_or_clone_schema(TenantModel, db):
+    if TenantModel is None:
+        pytest.skip("Dynamic tenants are not in use")
 
-def test_create_or_clone_schema(db):
-    assert not utils.create_or_clone_schema("sample")  # Schema existed
+    assert not utils.create_or_clone_schema("tenant1")  # Schema existed
+
+    with pytest.raises(ValidationError, match="clashes"):
+        utils.create_or_clone_schema("www")
 
 
 @pytest.mark.parametrize(

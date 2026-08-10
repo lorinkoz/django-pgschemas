@@ -112,35 +112,6 @@ def ensure_overall_schemas() -> None:
                 raise ImproperlyConfigured(f"'{schema}' is not a valid schema name.")
 
 
-def ensure_extra_search_paths() -> None:
-    if not (extra_search_paths := get_extra_search_paths()):
-        return
-
-    TenantModel = get_tenant_model()
-
-    dynamic_tenants = []
-
-    if "default" in settings.TENANTS and "CLONE_REFERENCE" in settings.TENANTS["default"]:
-        dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
-
-    if TenantModel is not None:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
-                [TenantModel._meta.db_table],
-            )
-            if cursor.fetchone():
-                dynamic_tenants += list(TenantModel.objects.values_list("schema_name", flat=True))
-
-    invalid_schemas = set(extra_search_paths) & (
-        set(settings.TENANTS.keys()) | set(dynamic_tenants)
-    )
-
-    if invalid_schemas:
-        invalid = ", ".join(invalid_schemas)
-        raise ImproperlyConfigured(f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS.")
-
-
 @checks.register()
 def check_principal_apps(app_configs: Any, **kwargs: Any) -> list:
     errors = []
@@ -269,3 +240,45 @@ def check_schema_names(app_configs: Any, **kwargs: Any) -> list:
         )
 
     return errors
+
+
+@checks.register(checks.Tags.database)
+def check_extra_search_paths(app_configs: Any, **kwargs: Any) -> list:
+    if not (extra_search_paths := get_extra_search_paths()):
+        return []
+
+    TenantModel = get_tenant_model()
+    dynamic_tenants: list[str] = []
+
+    if "default" in settings.TENANTS and "CLONE_REFERENCE" in settings.TENANTS["default"]:
+        dynamic_tenants.append(settings.TENANTS["default"]["CLONE_REFERENCE"])
+
+    if TenantModel is not None:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM information_schema.tables WHERE table_name = %s;",
+                    [TenantModel._meta.db_table],
+                )
+                if cursor.fetchone():
+                    dynamic_tenants += list(
+                        TenantModel.objects.values_list("schema_name", flat=True)
+                    )
+        except ProgrammingError:
+            # First migrate / empty database — skip dynamic tenant lookup.
+            pass
+
+    invalid_schemas = set(extra_search_paths) & (
+        set(settings.TENANTS.keys()) | set(dynamic_tenants)
+    )
+
+    if not invalid_schemas:
+        return []
+
+    invalid = ", ".join(sorted(invalid_schemas))
+    return [
+        checks.Error(
+            f"Do not include '{invalid}' on PGSCHEMAS_EXTRA_SEARCH_PATHS.",
+            id="pgschemas.W005",
+        )
+    ]

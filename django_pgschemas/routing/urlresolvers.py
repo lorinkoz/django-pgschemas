@@ -87,30 +87,16 @@ def _get_urlconf_from_schema(
 
             return urlconf
 
-        case SessionInfo(reference):
-            # Checking for static tenants
+        case SessionInfo(_):
             if not schema.is_dynamic:
-                for schema_name, data in settings.TENANTS.items():
-                    if schema_name in ["public", "default"]:
-                        continue
-                    if reference == data.get("SESSION_KEY"):
-                        return data.get(config_key)
-                return None
+                return settings.TENANTS.get(schema.schema_name, {}).get(config_key)
 
-            # Checking for dynamic tenants
             return settings.TENANTS.get("default", {}).get(config_key)
 
-        case HeadersInfo(reference):
-            # Checking for static tenants
+        case HeadersInfo(_):
             if not schema.is_dynamic:
-                for schema_name, data in settings.TENANTS.items():
-                    if schema_name in ["public", "default"]:
-                        continue
-                    if reference == data.get("HEADER"):
-                        return data.get(config_key)
-                return None
+                return settings.TENANTS.get(schema.schema_name, {}).get(config_key)
 
-            # Checking for dynamic tenants
             return settings.TENANTS.get("default", {}).get(config_key)
 
         case _:

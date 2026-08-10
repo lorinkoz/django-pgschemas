@@ -21,6 +21,9 @@ class Schema:
 
     @staticmethod
     def create(schema_name: str, routing: RoutingInfo | None = None) -> "Schema":
+        from django_pgschemas.utils import check_schema_name
+
+        check_schema_name(schema_name)
         schema = Schema()
         schema.schema_name = schema_name
         schema.routing = routing

@@ -33,6 +33,13 @@ def get_tenant_header() -> str:
     return getattr(settings, "PGSCHEMAS_TENANT_HEADER", "tenant")
 
 
+def get_parallel_max_workers() -> int | None:
+    if hasattr(settings, "PGSCHEMAS_PARALLEL_MAX_THREADS"):
+        return getattr(settings, "PGSCHEMAS_PARALLEL_MAX_THREADS")
+    # Backwards compatibility with the old setting name.
+    return getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
+
+
 def get_pathname_function() -> Callable | None:
     return getattr(settings, "PGSCHEMAS_PATHNAME_FUNCTION", None)
 

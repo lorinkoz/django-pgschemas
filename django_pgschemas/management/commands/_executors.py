@@ -5,11 +5,13 @@ from typing import Any
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError, OutputWrapper
+from django.db import connections
 from django.db.utils import ProgrammingError
 
 from django_pgschemas.routing.info import DomainInfo
 from django_pgschemas.routing.models import get_primary_domain_for_tenant
 from django_pgschemas.schema import Schema, activate
+from django_pgschemas.settings import get_parallel_max_workers
 from django_pgschemas.utils import get_clone_reference, get_tenant_model
 
 
@@ -128,19 +130,44 @@ def parallel(
     kwargs: dict[str, Any] | None = None,
     pass_schema_in_kwargs: bool = False,
 ) -> list[str]:
-    processes = getattr(settings, "PGSCHEMAS_PARALLEL_MAX_PROCESSES", None)
+    max_workers = get_parallel_max_workers()
     runner = functools.partial(
         run_on_schema,
         executor_codename="parallel",
-        command=type(command),  # Can't pass streams to children processes
+        command=type(command),  # Can't pass streams to children threads
         function_name=function_name,
         args=args,
         kwargs=kwargs,
         pass_schema_in_kwargs=pass_schema_in_kwargs,
     )
 
-    with ThreadPoolExecutor(max_workers=processes) as executor:
-        results = {executor.submit(runner, schema) for schema in schemas}
-        as_completed(results)
+    def run(schema_name: str) -> str:
+        try:
+            return runner(schema_name)
+        finally:
+            # Each worker thread gets its own DB connections; close them so the
+            # pool does not leak connections across schemas / tasks.
+            connections.close_all()
+
+    errors: list[tuple[str, Exception]] = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(run, schema): schema for schema in schemas}
+        for future in as_completed(futures):
+            schema = futures[future]
+            try:
+                future.result()
+            except Exception as exc:
+                errors.append((schema, exc))
+
+    if errors:
+        errors.sort(key=lambda item: item[0])
+        if len(errors) == 1:
+            schema, error = errors[0]
+            raise CommandError(
+                f"Error while running command on schema {schema}: {error}"
+            ) from error
+        details = "\n".join(f"  {schema}: {error}" for schema, error in errors)
+        raise CommandError(f"Error while running command on {len(errors)} schemas:\n{details}")
 
     return schemas

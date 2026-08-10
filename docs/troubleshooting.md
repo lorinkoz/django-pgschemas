@@ -5,6 +5,7 @@ The application(s) that contain the tenant model and the domain model should be 
 !!! Tip
 
     You can silence this check through the code `pgschemas.W001`.
+    Despite the `W` prefix, this check is reported as an `Error`.
 
 ## Content types
 
@@ -36,8 +37,17 @@ In order to remove the tables from the source app, you will have to actually do 
 
 It is possible to define a static tenant whose name clashes with an existing dynamic tenant. This is especially true for the clone reference, which can be added as an afterthought in order to speed up dynamic tenant creation. It is also possible to create a dynamic tenant with a name already present in the static tenant configuration.
 
-We do not provide an out-of-the-box validation mechanism for dynamic tenants upon creation, as attempt to prevent name clashes with static tenants. However, we do provide a system check that fails with a critical error message if a name clash is found. Since this check must query the database in order to fetch the schema name for all dynamic tenants, it is tagged as a database check, which makes it run only in database related operations and management commands. This means that the check will not be run via `runserver`, but will be run in commands like `migrate`, `cloneschema` and `createrefschema`.
+Dynamic tenant creation validates against static tenant names (and the clone reference) in `TenantModel.save` / schema helpers. In addition, a system check fails with a critical error if a clash is already present in the database. Since that check must query the database, it is tagged as a database check and runs only in database-related operations and management commands. This means that the check will not be run via `runserver`, but will be run in commands like `migrate`, `cloneschema` and `createrefschema`.
 
 !!! Tip
 
     You can silence this check through the code `pgschemas.W004`.
+    Despite the `W` prefix, this check is reported as `Critical`.
+
+## Extra search paths overlapping tenants
+
+`PGSCHEMAS_EXTRA_SEARCH_PATHS` must not include any static tenant schema, the clone reference, or a dynamic tenant schema name. Overlaps are reported by system check `pgschemas.W005`, which is database-tagged for the same reason as `W004`.
+
+!!! Tip
+
+    You can silence this check through the code `pgschemas.W005`.

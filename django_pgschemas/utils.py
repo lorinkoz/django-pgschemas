@@ -7,9 +7,11 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import DEFAULT_DB_ALIAS, ProgrammingError, connection, transaction
+from django.db import ProgrammingError, connection, transaction
 from django.db.models import Model
 from django.utils.encoding import force_str
+
+from django_pgschemas import settings as pg_settings
 
 
 def get_tenant_model(require_ready: bool = True) -> Model | None:
@@ -27,11 +29,11 @@ def get_domain_model(require_ready: bool = True) -> Model | None:
 
 
 def get_tenant_database_alias() -> str:
-    return getattr(settings, "PGSCHEMAS_TENANT_DB_ALIAS", DEFAULT_DB_ALIAS)
+    return pg_settings.get_tenant_db_alias()
 
 
 def get_limit_set_calls() -> bool:
-    return getattr(settings, "PGSCHEMAS_LIMIT_SET_CALLS", False)
+    return pg_settings.get_limit_set_calls()
 
 
 def get_clone_reference() -> str | None:
@@ -59,6 +61,30 @@ def check_schema_name(name: str) -> None:
     """
     if not is_valid_schema_name(name):
         raise ValidationError("Invalid string used for the schema name.")
+
+
+def check_schema_name_not_reserved(name: str) -> None:
+    """
+    Validates `name` as a schema identifier and ensures it does not clash with
+    static tenant keys or the clone reference.
+    """
+    check_schema_name(name)
+
+    reserved = set(settings.TENANTS.keys())
+    clone_reference = get_clone_reference()
+    if clone_reference:
+        reserved.add(clone_reference)
+
+    if name.lower() in {item.lower() for item in reserved}:
+        raise ValidationError(
+            f"Schema name '{name}' clashes with a static tenant or clone reference."
+        )
+
+
+def quote_schema_name(schema_name: str) -> str:
+    "Returns a safely quoted schema identifier for use in SQL."
+    check_schema_name(schema_name)
+    return connection.ops.quote_name(schema_name)
 
 
 def remove_www(path: str) -> str:
@@ -158,7 +184,7 @@ def create_schema(
         return False
 
     with connection.cursor() as cursor:
-        cursor.execute("CREATE SCHEMA %s" % schema_name)
+        cursor.execute("CREATE SCHEMA %s" % quote_schema_name(schema_name))
 
     if sync_schema:
         call_command("migrateschema", schemas=[schema_name], verbosity=verbosity)
@@ -176,7 +202,7 @@ def drop_schema(schema_name: str, check_if_exists: bool = True, verbosity: int =
         return False
 
     with connection.cursor() as cursor:
-        cursor.execute("DROP SCHEMA %s CASCADE" % schema_name)
+        cursor.execute("DROP SCHEMA %s CASCADE" % quote_schema_name(schema_name))
 
     return True
 
@@ -238,7 +264,7 @@ def create_or_clone_schema(schema_name: str, sync_schema: bool = True, verbosity
     exists before creating it. Returns `True` if the schema was created,
     `False` otherwise.
     """
-    check_schema_name(schema_name)
+    check_schema_name_not_reserved(schema_name)
 
     if schema_exists(schema_name):
         return False

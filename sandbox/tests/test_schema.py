@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 from django.template import Context, Template
 
 from django_pgschemas.routing.info import DomainInfo, HeadersInfo, SessionInfo
@@ -10,6 +11,11 @@ from django_pgschemas.schema import (
     override,
     shallow_equal,
 )
+
+
+def test_schema_create_rejects_invalid_names():
+    with pytest.raises(ValidationError):
+        Schema.create(schema_name="pg_invalid")
 
 
 @pytest.mark.parametrize(

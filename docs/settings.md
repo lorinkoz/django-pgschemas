@@ -47,7 +47,7 @@ TENANTS = {
 
 Default: `[]`
 
-Other schemas to include in Postgres search path. You cannot include the schema for any static or dynamic tenant. The public schema is included by default, so, including it here will raise `ImproperlyConfigured`.
+Other schemas to include in Postgres search path. You cannot include the schema for any static or dynamic tenant. The public schema is included by default, so including it here will raise system check `pgschemas.W005` (database-tagged; see [troubleshooting](troubleshooting.md)).
 
 ## `PGSCHEMAS_LIMIT_SET_CALLS`
 
@@ -55,23 +55,39 @@ Default: `False`
 
 By default, the search path is set every time a database cursor is required. In some intense situations, this could slow down the queries. Set to `True` to limit the number of calls for setting the search path.
 
+!!! Warning
+
+    `PGSCHEMAS_LIMIT_SET_CALLS=True` is unsafe with transaction-pooling PgBouncer (or similar), because the cached search path may not match the connection handed out for the next request.
+
 ## `PGSCHEMAS_ORIGINAL_BACKEND`
 
 Default: `"django.db.backends.postgresql"`
 
 The base backend to inherit from. If you have a customized backend of Postgres, you can specify it here.
 
-## `PGSCHEMAS_PARALLEL_MAX_PROCESSES`
+## `PGSCHEMAS_PARALLEL_MAX_THREADS`
 
 Default: `None`
 
-When `--parallel` is passed in any tenant command, this setting will control the max number of processes the parallel executor can spawn. By default, `None` means that the number of CPUs will be used.
+When `--parallel` is passed in any tenant command, this setting controls the max number of threads the parallel executor (`ThreadPoolExecutor`) can use. By default, `None` means the number of CPUs will be used.
 
 ## `PGSCHEMAS_TENANT_DB_ALIAS`
 
 Default: `"default"`
 
 The database alias where the tenant configuration is going to take place.
+
+## `PGSCHEMAS_TENANT_HEADER`
+
+Default: `"tenant"`
+
+HTTP header name used by header-based routing to select a tenant. See [routing](routing.md#header-routing) for the trust model and security warnings.
+
+## `PGSCHEMAS_TENANT_SESSION_KEY`
+
+Default: `"tenant"`
+
+Session key used by session-based routing to select a tenant. See [routing](routing.md#session-routing) for setup notes.
 
 ## `PGSCHEMAS_PATHNAME_FUNCTION`
 

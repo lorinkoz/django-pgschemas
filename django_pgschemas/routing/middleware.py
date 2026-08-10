@@ -3,6 +3,7 @@ from typing import Callable, TypeAlias, cast
 
 from asgiref.sync import iscoroutinefunction, sync_to_async
 from django.conf import settings
+from django.core.signals import request_finished
 from django.db.models import Q
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -26,6 +27,17 @@ def strip_tenant_from_path_factory(prefix: str) -> Callable[[str], str]:
 
 
 ResponseHandler: TypeAlias = Callable[[HttpRequest], HttpResponse]
+
+
+def apply_tenant_to_request(request: HttpRequest, tenant: Schema) -> None:
+    urlconf = get_urlconf_from_schema(tenant)
+
+    request.tenant = tenant
+    if urlconf is not None:
+        request.urlconf = urlconf
+        set_urlconf(urlconf)
+
+    activate(tenant)
 
 
 def route_domain(request: HttpRequest) -> HttpResponse | None:
@@ -97,17 +109,13 @@ def route_domain(request: HttpRequest) -> HttpResponse | None:
     if not tenant:
         raise Http404("No tenant for hostname '%s'" % hostname)
 
-    urlconf = get_urlconf_from_schema(tenant)
-
-    request.tenant = tenant
-    request.urlconf = urlconf
-    set_urlconf(urlconf)
-
-    activate(tenant)
+    apply_tenant_to_request(request, tenant)
     return None
 
 
 def route_session(request: HttpRequest) -> HttpResponse | None:
+    activate_public()
+
     tenant_session_key = get_tenant_session_key()
 
     if not hasattr(request, "session") or not (
@@ -134,13 +142,14 @@ def route_session(request: HttpRequest) -> HttpResponse | None:
 
     if tenant is not None:
         tenant.routing = SessionInfo(reference=tenant_ref)
-        request.tenant = tenant
-        activate(tenant)
+        apply_tenant_to_request(request, tenant)
 
     return None
 
 
 def route_headers(request: HttpRequest) -> HttpResponse | None:
+    activate_public()
+
     tenant_header = get_tenant_header()
 
     if not (tenant_ref := request.headers.get(tenant_header)):
@@ -165,8 +174,7 @@ def route_headers(request: HttpRequest) -> HttpResponse | None:
 
     if tenant is not None:
         tenant.routing = HeadersInfo(reference=tenant_ref)
-        request.tenant = tenant
-        activate(tenant)
+        apply_tenant_to_request(request, tenant)
 
     return None
 
@@ -203,3 +211,10 @@ def middleware_factory(
 DomainRoutingMiddleware = middleware_factory(route_domain)
 SessionRoutingMiddleware = middleware_factory(route_session)
 HeadersRoutingMiddleware = middleware_factory(route_headers)
+
+
+def _reset_schema_after_request(**kwargs: object) -> None:
+    activate_public()
+
+
+request_finished.connect(_reset_schema_after_request)

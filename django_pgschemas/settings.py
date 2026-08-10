@@ -1,3 +1,4 @@
+from functools import partial
 from importlib import import_module
 from types import ModuleType
 from typing import Callable
@@ -36,15 +37,21 @@ def get_pathname_function() -> Callable | None:
     return getattr(settings, "PGSCHEMAS_PATHNAME_FUNCTION", None)
 
 
-def get_base_backend_module(submodule: str | None = None) -> ModuleType:
-    module = DEFAULT_BACKEND
-    if submodule:
-        module += f".{submodule}"
+def import_backend_module(
+    backend: str | Callable[[], str],
+    submodule: str | None = None,
+) -> ModuleType:
+    # Django 6.1+: postgresql.introspection imports psycopg_version from
+    # postgresql.base, which imports postgresql.introspection. Importing
+    # introspection first leaves base half-initialized and raises ImportError.
+    # Django itself never hits this because base is always imported first.
+    if callable(backend):
+        backend = backend()
+    if submodule and submodule != "base":
+        import_module(f"{backend}.base")
+    module = backend if not submodule else f"{backend}.{submodule}"
     return import_module(module)
 
 
-def get_original_backend_module(submodule: str | None = None) -> ModuleType:
-    module = get_original_backend()
-    if submodule:
-        module += f".{submodule}"
-    return import_module(module)
+get_base_backend_module = partial(import_backend_module, DEFAULT_BACKEND)
+get_original_backend_module = partial(import_backend_module, get_original_backend)

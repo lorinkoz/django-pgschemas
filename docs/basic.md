@@ -2,7 +2,7 @@ This package requires:
 
 - Python (3.12+)
 - Django (5.2+)
-- Postgres (14+)
+- Postgres (15+)
 - Any version of psycopg.
 
 ## Installation

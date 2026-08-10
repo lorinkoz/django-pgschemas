@@ -20,7 +20,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
-        django-version: ["5.2", "6.0"]
+        django-version: ["5.2", "6.0", "6.1"]
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:
@@ -43,7 +43,7 @@ jobs:
       - name: Install Dependencies
         run: uv sync --group dev
       - name: Install Django specific version ${{ matrix.django-version }}
-        run: uv pip install "Django~=${{ matrix.django-version }}"
+        run: uv pip install "Django~=${{ matrix.django-version }}.0"
       - name: Install psycopg specific version ${{ matrix.psycopg-version }}
         run: uv pip install ${{ matrix.psycopg-version }}
       - name: Run Tests

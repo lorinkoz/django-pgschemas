@@ -19,7 +19,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        postgres-version: [14, 15, 16, 17, 18]
+        postgres-version: [15, 16, 17, 18]
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:

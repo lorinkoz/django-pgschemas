@@ -53,7 +53,7 @@ Other schemas to include in Postgres search path. You cannot include the schema 
 
 Default: `False`
 
-By default, the search path is set every time a database cursor is required. In some intense situations, this could ralentize the queries. Set to `True` to limit the number of calls for setting the search path.
+By default, the search path is set every time a database cursor is required. In some intense situations, this could slow down the queries. Set to `True` to limit the number of calls for setting the search path.
 
 ## `PGSCHEMAS_ORIGINAL_BACKEND`
 

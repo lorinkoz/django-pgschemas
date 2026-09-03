@@ -51,17 +51,27 @@ class DatabaseWrapper(module.DatabaseWrapper):  # type: ignore[name-defined]
         # Patched version of DatabaseIntrospection that only returns the table list for the currently selected schema
         self.introspection = DatabaseSchemaIntrospection(self)
 
-    @async_unsafe
-    def close(self) -> None:
+    def _reset_search_path_cache(self) -> None:
         self._search_path = None
         self._setting_search_path = False
+
+    @async_unsafe
+    def close(self) -> None:
+        self._reset_search_path_cache()
         super().close()
 
     @async_unsafe
     def rollback(self) -> None:
-        self._search_path = None
-        self._setting_search_path = False
+        # Session-level SET is transactional; aborting reverts search_path.
+        self._reset_search_path_cache()
         super().rollback()
+
+    @async_unsafe
+    def savepoint_rollback(self, sid: str) -> None:
+        # Same as rollback(), but super() must run first: it opens a cursor,
+        # which would SET search_path, and ROLLBACK TO SAVEPOINT would undo it.
+        super().savepoint_rollback(sid)
+        self._reset_search_path_cache()
 
     def _handle_search_path(self, cursor: Any | None = None) -> None:
         search_path_for_current_schema = get_search_path(get_current_schema())

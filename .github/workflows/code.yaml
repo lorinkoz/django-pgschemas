@@ -24,7 +24,7 @@ jobs:
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -50,9 +50,9 @@ jobs:
         run: uv pip install ${{ matrix.psycopg-version }}
       - name: Run Tests
         run: |
-          uv run coverage run dpgs_sandbox/manage.py test tests -r
-          uv run dpgs_sandbox/manage.py test tests --settings settings.static_only -r
-          uv run coverage lcov -o ./coverage/lcov.info
+          uv run --no-sync coverage run dpgs_sandbox/manage.py test tests -r
+          uv run --no-sync dpgs_sandbox/manage.py test tests --settings settings.static_only -r
+          uv run --no-sync coverage lcov -o ./coverage/lcov.info
       - name: Upload coverage to Coveralls in parallel
         uses: coverallsapp/github-action@master
         with:

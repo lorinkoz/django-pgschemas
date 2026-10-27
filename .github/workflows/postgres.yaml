@@ -19,7 +19,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        postgres-version: [13, 14, 15, 16]
+        postgres-version: [14, 15, 16]
         psycopg-version: ["psycopg", "psycopg2"]
     services:
       postgres:
@@ -46,4 +46,4 @@ jobs:
       - name: Install psycopg specific version ${{ matrix.psycopg-version }}
         run: uv pip install ${{ matrix.psycopg-version }}
       - name: Run Tests
-        run: uv run coverage run dpgs_sandbox/manage.py test tests
+        run: uv run --no-sync coverage run dpgs_sandbox/manage.py test tests

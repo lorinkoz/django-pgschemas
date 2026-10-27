@@ -1,13 +1,18 @@
 name: code
+
 on:
   pull_request:
   push:
     branches:
-      - master
+      - v0
     paths:
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - "**.py"
+
+permissions:
+  contents: read
+
 jobs:
   django-tests:
     runs-on: ubuntu-latest
@@ -28,29 +33,31 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
-        run: poetry install
+        run: uv sync --group dev
       - name: Install Django specific version ${{ matrix.django-version }}
-        run: poetry run pip install "Django${{ matrix.django-version }}"
+        run: uv pip install "Django${{ matrix.django-version }}"
       - name: Install psycopg specific version ${{ matrix.psycopg-version }}
-        run: poetry run pip install ${{ matrix.psycopg-version }}
+        run: uv pip install ${{ matrix.psycopg-version }}
       - name: Run Tests
         run: |
-          poetry run coverage run dpgs_sandbox/manage.py test tests -r
-          poetry run dpgs_sandbox/manage.py test tests --settings settings.static_only -r
-          poetry run coverage lcov -o ./coverage/lcov.info
+          uv run coverage run dpgs_sandbox/manage.py test tests -r
+          uv run dpgs_sandbox/manage.py test tests --settings settings.static_only -r
+          uv run coverage lcov -o ./coverage/lcov.info
       - name: Upload coverage to Coveralls in parallel
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          flag-name: run-py${{ matrix.python-version }}-Django${{ matrix.django-version }}
+          flag-name: run-py${{ matrix.python-version }}-Django${{ matrix.django-version }}-${{ matrix.psycopg-version }}
           parallel: true
   finish:
     needs: django-tests

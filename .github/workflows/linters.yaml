@@ -1,17 +1,32 @@
 name: linters
-on: [push]
+
+on:
+  pull_request:
+  push:
+    branches:
+      - v0
+    paths:
+      - pyproject.toml
+      - uv.lock
+      - "**.py"
+
+permissions:
+  contents: read
+
 jobs:
-  pre-commit:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.x"
+          version: "latest"
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10" # lowest python supported
       - name: Install Dependencies
-        run: poetry install
-      - name: Run linters
-        uses: pre-commit/action@v2.0.0
+        run: uv sync --group dev
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

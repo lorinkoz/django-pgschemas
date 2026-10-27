@@ -5,10 +5,6 @@
 django-pgschemas
 ================
 
-.. image:: https://img.shields.io/badge/packaging-poetry-purple.svg
-    :alt: Packaging: poetry
-    :target: https://github.com/sdispater/poetry
-
 .. image:: https://img.shields.io/badge/code%20style-black-black.svg
     :alt: Code style: black
     :target: https://github.com/ambv/black

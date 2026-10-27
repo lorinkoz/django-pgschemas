@@ -1,10 +1,6 @@
 django-pgschemas
 ================
 
-.. image:: https://img.shields.io/badge/packaging-poetry-purple.svg
-    :alt: Packaging: poetry
-    :target: https://github.com/sdispater/poetry
-
 .. image:: https://img.shields.io/badge/code%20style-black-black.svg
     :alt: Code style: black
     :target: https://github.com/ambv/black
@@ -57,10 +53,13 @@ Contributing
 - Join the discussion at https://github.com/lorinkoz/django-pgschemas/discussions.
 - PRs are welcome! If you have questions or comments, please use the discussions
   link above.
-- To run the test suite run ``make`` or ``make coverage``. The tests for this
-  project live inside a small django project called ``dpgs_sandbox``. Database
-  password and database host can be set through the environment variables
+- Install dependencies with ``mise run install`` and start the database with
+  ``mise run up``.
+- To run the test suite run ``mise run test`` or ``mise run coverage``. The tests
+  for this project live inside a small django project called ``dpgs_sandbox``.
+  Database password and database host can be set through the environment variables
   ``DATABASE_PASSWORD`` and ``DATABASE_HOST``.
+- View available tasks with ``mise tasks``.
 
 Credits
 -------

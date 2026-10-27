@@ -1,0 +1,17 @@
+[tools]
+python = "3.10"
+uv = "latest"
+prek = "latest"
+
+[tasks]
+install = "uv sync --group dev --group psycopg"
+test = "uv run dpgs_sandbox/manage.py test tests"
+coverage = [
+  "uv run coverage run dpgs_sandbox/manage.py test tests",
+  "uv run coverage html",
+]
+types = "uv run mypy ."
+down = "docker compose down"
+up = ["docker compose up --wait postgres", "uv run dpgs_sandbox/manage.py migrate"]
+docs = "uv run sphinx-build -b html docs docs/_build/html"
+update-clone-schema = "curl https://raw.githubusercontent.com/denishpatel/pg-clone-schema/master/clone_schema.sql -o django_pgschemas/clone_schema.sql"

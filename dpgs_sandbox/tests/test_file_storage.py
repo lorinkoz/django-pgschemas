@@ -31,20 +31,20 @@ class TenantFileSystemStorageTestCase(TestCase):
 
     def test_path_identifier_basic(self):
         with SchemaDescriptor.create(schema_name=""):
-            self.assertEquals(self.storage.get_schema_path_identifier(), "")
+            self.assertEqual(self.storage.get_schema_path_identifier(), "")
         with SchemaDescriptor.create(schema_name="public"):
-            self.assertEquals(self.storage.get_schema_path_identifier(), "public")
+            self.assertEqual(self.storage.get_schema_path_identifier(), "public")
         with SchemaDescriptor.create(schema_name="blog"):
-            self.assertEquals(self.storage.get_schema_path_identifier(), "blog")
+            self.assertEqual(self.storage.get_schema_path_identifier(), "blog")
         if TenantModel is not None:
             with TenantModel(schema_name="tenant"):
-                self.assertEquals(self.storage.get_schema_path_identifier(), "tenant")
+                self.assertEqual(self.storage.get_schema_path_identifier(), "tenant")
 
     def test_path_identifier_method_in_tenant(self):
         if TenantModel is not None:
             TenantModel.schema_pathname = lambda x: "custom-pathname"
             with TenantModel(schema_name="tenant"):
-                self.assertEquals(self.storage.get_schema_path_identifier(), "custom-pathname")
+                self.assertEqual(self.storage.get_schema_path_identifier(), "custom-pathname")
             del TenantModel.schema_pathname
 
     def test_path_identifier_function_in_settings(self):
@@ -53,31 +53,31 @@ class TenantFileSystemStorageTestCase(TestCase):
                 PGSCHEMAS_PATHNAME_FUNCTION=lambda tenant: tenant.schema_name + "-custom-pathname"
             ):
                 with TenantModel(schema_name="tenant"):
-                    self.assertEquals(
+                    self.assertEqual(
                         self.storage.get_schema_path_identifier(), "tenant-custom-pathname"
                     )
 
     def test_base_location(self):
         with SchemaDescriptor.create(schema_name=""):
-            self.assertEquals(self.storage.base_location, self.temp_dir + "/")
+            self.assertEqual(self.storage.base_location, self.temp_dir + "/")
         with SchemaDescriptor.create(schema_name="public"):
-            self.assertEquals(self.storage.base_location, self.temp_dir + "/public/")
+            self.assertEqual(self.storage.base_location, self.temp_dir + "/public/")
         with SchemaDescriptor.create(schema_name="blog"):
-            self.assertEquals(self.storage.base_location, self.temp_dir + "/blog/")
+            self.assertEqual(self.storage.base_location, self.temp_dir + "/blog/")
         if TenantModel is not None:
             with SchemaDescriptor.create(schema_name="tenant", folder="folder"):
-                self.assertEquals(self.storage.base_location, self.temp_dir + "/tenant/")
+                self.assertEqual(self.storage.base_location, self.temp_dir + "/tenant/")
 
     def test_base_url(self):
         with SchemaDescriptor.create(schema_name=""):
-            self.assertEquals(self.storage.base_url, "/base-url/")
+            self.assertEqual(self.storage.base_url, "/base-url/")
         with SchemaDescriptor.create(schema_name="public"):
-            self.assertEquals(self.storage.base_url, "/base-url/public/")
+            self.assertEqual(self.storage.base_url, "/base-url/public/")
         with SchemaDescriptor.create(schema_name="blog"):
-            self.assertEquals(self.storage.base_url, "/base-url/blog/")
+            self.assertEqual(self.storage.base_url, "/base-url/blog/")
         if TenantModel is not None:
             with SchemaDescriptor.create(schema_name="tenant", folder="folder"):
-                self.assertEquals(self.storage.base_url, "/base-url/")
+                self.assertEqual(self.storage.base_url, "/base-url/")
 
     def test_file_path(self):
         if TenantModel is not None:

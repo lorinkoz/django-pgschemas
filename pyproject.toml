@@ -1,6 +1,6 @@
 [project]
 name = "django-pgschemas"
-version = "0.17.0"
+version = "0.17.1"
 description = "Multi-tenancy on Django using PostgreSQL schemas."
 readme = "README.rst"
 license = { text = "MIT" }
